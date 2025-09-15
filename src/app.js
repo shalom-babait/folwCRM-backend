@@ -15,6 +15,7 @@ app.use('/api/email', emailRoutes);
 app.use('/api/therapists', therapistRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/appointments', appointmentRoutes);
+
 app.listen(3000, () => console.log('Server running on port 3000'));
 
 // const express = require('express');
