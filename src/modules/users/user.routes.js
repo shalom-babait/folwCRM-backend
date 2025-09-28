@@ -1,10 +1,12 @@
 import express from "express";
 import { createUserController } from "./user.controller.js";
+import { loginController } from "../login/login.controller.js";
 
 const router = express.Router();
 
 // POST /api/users - יצירת משתמש חדש
 router.post("/", createUserController);
+router.post("/login", loginController);
 
 export default router;
 

@@ -79,6 +79,40 @@ export async function createUser(userData) {
     throw error;
   }
 }
+
+export async function loginUser(email, password) {
+  try {
+    // חיפוש משתמש לפי אימייל
+    const user = await findByEmail(email);
+    
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // בדיקת סיסמה
+    // אם אתם משתמשים בהצפנה:
+    // const isPasswordValid = await bcrypt.compare(password, user.password);
+    
+    // אם אתם לא משתמשים בהצפנה (לא מומלץ בסביבת פרודקשן):
+    const isPasswordValid = password === user.password;
+    
+    if (!isPasswordValid) {
+      throw new Error("Invalid password");
+    }
+
+    // החזרת נתוני המשתמש ללא הסיסמה
+    const { password: userPassword, ...userWithoutPassword } = user;
+    
+    return {
+      user: userWithoutPassword,
+      message: "Login successful"
+    };
+    
+  } catch (error) {
+    throw error;
+  }
+}
+
 // import { createUser } from './user.repo.js';
 // import bcrypt from 'bcrypt';
 
