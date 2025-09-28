@@ -3,7 +3,7 @@ import { createRoomController, getRoomsController } from "./rooms.controller.js"
 
 const router = express.Router();
 
-router.get("/",getRoomsController)
+router.get("/getRooms",getRoomsController)
 router.post("/",createRoomController)
 
 export default router;
