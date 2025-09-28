@@ -5,6 +5,7 @@ import emailRoutes from './modules/email/email.routes.js';
 import therapistRoutes from './modules/therapists/therapists.routes.js';
 import patientRoutes from './modules/patients/patients.routes.js';
 import appointmentRoutes from './modules/appointments/appointments.routes.js';
+import roomsRoutes from './modules/rooms/rooms.routes.js';
 const app = express();
 
 app.use(cors());
@@ -15,6 +16,7 @@ app.use('/api/email', emailRoutes);
 app.use('/api/therapists', therapistRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/appointments', appointmentRoutes);
+app.use('/api/rooms', roomsRoutes);
 
 app.listen(3000, () => console.log('Server running on port 3000'));
 

@@ -1,4 +1,4 @@
-import { create } from "./therapists.repo.js";
+import { create, getTherapists } from "./therapists.repo.js";
 import pool from "../../services/database.js";
 
 export async function createTherapist(therapistData) {
@@ -19,3 +19,8 @@ export async function createTherapist(therapistData) {
     throw error;
   }
 }
+
+export const fetchTherapists = async () => {
+    const therapists = await getTherapists();
+    return therapists;
+};

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, 'C:/sari programing/Shalom-Babait/shalombabait-backend/.env') });
+dotenv.config({ path: path.resolve(__dirname, 'C:/Users/User/Desktop/ShalomBabait/shalombabait-backend/.env') });
 
 const pool = mysql.createPool({
   host: process.env.MYSQL_HOST,

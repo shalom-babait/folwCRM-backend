@@ -1,4 +1,4 @@
-import { createTherapist } from "./therapists.service.js";
+import { createTherapist, fetchTherapists } from "./therapists.service.js";
 
 export async function createTherapistController(req, res) {
   try {
@@ -23,5 +23,15 @@ export async function createTherapistController(req, res) {
       success: false,
       message: error.message
     });
+  }
+}
+
+export async function getTherapidtController(req, res) {
+  try {
+    const therapists = await fetchTherapists();
+    res.json(therapists);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 }
