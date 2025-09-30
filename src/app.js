@@ -2,8 +2,11 @@ import express from 'express';
 import cors from 'cors';
 // import usersRouter from './modules/users/user.routes.js';
 import emailRoutes from './modules/email/email.routes.js';
-import patientRoutes from './modules/patients/patient.routes.js'
-import appointmentsRoutes from './modules/appointments/appointment.routes.js'
+import therapistRoutes from './modules/therapists/therapists.routes.js';
+import patientRoutes from './modules/patients/patients.routes.js';
+import appointmentRoutes from './modules/appointments/appointments.routes.js';
+import roomsRoutes from './modules/rooms/rooms.routes.js';
+import typesRoutes from './modules/types/types.routes.js';
 
 const app = express();
 
@@ -12,11 +15,11 @@ app.use(express.json());
 
 // app.use('/api/users', usersRouter);
 app.use('/api/email', emailRoutes);
-app.use('/api/patient', patientRoutes);
-app.use('/api/appointments', appointmentsRoutes);
-// app.use('/api/rooms', usersRouter);
-// app.use('/api/therapists', emailRoutes);
-// app.use('/api/treatmentTypes', emailRoutes);
+app.use('/api/therapists', therapistRoutes);
+app.use('/api/patients', patientRoutes);
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/rooms', roomsRoutes);
+app.use('/api/types', typesRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {

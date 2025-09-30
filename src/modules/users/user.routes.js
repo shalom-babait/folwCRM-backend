@@ -1,11 +1,15 @@
-import express from 'express';
-import { createUser } from './user.controller.js';
+import express from "express";
+import { createUserController } from "./user.controller.js";
+import { loginController } from "../login/login.controller.js";
 
 const router = express.Router();
 
-router.post('/', createUser);
+// POST /api/users - יצירת משתמש חדש
+router.post("/", createUserController);
+router.post("/login", loginController);
 
 export default router;
+
 
 // const router = require('express').Router();
 // const controller = require('./user.controller');
