@@ -15,5 +15,13 @@ const pool = mysql.createPool({
 });
 
 console.log('Connecting to:', process.env.MYSQLHOST);
+pool.getConnection()
+  .then(conn => {
+    console.log("Connected to MySQL!");
+    conn.release();
+  })
+  .catch(err => {
+    console.error("MySQL connection error:", err);
+  });
 
 export default pool;
