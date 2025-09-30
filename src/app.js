@@ -21,23 +21,7 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/rooms', roomsRoutes);
 app.use('/api/types', typesRoutes);
 
-app.listen(3000, () => console.log('Server running on port 3000'));
-
-// const express = require('express');
-// const app = express();
-// const cors = require('cors')
-// //טוען את הראוטרים מהתקיה
-// const routers = require('./routers/routers');
-
-// app.use(cors());
-// app.use(express.json());
-
-// //כל הראוטרים ירוכזו כאן
-// app.use('/', routers);
-
-// //מה זה?
-// app.get('/', (req, res) => {
-//   res.send('Welcome to server routers');
-// });
-
-// module.exports = app;
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+});
