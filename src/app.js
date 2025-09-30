@@ -18,7 +18,7 @@ app.use('/api/appointments', appointmentsRoutes);
 // app.use('/api/therapists', emailRoutes);
 // app.use('/api/treatmentTypes', emailRoutes);
 
-
-app.listen(3000, () => {
-    console.log('Server running on http://localhost:3000');
-  });
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+});
