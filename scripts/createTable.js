@@ -40,6 +40,7 @@ const roomsTableSQL = `
   );
 `;
 
+
 const therapistsTableSQL = `
   CREATE TABLE IF NOT EXISTS Therapists (
     therapist_id INT AUTO_INCREMENT PRIMARY KEY,
