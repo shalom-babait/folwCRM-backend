@@ -1,6 +1,7 @@
 import { createUser } from './user.repo.js';
 
-import { create, findByEmail, findByTeudatZehut, findByPhone } from "./user.repo.js";
+import { create, findByEmail, findByTeudatZehut, findByPhone, updateToUsers, deleteFromUsers } from "./user.repo.js";
+import pool from "../../services/database.js";
 
 export async function createUser(userData) {
   try {
@@ -113,3 +114,83 @@ export async function loginUser(email, password) {
     throw error;
   }
 }
+
+
+export async function deleteUser(id) {
+  try {
+    const [existing] = await pool.execute(
+      "SELECT * FROM Users WHERE user_id = ?",
+      [id]
+    );
+    if (existing.length === 0) {
+      return false;
+    }
+    return await deleteFromUsers(id);
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function updateUser(id, updateData) {
+  try {
+    const [existing] = await pool.execute(
+      "SELECT * FROM Users WHERE user_id = ?",
+      [id]
+    );
+    if (existing.length === 0) {
+      return false;
+    }
+
+    // Validate email format if it's being updated
+    if (updateData.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(updateData.email)) {
+        throw new Error("Invalid email format");
+      }
+    }
+
+    // Validate phone number if it's being updated
+    if (updateData.phone && !/^\d{10}$/.test(updateData.phone)) {
+      throw new Error("Phone number must be exactly 10 digits");
+    }
+
+    // Validate teudat_zehut if it's being updated
+    if (updateData.teudat_zehut && !/^\d{9}$/.test(updateData.teudat_zehut)) {
+      throw new Error("Teudat Zehut must be exactly 9 digits");
+    }
+
+    return await updateToUsers(id, updateData);
+  } catch (error) {
+    throw error;
+  }
+}
+// import { createUser } from './user.repo.js';
+// import bcrypt from 'bcrypt';
+
+// export async function addUser(userData) {
+//   const { name, email, password } = userData;
+
+//   if (!name || !email || !password) {
+//     throw new Error('All fields are required');
+//   }
+
+//   const hashedPassword = await bcrypt.hash(password, 10);
+//   const id = await createUser(name, email, hashedPassword);
+
+//   return { id, name, email };
+// }
+
+// const repo = require('./user.repo');
+
+// const create = async (payload) => {
+//   const existing = await repo.findByEmail(payload.email);
+//   if (existing) {
+//     const err = new Error('Email already exists');
+//     err.status = 409;
+//     throw err;
+//   }
+//   const id = await repo.create(payload);
+//   return repo.findById(id);
+// };
+
+// const getById = (id) => repo.findById(id);
