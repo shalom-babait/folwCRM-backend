@@ -1,3 +1,4 @@
+import { createUser } from './user.repo.js';
 
 import { create, findByEmail, findByTeudatZehut, findByPhone, updateToUsers, deleteFromUsers } from "./user.repo.js";
 import pool from "../../services/database.js";
@@ -28,7 +29,7 @@ export async function createUser(userData) {
     if (existingUserByPhone) {
       throw new Error("Phone number already exists");
     }
-
+//
     // וולידציה על מספר טלפון (10 ספרות)
     if (!/^\d{10}$/.test(userData.phone)) {
       throw new Error("Phone number must be exactly 10 digits");
