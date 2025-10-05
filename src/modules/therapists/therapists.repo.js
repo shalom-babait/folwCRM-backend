@@ -1,4 +1,4 @@
-import pool from "../../services/database.js";
+import pool, { deleteFromTable, updateTable } from "../../services/database.js";
 
 export async function create(therapistData) {
   const { user_id } = therapistData;
@@ -38,3 +38,11 @@ export async function getTherapists() {
     throw new Error(`Database error: ${error.message}`);
   }
 } 
+
+export async function deleteFromTherapists(therapistId) {
+  return deleteFromTable('Therapists', { therapist_id: therapistId });
+}
+
+export async function updateToTherapists(therapistId, updateData) {
+  return updateTable('Therapists', updateData, { therapist_id: therapistId });
+}

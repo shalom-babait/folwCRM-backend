@@ -1,5 +1,5 @@
 import express from "express";
-import { createUserController } from "./user.controller.js";
+import { createUserController, deleteUserController, updateUserController } from "./user.controller.js";
 import { loginController } from "../login/login.controller.js";
 
 const router = express.Router();
@@ -7,7 +7,8 @@ const router = express.Router();
 // POST /api/users - יצירת משתמש חדש
 router.post("/", createUserController);
 router.post("/login", loginController);
-
+router.delete("/deleteUser/:id", deleteUserController);
+router.put("/updateUser/:id", updateUserController);
 export default router;
 
 

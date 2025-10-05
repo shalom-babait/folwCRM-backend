@@ -1,4 +1,4 @@
-import pool from "../../services/database.js";
+import pool, { deleteFromTable, updateTable } from "../../services/database.js";
 
 export async function create(patientData) {
   const { user_id, therapist_id, birth_date, gender, status, history_notes } = patientData;
@@ -96,3 +96,11 @@ export const getPatientStats = async (patientId) => {
   const [rows] = await pool.query(sql, [patientId]);
   return rows[0]; // מחזיר אובייקט אחד עם total_appointments ו-total_treatment_minutes
 };
+
+export async function deleteFromPatients(patientId) {
+  return deleteFromTable('Patients', { patient_id: patientId });
+}
+
+export async function updateToPatients(patientId, updateData) {
+  return updateTable('Patients', updateData, { patient_id: patientId });
+}

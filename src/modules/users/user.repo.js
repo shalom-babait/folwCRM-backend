@@ -1,4 +1,4 @@
-import pool from "../../services/database.js";
+import pool, { deleteFromTable, updateTable } from "../../services/database.js";
 
 export async function create(userData) {
   const { 
@@ -106,4 +106,10 @@ export async function findByPhone(phone) {
 
 // const findByEmail = (email) => db('users').where({ email }).first();
 
-// module.exports = { createUser, findById, findByEmail };
+export async function deleteFromUsers(userId) {
+  return deleteFromTable('Users', { user_id: userId });
+}
+
+export async function updateToUsers(userId, updateData) {
+  return updateTable('Users', updateData, { user_id: userId });
+}

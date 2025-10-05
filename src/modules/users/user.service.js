@@ -1,5 +1,6 @@
 
-import { create, findByEmail, findByTeudatZehut, findByPhone } from "./user.repo.js";
+import { create, findByEmail, findByTeudatZehut, findByPhone, updateToUsers, deleteFromUsers } from "./user.repo.js";
+import pool from "../../services/database.js";
 
 export async function createUser(userData) {
   try {
@@ -113,6 +114,55 @@ export async function loginUser(email, password) {
   }
 }
 
+
+export async function deleteUser(id) {
+  try {
+    const [existing] = await pool.execute(
+      "SELECT * FROM Users WHERE user_id = ?",
+      [id]
+    );
+    if (existing.length === 0) {
+      return false;
+    }
+    return await deleteFromUsers(id);
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function updateUser(id, updateData) {
+  try {
+    const [existing] = await pool.execute(
+      "SELECT * FROM Users WHERE user_id = ?",
+      [id]
+    );
+    if (existing.length === 0) {
+      return false;
+    }
+
+    // Validate email format if it's being updated
+    if (updateData.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(updateData.email)) {
+        throw new Error("Invalid email format");
+      }
+    }
+
+    // Validate phone number if it's being updated
+    if (updateData.phone && !/^\d{10}$/.test(updateData.phone)) {
+      throw new Error("Phone number must be exactly 10 digits");
+    }
+
+    // Validate teudat_zehut if it's being updated
+    if (updateData.teudat_zehut && !/^\d{9}$/.test(updateData.teudat_zehut)) {
+      throw new Error("Teudat Zehut must be exactly 9 digits");
+    }
+
+    return await updateToUsers(id, updateData);
+  } catch (error) {
+    throw error;
+  }
+}
 // import { createUser } from './user.repo.js';
 // import bcrypt from 'bcrypt';
 
@@ -143,5 +193,3 @@ export async function loginUser(email, password) {
 // };
 
 // const getById = (id) => repo.findById(id);
-
-// module.exports = { create, getById };

@@ -1,4 +1,4 @@
-import { createUser } from "./user.service.js";
+import { createUser, deleteUser, updateUser } from "./user.service.js";
 
 export async function createUserController(req, res) {
   try {
@@ -63,6 +63,78 @@ export async function createUserController(req, res) {
     });
   }
 }
+
+export async function deleteUserController(req, res) {
+  try {
+    const { id } = req.params;
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ID"
+      });
+    }
+    const result = await deleteUser(id);
+    if (result) {
+      res.json({
+        success: true,
+        message: "User deleted successfully"
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error deleting User"
+    });
+  }
+}
+
+export async function updateUserController(req, res) {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ID"
+      });
+    }
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No update data provided"
+      });
+    }
+    
+    const result = await updateUser(id, updateData);
+    if (result) {
+      res.json({
+        success: true,
+        message: "User updated successfully"
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "User not found or no changes made"
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error updating User"
+    });
+    console.log(error.message);
+    
+  }
+}
+
+
+
 
 // import { addUser } from './user.service.js';
 
