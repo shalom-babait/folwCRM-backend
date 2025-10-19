@@ -1,3 +1,18 @@
+import { fetchPatientOnly } from "./patients.service.js";
+// מחזיר אובייקט מטופל בלבד
+export const getPatientOnlyController = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const patient = await fetchPatientOnly(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+    res.json(patient);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching patient" });
+  }
+};
 import { 
   createPatient, 
   fetchPatientsByTherapist, 
@@ -121,6 +136,7 @@ export async function deletePatientController(req, res) {
 }
 
 export async function updatePatientController(req, res) {
+  console.log('Update patientId:', req.params.patientId, 'Update data:', req.body);
   try {
     const { patientId } = req.params;
     const updateData = req.body;
@@ -153,16 +169,19 @@ export async function updatePatientController(req, res) {
     }
 
     const result = await updatePatient(patientId, updateData);
-    
-    if (result) {
+    if (result && (result.userUpdateResult || result.patientUpdateResult)) {
       res.json({
         success: true,
-        message: "Patient updated successfully"
+        message: "Patient updated successfully",
+        userUpdate: result.userUpdateResult,
+        patientUpdate: result.patientUpdateResult
       });
     } else {
       res.status(404).json({
         success: false,
-        message: "Patient not found or no changes made"
+        message: "Patient not found or no data updated",
+        userUpdate: result.userUpdateResult,
+        patientUpdate: result.patientUpdateResult
       });
     }
   } catch (error) {

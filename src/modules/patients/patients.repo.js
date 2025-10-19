@@ -1,4 +1,29 @@
+
 import pool, { deleteFromTable, updateTable } from "../../services/database.js";
+
+// שליפת נתוני מטופל בלבד לפי מזהה
+export const getPatientOnly = async (patientId) => {
+  const sql = `
+    SELECT
+      P.patient_id,
+      P.user_id,
+      U.first_name,
+      U.last_name,
+      P.birth_date,
+      P.gender,
+      P.status,
+      U.address,
+      U.city,
+      U.phone,
+      U.email,
+      U.teudat_zehut
+    FROM Patients AS P
+    JOIN Users AS U ON P.user_id = U.user_id
+    WHERE P.patient_id = ?
+  `;
+  const [rows] = await pool.query(sql, [patientId]);
+  return rows[0] || null;
+};
 
 export async function create(patientData) {
   const { user_id, therapist_id, birth_date, gender, status, history_notes } = patientData;

@@ -1,4 +1,7 @@
+// GET /patients/only/:patientId - מחזיר אובייקט מטופל בלבד
+
 import express from "express";
+import { getPatientOnlyController } from "./patients.controller.js";
 import { 
   createPatientController,
   getPatientsByTherapistController,
@@ -9,6 +12,7 @@ import {
 } from "./patients.controller.js";
 
 const router = express.Router();
+router.get("/only/:patientId", getPatientOnlyController);
 
 // POST /api/patients - יצירת מטופל חדש
 router.post("/", createPatientController);
