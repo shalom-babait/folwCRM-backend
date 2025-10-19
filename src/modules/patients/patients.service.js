@@ -1,10 +1,4 @@
-import { getPatientOnly } from "./patients.repo.js";
 
-// שליפת נתוני מטופל בלבד
-export const fetchPatientOnly = async (patientId) => {
-    const patient = await getPatientOnly(patientId);
-    return patient;
-};
 
 import { 
     create, 
@@ -12,9 +6,16 @@ import {
     getPatientDetails, 
     getPatientStats,
     deleteFromPatients,
-    updateToPatients
+    updateToPatients,
+    getPatientOnly,
+    updateToUsers
 } from "./patients.repo.js";
-import { updateToUsers } from "./updateToUsers.js";
+
+// שליפת נתוני מטופל בלבד
+export const fetchPatientOnly = async (patientId) => {
+    const patient = await getPatientOnly(patientId);
+    return patient;
+};
 
 export async function createPatient(patientData) {
     try {

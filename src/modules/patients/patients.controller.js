@@ -1,4 +1,12 @@
-import { fetchPatientOnly } from "./patients.service.js";
+import {
+  createPatient,
+  fetchPatientsByTherapist,
+  fetchPatientDetails,
+  fetchPatientStats,
+  deletePatient,
+  updatePatient,
+  fetchPatientOnly
+} from "./patients.service.js";
 // מחזיר אובייקט מטופל בלבד
 export const getPatientOnlyController = async (req, res) => {
   try {
@@ -13,18 +21,11 @@ export const getPatientOnlyController = async (req, res) => {
     res.status(500).json({ message: "Error fetching patient" });
   }
 };
-import { 
-  createPatient, 
-  fetchPatientsByTherapist, 
-  fetchPatientDetails,
-  fetchPatientStats,
-  deletePatient,
-  updatePatient
-} from "./patients.service.js";
+
 export async function createPatientController(req, res) {
   try {
     const patientData = req.body;
-    
+
     // וולידציה בסיסית
     if (!patientData.user_id) {
       return res.status(400).json({
@@ -52,7 +53,7 @@ export async function createPatientController(req, res) {
     }
 
     const newPatient = await createPatient(patientData);
-    
+
     res.status(201).json({
       success: true,
       data: newPatient
@@ -104,7 +105,7 @@ export const getPatientStatsController = async (req, res) => {
 export async function deletePatientController(req, res) {
   try {
     const { patientId } = req.params;
-    
+
     // Validate patientId
     if (!patientId || isNaN(patientId)) {
       return res.status(400).json({
@@ -114,7 +115,7 @@ export async function deletePatientController(req, res) {
     }
 
     const result = await deletePatient(patientId);
-    
+
     if (result) {
       res.json({
         success: true,
@@ -140,7 +141,7 @@ export async function updatePatientController(req, res) {
   try {
     const { patientId } = req.params;
     const updateData = req.body;
-    
+
     // Validate patientId
     if (!patientId || isNaN(patientId)) {
       return res.status(400).json({

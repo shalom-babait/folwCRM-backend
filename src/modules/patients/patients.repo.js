@@ -129,3 +129,11 @@ export async function deleteFromPatients(patientId) {
 export async function updateToPatients(patientId, updateData) {
   return updateTable('Patients', updateData, { patient_id: patientId });
 }
+
+// Update Users table by userId
+export async function updateToUsers(userId, updateData) {
+  console.log('Updating Users:', userId, updateData);
+  const result = await updateTable('Users', updateData, { user_id: userId });
+  console.log('UpdateTable result:', result);
+  return result;
+}
