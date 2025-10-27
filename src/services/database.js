@@ -11,7 +11,6 @@ if (process.env.NODE_ENV !== 'production') {
   dotenv.config({ path: path.resolve(__dirname, '.env') });
 }
 
-// יצירת Pool ל-MySQL
 const pool = mysql.createPool({
   host: process.env.MYSQLHOST,   
   user: process.env.MYSQLUSER,       

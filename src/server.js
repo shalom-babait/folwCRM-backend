@@ -3,7 +3,7 @@ const {deleteAllDBTables, deleteAllData,insertData,createManager} = require('./s
 const { connectSql } = require('./services/sql/sql-connection');
 const { buildingDBTables } = require('./services/sql/sql-init');
 require('dotenv').config();
-const port = process.env.PORT || 6868;
+const port = process.env.PORT || 3000;
 const host = process.env.HOST || 'localhost';
 
 (async () => {
