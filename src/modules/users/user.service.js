@@ -1,5 +1,5 @@
-import { createUser } from './user.repo.js';
-
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { create, findByEmail, findByTeudatZehut, findByPhone, updateToUsers, deleteFromUsers } from "./user.repo.js";
 import pool from "../../services/database.js";
 
@@ -70,7 +70,7 @@ export async function createUser(userData) {
     if (userData.password.length > 15) {
       throw new Error("Password cannot exceed 15 characters");
     }
-
+    userData.password = await bcrypt.hash(userData.password, 10);
     const newUser = await create(userData);
     
     // החזרת הנתונים ללא הסיסמה
@@ -84,36 +84,32 @@ export async function createUser(userData) {
 
 export async function loginUser(email, password) {
   try {
-    // חיפוש משתמש לפי אימייל
     const user = await findByEmail(email);
-    
     if (!user) {
       throw new Error("User not found");
     }
-
-    // בדיקת סיסמה
-    // אם אתם משתמשים בהצפנה:
-    // const isPasswordValid = await bcrypt.compare(password, user.password);
-    
-    // אם אתם לא משתמשים בהצפנה (לא מומלץ בסביבת פרודקשן):
-    const isPasswordValid = password === user.password;
-    
+    const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new Error("Invalid password");
     }
-
-    // החזרת נתוני המשתמש ללא הסיסמה
+    // יצירת טוקן JWT
+    const SECRET = process.env.JWT_SECRET || 'yourSecretKey';
+    const token = jwt.sign(
+      { id: user.user_id, role: user.role },
+      SECRET,
+      { expiresIn: '1h' }
+    );
     const { password: userPassword, ...userWithoutPassword } = user;
-    
     return {
+      token,
       user: userWithoutPassword,
       message: "Login successful"
     };
-    
   } catch (error) {
     throw error;
   }
 }
+
 
 
 export async function deleteUser(id) {
@@ -164,33 +160,3 @@ export async function updateUser(id, updateData) {
     throw error;
   }
 }
-// import { createUser } from './user.repo.js';
-// import bcrypt from 'bcrypt';
-
-// export async function addUser(userData) {
-//   const { name, email, password } = userData;
-
-//   if (!name || !email || !password) {
-//     throw new Error('All fields are required');
-//   }
-
-//   const hashedPassword = await bcrypt.hash(password, 10);
-//   const id = await createUser(name, email, hashedPassword);
-
-//   return { id, name, email };
-// }
-
-// const repo = require('./user.repo');
-
-// const create = async (payload) => {
-//   const existing = await repo.findByEmail(payload.email);
-//   if (existing) {
-//     const err = new Error('Email already exists');
-//     err.status = 409;
-//     throw err;
-//   }
-//   const id = await repo.create(payload);
-//   return repo.findById(id);
-// };
-
-// const getById = (id) => repo.findById(id);
