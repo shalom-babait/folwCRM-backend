@@ -1,14 +1,20 @@
+
 import express from "express";
-import { 
+import {
   createPatientController,
   getPatientsByTherapistController,
   getPatientDetailsController,
   getPatientStatsController,
   deletePatientController,
-  updatePatientController
+  updatePatientController,
+  getPatientOnlyController
 } from "./patients.controller.js";
 
 const router = express.Router();
+
+// GET /patients/only/:patientId - מחזיר אובייקט מטופל בלבד
+
+router.get("/only/:patientId", getPatientOnlyController);
 
 // POST /api/patients - יצירת מטופל חדש
 router.post("/", createPatientController);

@@ -1,15 +1,31 @@
-import { 
-  createPatient, 
-  fetchPatientsByTherapist, 
+import {
+  createPatient,
+  fetchPatientsByTherapist,
   fetchPatientDetails,
   fetchPatientStats,
   deletePatient,
-  updatePatient
+  updatePatient,
+  fetchPatientOnly
 } from "./patients.service.js";
+// מחזיר אובייקט מטופל בלבד
+export const getPatientOnlyController = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const patient = await fetchPatientOnly(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+    res.json(patient);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching patient" });
+  }
+};
+
 export async function createPatientController(req, res) {
   try {
     const patientData = req.body;
-    
+
     // וולידציה בסיסית
     if (!patientData.user_id) {
       return res.status(400).json({
@@ -37,7 +53,7 @@ export async function createPatientController(req, res) {
     }
 
     const newPatient = await createPatient(patientData);
-    
+
     res.status(201).json({
       success: true,
       data: newPatient
@@ -89,7 +105,7 @@ export const getPatientStatsController = async (req, res) => {
 export async function deletePatientController(req, res) {
   try {
     const { patientId } = req.params;
-    
+
     // Validate patientId
     if (!patientId || isNaN(patientId)) {
       return res.status(400).json({
@@ -99,7 +115,7 @@ export async function deletePatientController(req, res) {
     }
 
     const result = await deletePatient(patientId);
-    
+
     if (result) {
       res.json({
         success: true,
@@ -121,10 +137,11 @@ export async function deletePatientController(req, res) {
 }
 
 export async function updatePatientController(req, res) {
+  console.log('Update patientId:', req.params.patientId, 'Update data:', req.body);
   try {
     const { patientId } = req.params;
     const updateData = req.body;
-    
+
     // Validate patientId
     if (!patientId || isNaN(patientId)) {
       return res.status(400).json({
@@ -153,16 +170,19 @@ export async function updatePatientController(req, res) {
     }
 
     const result = await updatePatient(patientId, updateData);
-    
-    if (result) {
+    if (result && (result.userUpdateResult || result.patientUpdateResult)) {
       res.json({
         success: true,
-        message: "Patient updated successfully"
+        message: "Patient updated successfully",
+        userUpdate: result.userUpdateResult,
+        patientUpdate: result.patientUpdateResult
       });
     } else {
       res.status(404).json({
         success: false,
-        message: "Patient not found or no changes made"
+        message: "Patient not found or no data updated",
+        userUpdate: result.userUpdateResult,
+        patientUpdate: result.patientUpdateResult
       });
     }
   } catch (error) {

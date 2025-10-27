@@ -11,7 +11,6 @@ if (process.env.NODE_ENV !== 'production') {
   dotenv.config({ path: path.resolve(__dirname, '.env') });
 }
 
-// יצירת Pool ל-MySQLI
 const pool = mysql.createPool({
   host: process.env.MYSQLHOST,   
   user: process.env.MYSQLUSER,       
@@ -59,8 +58,11 @@ export const updateTable = async (tableName, updates, conditions) => {
     const query = `UPDATE ${tableName} SET ${setClause} WHERE ${whereClause}`;
     const values = [...updateValues, ...whereValues];
 
-    const [result] = await pool.execute(query, values);
-    return result.affectedRows > 0;
+  console.log('updateTable query:', query);
+  console.log('updateTable values:', values);
+  const [result] = await pool.execute(query, values);
+  console.log('updateTable result:', result);
+  return result.affectedRows > 0;
   } catch (error) {
     console.error(`Error updating ${tableName}:`, error);
     throw error;
