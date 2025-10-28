@@ -1,71 +1,58 @@
 import {
-  createTherapist,
-  fetchTherapists,
-  deleteTherapist,
-  updateTherapist
+  createTherapist,fetchTherapists,updateTherapist
 } from "./therapists.service.js";
 
 export async function createTherapistController(req, res) {
+  console.log("In createTherapistController");
+  console.log("Request body:", req.body);
   try {
-    const therapistData = req.body;
-
-    // וולידציה בסיסית
-    if (!therapistData.user_id) {
-      return res.status(400).json({
-        success: false,
-        message: "user_id is required"
-      });
+    const { user, therapist } = req.body;
+    console.log('user:', user);
+    console.log('therapist:', therapist);
+    // שלב 1: בדיקת ייבוא סכמות
+    try {
+      const { userSchema } = await import('../../models/user.model.js');
+      console.log('userSchema imported:', !!userSchema);
+      const { therapistSchema } = await import('../../models/therapist.model.js');
+      console.log('therapistSchema imported:', !!therapistSchema);
+      // שלב 2: ולידציה
+      const userValidation = userSchema.validate(user);
+      console.log('userValidation:', userValidation);
+      const therapistValidation = therapistSchema.validate(therapist);
+      console.log('therapistValidation:', therapistValidation);
+      if (userValidation.error) {
+        console.log('User validation error:', userValidation.error.message);
+        return res.status(400).json({ success: false, message: userValidation.error.message });
+      }
+      if (therapistValidation.error) {
+        console.log('Therapist validation error:', therapistValidation.error.message);
+        return res.status(400).json({ success: false, message: therapistValidation.error.message });
+      }
+      // שלב 3: יצירת מטפל
+      try {
+        const newTherapist = await createTherapist({ user, therapist });
+        console.log('newTherapist:', newTherapist);
+        res.status(201).json({ success: true, data: newTherapist });
+      } catch (serviceError) {
+        console.log('Error in createTherapist:', serviceError);
+        res.status(500).json({ success: false, message: serviceError.message || 'Error in createTherapist' });
+      }
+    } catch (importError) {
+      console.log('Error importing schemas:', importError);
+      res.status(500).json({ success: false, message: importError.message || 'Error importing schemas' });
     }
-
-    const newTherapist = await createTherapist(therapistData);
-
-    res.status(201).json({
-      success: true,
-      data: newTherapist
-    });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
+    console.log('General error in controller:', error);
+    res.status(500).json({ success: false, message: error.message });
   }
 }
 
-export async function getTherapidtController(req, res) {
+export async function getTherapistController(req, res) {
   try {
     const therapists = await fetchTherapists();
     res.json(therapists);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Server error" });
-  }
-}
-export async function deleteTherapistController(req, res) {
-  try {
-    const { id } = req.params;
-    if (!id || isNaN(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid ID"
-      });
-    }
-    const result = await deleteTherapist(id);
-    if (result) {
-      res.json({
-        success: true,
-        message: "Therapist deleted successfully"
-      });
-    } else {
-      res.status(404).json({
-        success: false,
-        message: "Therapist not found"
-      });
-    }
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message || "Error deleting Therapist"
-    });
   }
 }
 
