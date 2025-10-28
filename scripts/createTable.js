@@ -113,3 +113,6 @@ const therapistToVideoTableSQL = `
 // createTable(appointmentsTableSQL);
 // createTable(paymentsTableSQL);
 createTable(therapistToVideoTableSQL);
+
+// שינויים שעשיתי במסד הנתונים:
+//ALTER TABLE Users DROP INDEX email;
