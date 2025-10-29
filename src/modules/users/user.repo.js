@@ -34,14 +34,14 @@ export async function create(userData) {
       address || null,
       email,
       hashedPassword,
-      role || 'מטופל',
+      role || 'patient',
       agree || 0
     ]);
 
     // יצירת טוקן JWT
     const SECRET = process.env.JWT_SECRET || 'yourSecretKey';
     const token = jwt.sign(
-      { id: result.insertId, role: role || 'מטופל' },
+  { id: result.insertId, role: role || 'patient' },
       SECRET,
       { expiresIn: '1h' }
     );
@@ -55,7 +55,7 @@ export async function create(userData) {
       city,
       address,
       email,
-      role: role || 'מטופל',
+      role: role || 'patient',
       agree: agree || 0,
       token,
       message: "User created successfully"
@@ -64,56 +64,6 @@ export async function create(userData) {
     throw error;
   }
 }
-// export async function create(userData) {
-//   const { 
-//     first_name, 
-//     last_name, 
-//     teudat_zehut, 
-//     phone, 
-//     city, 
-//     address, 
-//     email, 
-//     password, 
-//     role, 
-//     agree 
-//   } = userData;
-  
-//   const query = `
-//     INSERT INTO Users (first_name, last_name, teudat_zehut, phone, city, address, email, password, role, agree)
-//     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-//   `;
-  
-//   try {
-//     const [result] = await pool.execute(query, [
-//       first_name,
-//       last_name,
-//       teudat_zehut || null,
-//       phone,
-//       city,
-//       address || null,
-//       email,
-//       password,
-//       role || 'מטופל',
-//       agree || 0
-//     ]);
-    
-//     return {
-//       user_id: result.insertId,
-//       first_name,
-//       last_name,
-//       teudat_zehut,
-//       phone,
-//       city,
-//       address,
-//       email,
-//       role: role || 'מטופל',
-//       agree: agree || 0,
-//       message: "User created successfully"
-//     };
-//   } catch (error) {
-//     throw error;
-//   }
-// }
 
 export async function findByEmail(email) {
     console.log("findByEmail:", email);
