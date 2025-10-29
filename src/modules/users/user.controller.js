@@ -5,7 +5,7 @@ export async function createUserController(req, res) {
     const userData = req.body;
     
     // וולידציה בסיסית על שדות חובה
-    const requiredFields = ['first_name', 'last_name', 'phone', 'city', 'email', 'password'];
+  const requiredFields = ['first_name', 'last_name', 'phone', 'city', 'email', 'password', 'gender'];
     
     for (const field of requiredFields) {
       if (!userData[field] || userData[field].trim() === '') {

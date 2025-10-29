@@ -112,11 +112,38 @@ const therapistToVideoTableSQL = `
 // createTable(patientsTableSQL);
 // createTable(appointmentsTableSQL);
 // createTable(paymentsTableSQL);
-createTable(therapistToVideoTableSQL);
+//createTable(therapistToVideoTableSQL);
 
 // שינויים שעשיתי במסד הנתונים:
+//workbanch
 //ALTER TABLE Users MODIFY password VARCHAR(100) NOT NULL;
 //ALTER TABLE Users DROP INDEX email;
 //
 //ALTER TABLE Users DROP COLUMN role;
 //ALTER TABLE Users ADD COLUMN role ENUM('secretary','manager','therapist','patient','other') NOT NULL DEFAULT 'patient';
+const departmentsTableSQL = `
+  CREATE TABLE IF NOT EXISTS Departments (
+    department_id INT AUTO_INCREMENT PRIMARY KEY,
+    department_name VARCHAR(20) NOT NULL UNIQUE
+  );
+`;
+
+const userDepartmentsTableSQL = `
+  CREATE TABLE IF NOT EXISTS UserDepartments (
+    user_department_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    department_id INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (department_id) REFERENCES Departments(department_id),
+    UNIQUE (user_id, department_id)
+  );
+`;
+//createTable(departmentsTableSQL);
+//createTable(userDepartmentsTableSQL);
+
+//workbanch
+// ALTER TABLE Users
+// ADD COLUMN gender ENUM('male', 'female', 'other') NOT NULL DEFAULT 'other',
+// ADD COLUMN birth_date DATE DEFAULT NULL;
+
+

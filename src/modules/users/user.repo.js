@@ -20,8 +20,8 @@ export async function create(userData) {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const query = `
-    INSERT INTO Users (first_name, last_name, teudat_zehut, phone, city, address, email, password, role, agree)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO Users (first_name, last_name, teudat_zehut, phone, city, address, email, password, role, agree, gender, birth_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   try {
@@ -35,7 +35,9 @@ export async function create(userData) {
       email,
       hashedPassword,
       role || 'patient',
-      agree || 0
+      agree || 0,
+      userData.gender,
+      userData.birth_date || null
     ]);
 
     // יצירת טוקן JWT
@@ -57,6 +59,8 @@ export async function create(userData) {
       email,
       role: role || 'patient',
       agree: agree || 0,
+      gender: userData.gender,
+      birth_date: userData.birth_date || null,
       token,
       message: "User created successfully"
     };
