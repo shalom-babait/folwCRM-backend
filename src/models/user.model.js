@@ -9,6 +9,6 @@ export const userSchema = Joi.object({
   address: Joi.string().max(30).optional().allow(null, ''),
   email: Joi.string().email().max(30).required(),
   password: Joi.string().min(6).max(15).required(),
-  role: Joi.string().valid('מזכיר','מנהל','מטפל','מטופל').default('מטופל'),
+  role: Joi.string().valid('secretary','manager','therapist','patient','other').default('patient'),
   agree: Joi.number().valid(0, 1).default(0)
 });
