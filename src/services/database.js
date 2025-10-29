@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 // נטען רק עבור סביבת פיתוח (לוקאלי)
 if (process.env.NODE_ENV !== 'production') {
-  dotenv.config({ path: path.resolve(__dirname, '.env') });
+  dotenv.config();
 }
 
 const pool = mysql.createPool({
@@ -58,8 +58,6 @@ export const updateTable = async (tableName, updates, conditions) => {
     const query = `UPDATE ${tableName} SET ${setClause} WHERE ${whereClause}`;
     const values = [...updateValues, ...whereValues];
 
-  console.log('updateTable query:', query);
-  console.log('updateTable values:', values);
   const [result] = await pool.execute(query, values);
   console.log('updateTable result:', result);
   return result.affectedRows > 0;
