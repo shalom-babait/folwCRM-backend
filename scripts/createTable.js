@@ -115,4 +115,8 @@ const therapistToVideoTableSQL = `
 createTable(therapistToVideoTableSQL);
 
 // שינויים שעשיתי במסד הנתונים:
+//ALTER TABLE Users MODIFY password VARCHAR(100) NOT NULL;
 //ALTER TABLE Users DROP INDEX email;
+//
+//ALTER TABLE Users DROP COLUMN role;
+//ALTER TABLE Users ADD COLUMN role ENUM('secretary','manager','therapist','patient','other') NOT NULL DEFAULT 'patient';
