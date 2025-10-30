@@ -1,4 +1,8 @@
-import { create, checkTimeConflict, getAppointmentsByPatientAndTherapist, deleteFromAppointments, updateToAppointments } from "./appointments.repo.js";
+import { create, checkTimeConflict, getAppointmentsByPatientAndTherapist, deleteFromAppointments, updateToAppointments, getAppointmentsByRoom } from "./appointments.repo.js";
+
+export async function fetchAppointmentsByRoom(roomId) {
+  return await getAppointmentsByRoom(roomId);
+}
 import pool from "../../services/database.js";
 
 export async function createAppointment(appointmentData) {

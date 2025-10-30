@@ -1,4 +1,14 @@
-import { createAppointment, fetchAppointments, deleteAppointment, updateAppointment } from "./appointments.service.js";
+import { createAppointment, fetchAppointments, deleteAppointment, updateAppointment, fetchAppointmentsByRoom } from "./appointments.service.js";
+export async function getAppointmentsByRoom(req, res) {
+  try {
+    const { roomId } = req.params;
+    const appointments = await fetchAppointmentsByRoom(roomId);
+    res.json({ success: true, data: appointments });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error fetching appointments by room" });
+  }
+}
 
 export async function createAppointmentController(req, res) {
   try {

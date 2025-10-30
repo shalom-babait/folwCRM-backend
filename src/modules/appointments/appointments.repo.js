@@ -1,5 +1,13 @@
 import pool, { deleteFromTable, updateTable } from "../../services/database.js";
 
+export async function getAppointmentsByRoom(roomId) {
+  const sql = `
+    SELECT * FROM Appointments WHERE room_id = ? ORDER BY appointment_date, start_time;
+  `;
+  const [rows] = await pool.query(sql, [roomId]);
+  return rows;
+}
+
 export async function create(appointmentData) {
   const { 
     therapist_id, 
