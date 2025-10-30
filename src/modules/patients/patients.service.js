@@ -1,5 +1,6 @@
 
 
+
 import { 
     create, 
     getPatientsByTherapist, 
@@ -8,7 +9,8 @@ import {
     deleteFromPatients,
     updateToPatients,
     getPatientOnly,
-    updateToUsers
+    updateToUsers,
+    createUser
 } from "./patients.repo.js";
 
 // שליפת נתוני מטופל בלבד
@@ -19,6 +21,8 @@ export const fetchPatientOnly = async (patientId) => {
 
 export async function createPatient(patientData) {
     try {
+        console.log('--- יצירת מטופל: נתונים שהתקבלו ל-service ---');
+        console.log(JSON.stringify(patientData, null, 2));
         // וולידציה על תאריך לידה
         if (patientData.birth_date) {
             const birthDate = new Date(patientData.birth_date);
@@ -28,9 +32,50 @@ export async function createPatient(patientData) {
             }
         }
 
-        const newPatient = await create(patientData);
-        return newPatient;
+        // יצירת משתמש חדש בטבלת Users
+        const userFields = ['first_name', 'last_name', 'teudat_zehut', 'phone', 'city', 'address', 'email'];
+        const userData = {};
+        userFields.forEach(field => {
+            if (patientData[field] !== undefined) userData[field] = patientData[field];
+        });
+        console.log('--- יצירת משתמש חדש: userData ---');
+        console.log(JSON.stringify(userData, null, 2));
+        const newUser = await createUser(userData);
+        console.log('--- משתמש חדש נוצר: newUser ---');
+        console.log(JSON.stringify(newUser, null, 2));
+
+        // יצירת מטופל עם ה-user_id החדש
+        const patientFields = ['therapist_id', 'birth_date', 'gender', 'status', 'history_notes'];
+        const patientInsertData = { user_id: newUser.user_id };
+        patientFields.forEach(field => {
+            if (patientData[field] !== undefined) patientInsertData[field] = patientData[field];
+        });
+        console.log('--- יצירת מטופל חדש: patientInsertData ---');
+        console.log(JSON.stringify(patientInsertData, null, 2));
+        const newPatient = await create(patientInsertData);
+        console.log('--- מטופל חדש נוצר: newPatient ---');
+        console.log(JSON.stringify(newPatient, null, 2));
+
+        // החזרת אובייקט מטופל מלא להצגה ברשימה
+        return {
+            patient_id: newPatient.patient_id,
+            therapist_id: newPatient.therapist_id,
+            birth_date: newPatient.birth_date,
+            gender: newPatient.gender,
+            status: newPatient.status,
+            history_notes: newPatient.history_notes,
+            user_id: newUser.user_id,
+            first_name: newUser.first_name,
+            last_name: newUser.last_name,
+            teudat_zehut: newUser.teudat_zehut,
+            phone: newUser.phone,
+            city: newUser.city,
+            address: newUser.address,
+            email: newUser.email
+        };
     } catch (error) {
+        console.error('--- שגיאה ב-service ביצירת מטופל ---');
+        console.error(error);
         throw error;
     }
 }

@@ -1,3 +1,38 @@
+// יצירת משתמש חדש בטבלת Users
+export async function createUser(userData) {
+  const { first_name, last_name, teudat_zehut, phone, city, address, email, password } = userData;
+  // אם לא נשלח password, נשתמש בערך ברירת מחדל
+  const userPassword = password || 'temp1234';
+  const query = `
+    INSERT INTO Users (first_name, last_name, teudat_zehut, phone, city, address, email, password)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+  try {
+    const [result] = await pool.execute(query, [
+      first_name,
+      last_name,
+      teudat_zehut || null,
+      phone || null,
+      city || null,
+      address || null,
+      email,
+      userPassword
+    ]);
+    return {
+      user_id: result.insertId,
+      first_name,
+      last_name,
+      teudat_zehut,
+      phone,
+      city,
+      address,
+      email,
+      password: userPassword
+    };
+  } catch (error) {
+    throw error;
+  }
+}
 
 import pool, { deleteFromTable, updateTable } from "../../services/database.js";
 
@@ -7,11 +42,13 @@ export const getPatientOnly = async (patientId) => {
     SELECT
       P.patient_id,
       P.user_id,
+      P.therapist_id,
       U.first_name,
       U.last_name,
       P.birth_date,
       P.gender,
       P.status,
+      P.history_notes,
       U.address,
       U.city,
       U.phone,

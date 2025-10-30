@@ -25,18 +25,22 @@ export const getPatientOnlyController = async (req, res) => {
 export async function createPatientController(req, res) {
   try {
     const patientData = req.body;
+    console.log('--- יצירת מטופל: נתונים שהתקבלו מהפרונט ---');
+    console.log(JSON.stringify(patientData, null, 2));
 
-    // וולידציה בסיסית
-    if (!patientData.user_id) {
+    // וולידציה בסיסית לשדות משתמש
+    if (!patientData.first_name || !patientData.last_name || !patientData.email) {
+      console.error('חסרים שדות חובה: first_name, last_name, email');
       return res.status(400).json({
         success: false,
-        message: "user_id is required"
+        message: "first_name, last_name and email are required"
       });
     }
 
     // וולידציה על gender
     const validGenders = ['זכר', 'נקבה', 'אחר'];
     if (patientData.gender && !validGenders.includes(patientData.gender)) {
+      console.error('ערך gender לא תקין:', patientData.gender);
       return res.status(400).json({
         success: false,
         message: "Invalid gender value"
@@ -46,6 +50,7 @@ export async function createPatientController(req, res) {
     // וולידציה על status
     const validStatuses = ['פעיל', 'לא פעיל', 'בהמתנה'];
     if (patientData.status && !validStatuses.includes(patientData.status)) {
+      console.error('ערך status לא תקין:', patientData.status);
       return res.status(400).json({
         success: false,
         message: "Invalid status value"
@@ -59,6 +64,8 @@ export async function createPatientController(req, res) {
       data: newPatient
     });
   } catch (error) {
+    console.error('--- שגיאה ביצירת מטופל ---');
+    console.error(error);
     res.status(500).json({
       success: false,
       message: error.message
