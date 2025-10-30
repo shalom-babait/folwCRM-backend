@@ -5,7 +5,7 @@ export async function createUserController(req, res) {
     const userData = req.body;
     
     // וולידציה בסיסית על שדות חובה
-    const requiredFields = ['first_name', 'last_name', 'phone', 'city', 'email', 'password'];
+  const requiredFields = ['first_name', 'last_name', 'phone', 'city', 'email', 'password', 'gender'];
     
     for (const field of requiredFields) {
       if (!userData[field] || userData[field].trim() === '') {
@@ -17,11 +17,11 @@ export async function createUserController(req, res) {
     }
 
     // וולידציה על תפקיד
-    const validRoles = ['מזכיר', 'מנהל', 'מטפל', 'מטופל'];
+    const validRoles = ['secretary', 'manager', 'therapist', 'patient', 'other'];
     if (userData.role && !validRoles.includes(userData.role)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid role value. Must be one of: מזכיר, מנהל, מטפל, מטופל"
+        message: "Invalid role value. Must be one of: secretary, manager, therapist, patient, other"
       });
     }
 
