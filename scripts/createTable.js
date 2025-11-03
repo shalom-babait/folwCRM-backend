@@ -9,6 +9,7 @@ async function createTable(sql) {
   }
 }
 
+// --- טבלת משתמשים ---
 const usersTableSQL = `
   CREATE TABLE IF NOT EXISTS Users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -19,13 +20,16 @@ const usersTableSQL = `
     city VARCHAR(15) NOT NULL,
     address VARCHAR(30),
     email VARCHAR(30) NOT NULL UNIQUE,
-    password VARCHAR(15) NOT NULL,
-    role ENUM('מזכיר','מנהל','מטפל','מטופל') NOT NULL DEFAULT 'מטופל',
+    password VARCHAR(100) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    agree TINYINT(1) DEFAULT 0
+    agree TINYINT(1) DEFAULT 0,
+    role ENUM('secretary','manager','therapist','patient','other') NOT NULL DEFAULT 'patient',
+    gender ENUM('male','female','other') NOT NULL DEFAULT 'other',
+    birth_date DATE DEFAULT NULL
   );
 `;
 
+// --- סוגי טיפולים ---
 const treatmentTypesTableSQL = `
   CREATE TABLE IF NOT EXISTS TreatmentTypes (
     type_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -33,6 +37,7 @@ const treatmentTypesTableSQL = `
   );
 `;
 
+// --- חדרים ---
 const roomsTableSQL = `
   CREATE TABLE IF NOT EXISTS Rooms (
     room_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -40,7 +45,7 @@ const roomsTableSQL = `
   );
 `;
 
-
+// --- מטפלים ---
 const therapistsTableSQL = `
   CREATE TABLE IF NOT EXISTS Therapists (
     therapist_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -49,6 +54,7 @@ const therapistsTableSQL = `
   );
 `;
 
+// --- מטופלים ---
 const patientsTableSQL = `
   CREATE TABLE IF NOT EXISTS Patients (
     patient_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -57,12 +63,13 @@ const patientsTableSQL = `
     birth_date DATE,
     gender ENUM('זכר', 'נקבה', 'אחר'),
     status ENUM('פעיל', 'לא פעיל', 'בהמתנה') NOT NULL DEFAULT 'פעיל',
-    history_notes varchar(500),
+    history_notes VARCHAR(500),
     FOREIGN KEY (user_id) REFERENCES Users(user_id),
-    FOREIGN KEY (therapist_id) REFERENCES therapists(therapist_id)
+    FOREIGN KEY (therapist_id) REFERENCES Therapists(therapist_id)
   );
 `;
 
+// --- פגישות ---
 const appointmentsTableSQL = `
   CREATE TABLE IF NOT EXISTS Appointments (
     appointment_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -75,13 +82,14 @@ const appointmentsTableSQL = `
     end_time TIME NOT NULL, 
     total_minutes INT AS (TIMESTAMPDIFF(MINUTE, start_time, end_time)) STORED,
     status ENUM('מתוזמנת', 'הושלמה', 'בוטלה') NOT NULL DEFAULT 'מתוזמנת',
-    FOREIGN KEY (therapist_id) REFERENCES therapists(therapist_id),
-    FOREIGN KEY (patient_id) REFERENCES patients(patient_id),
+    FOREIGN KEY (therapist_id) REFERENCES Therapists(therapist_id),
+    FOREIGN KEY (patient_id) REFERENCES Patients(patient_id),
     FOREIGN KEY (type_id) REFERENCES TreatmentTypes(type_id),
     FOREIGN KEY (room_id) REFERENCES Rooms(room_id)
   );
 `;
 
+// --- תשלומים ---
 const paymentsTableSQL = `
   CREATE TABLE IF NOT EXISTS Payments (
     pay_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -93,34 +101,18 @@ const paymentsTableSQL = `
   );
 `;
 
-
+// --- סרטונים למטפלים ---
 const therapistToVideoTableSQL = `
   CREATE TABLE IF NOT EXISTS TherapistToVideo (
     therapistToVideo_id INT AUTO_INCREMENT PRIMARY KEY,
     therapist_id INT,
     video_url VARCHAR(255) NOT NULL,
-    yera INT,
+    year INT,
     FOREIGN KEY (therapist_id) REFERENCES Therapists(therapist_id)
   );
 `;
 
-// ליצירת הטבלאות בSQL יש להסיר את ההערות מהשורות אחת אחרי השניה לפי הסדר ולהריץ כל פעם עם שורה אחת!
-// createTable(usersTableSQL);
-// createTable(treatmentTypesTableSQL);
-// createTable(roomsTableSQL);
-// createTable(therapistsTableSQL);
-// createTable(patientsTableSQL);
-// createTable(appointmentsTableSQL);
-// createTable(paymentsTableSQL);
-//createTable(therapistToVideoTableSQL);
-
-// שינויים שעשיתי במסד הנתונים:
-//workbanch
-//ALTER TABLE Users MODIFY password VARCHAR(100) NOT NULL;
-//ALTER TABLE Users DROP INDEX email;
-//
-//ALTER TABLE Users DROP COLUMN role;
-//ALTER TABLE Users ADD COLUMN role ENUM('secretary','manager','therapist','patient','other') NOT NULL DEFAULT 'patient';
+// --- מחלקות ---
 const departmentsTableSQL = `
   CREATE TABLE IF NOT EXISTS Departments (
     department_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -128,6 +120,7 @@ const departmentsTableSQL = `
   );
 `;
 
+// --- שיוך משתמשים למחלקות ---
 const userDepartmentsTableSQL = `
   CREATE TABLE IF NOT EXISTS UserDepartments (
     user_department_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -138,12 +131,36 @@ const userDepartmentsTableSQL = `
     UNIQUE (user_id, department_id)
   );
 `;
-//createTable(departmentsTableSQL);
-//createTable(userDepartmentsTableSQL);
+const groupListTableSQL = `
+CREATE TABLE IF NOT EXISTS group_list (
+    group_id INT AUTO_INCREMENT PRIMARY KEY,
+    group_name VARCHAR(50) NOT NULL UNIQUE,
+    department_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (department_id) REFERENCES Departments(department_id)
+  );
+`;
 
-//workbanch
-// ALTER TABLE Users
-// ADD COLUMN gender ENUM('male', 'female', 'other') NOT NULL DEFAULT 'other',
-// ADD COLUMN birth_date DATE DEFAULT NULL;
-
-
+const userGroupsTableSQL = `
+CREATE TABLE IF NOT EXISTS UserGroups (
+    user_group_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    group_id INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (group_id) REFERENCES group_list(group_id),
+    UNIQUE (user_id, group_id) 
+);
+`;
+// --- הפעלה לפי הצורך ---
+// createTable(usersTableSQL);
+// createTable(treatmentTypesTableSQL);
+// createTable(roomsTableSQL);
+// createTable(therapistsTableSQL);
+// createTable(patientsTableSQL);
+// createTable(appointmentsTableSQL);
+// createTable(paymentsTableSQL);
+// createTable(therapistToVideoTableSQL);
+// createTable(departmentsTableSQL);
+// createTable(userDepartmentsTableSQL);
+//createTable(groupListTableSQL);
+ createTable(userGroupsTableSQL);

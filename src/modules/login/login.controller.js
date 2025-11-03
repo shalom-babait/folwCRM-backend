@@ -1,11 +1,11 @@
 import { loginService } from './login.service.js';
 
 export async function loginController(req, res) {
-  console.log('In login.controller.js - loginController function');
+  // console.log('In login.controller.js - loginController function');
   try {
     const { email, password } = req.body;
-    console.log('Login attempt for email:', email);
-    console.log('Password received:', password);
+    // console.log('Login attempt for email:', email);
+    // console.log('Password received:', password);
     const result = await loginService(email, password);
     res.json({
       success: true,
