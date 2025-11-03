@@ -70,14 +70,9 @@ export async function create(userData) {
 }
 
 export async function findByEmail(email) {
-    console.log("findByEmail:", email);
     const query = "SELECT * FROM Users WHERE email = ?";
-    // הדפסת השאילתא המלאה כפי שתישלח ל-DB
-    console.log(`Full SQL: SELECT * FROM Users WHERE email = '${email}'`);
-    console.log("findByEmail called with email:", query);
   try {
     const [rows] = await pool.execute(query, [email]);
-    console.log("DB returned rows:", rows);
     return rows[0] || null;
   } catch (error) {
     throw error;

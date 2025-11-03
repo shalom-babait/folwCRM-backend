@@ -3,14 +3,14 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 export async function loginService(email, password) {
-  console.log("Attempting to find user by email:", email);
-  console.log("Password received:", password);
+  // console.log("Attempting to find user by email:", email);
+  // console.log("Password received:", password);
   const user = await findByEmail(email);
-  console.log("User found in loginService:", user);
+  // console.log("User found in loginService:", user);
   if (!user) throw new Error('User not found');
-  console.log(bcrypt.compare(password, user.password));
+  // console.log(bcrypt.compare(password, user.password));
   const isPasswordValid = await bcrypt.compare(password, user.password);
-  console.log("Is password valid:", isPasswordValid, password);
+  // console.log("Is password valid:", isPasswordValid, password);
   if (!isPasswordValid) throw new Error('Invalid password');
 
   const SECRET = process.env.JWT_SECRET || 'yourSecretKey';

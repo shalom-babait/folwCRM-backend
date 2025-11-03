@@ -49,6 +49,7 @@ export async function createTherapistController(req, res) {
 
 export async function getTherapistController(req, res) {
   try {
+    console.log("In getTherapistController");
     const therapists = await fetchTherapists();
     res.json(therapists);
   } catch (err) {
