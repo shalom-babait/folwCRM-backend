@@ -8,6 +8,7 @@ import appointmentRoutes from './modules/appointments/appointments.routes.js';
 import roomsRoutes from './modules/rooms/rooms.routes.js';
 import typesRoutes from './modules/types/types.routes.js';
 import loginRoutes from './modules/login/login.routes.js';
+import departmentsRoutes from './modules/departments/departments.routes.js';
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use('/api/patients', patientRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/rooms', roomsRoutes);
 app.use('/api/types', typesRoutes);
+app.use('/api/departments', departmentsRoutes);
 app.use('/api/login', loginRoutes);
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {

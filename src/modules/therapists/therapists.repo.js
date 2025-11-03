@@ -48,7 +48,7 @@ export async function getTherapists() {
         u.created_at
       FROM Therapists t
       INNER JOIN Users u ON t.user_id = u.user_id
-      WHERE u.role = 'מטפל'
+      WHERE u.role = 'therapist'
       ORDER BY u.first_name, u.last_name
     `;
     const [rows] = await pool.execute(query);

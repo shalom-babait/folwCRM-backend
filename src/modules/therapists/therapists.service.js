@@ -18,6 +18,7 @@ export async function createTherapist(therapistData) {
 }
 
 export const fetchTherapists = async () => {
+  console.log("In therapists.service.js - fetchTherapists function");
     const therapists = await getTherapists();
     return therapists;
 };
