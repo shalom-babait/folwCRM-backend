@@ -11,7 +11,9 @@ const router = express.Router();
 
 // POST /api/appointments - יצירת תור חדש
 router.post("/", createAppointmentController);
+
 router.get("/byRoom/:roomId", getAppointmentsByRoom);
+
 router.get("/:patientId/:therapistId", getAppointments);
 
 // DELETE /api/appointments/deleteAppointment/:appointmentId - מחיקת תור

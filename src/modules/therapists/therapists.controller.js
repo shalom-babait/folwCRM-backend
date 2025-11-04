@@ -1,3 +1,18 @@
+import { fetchTherapistIdByUserId } from "./therapists.service.js";
+// מחזיר therapist_id לפי user_id
+export async function getTherapistIdByUserIdController(req, res) {
+  try {
+    const user_id = req.params.user_id;
+    const therapist_id = await fetchTherapistIdByUserId(user_id);
+    if (therapist_id) {
+      res.json({ therapist_id });
+    } else {
+      res.status(404).json({ message: "Therapist not found for user_id " + user_id });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
 import {
   createTherapist,fetchTherapists,updateTherapist
 } from "./therapists.service.js";
