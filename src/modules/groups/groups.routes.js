@@ -4,9 +4,9 @@ import { getAllGroupsWithDepartmentController, addGroupController, editGroupCont
 const router = express.Router();
 
 router.get('/all', getAllGroupsWithDepartmentController);
-router.post('/', addGroupController);
-router.put('/:group_id', editGroupController);
-router.delete('/:group_id', deleteGroupController);
-router.get('/:group_id/users', getGroupUsersController);
+router.post('/add_group', addGroupController);
+router.put('/edit_group/:group_id', editGroupController);
+router.delete('/delete_group/:group_id', deleteGroupController);
+router.get('/group_users/:group_id', getGroupUsersController);
 
 export default router;

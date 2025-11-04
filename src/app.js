@@ -9,6 +9,7 @@ import roomsRoutes from './modules/rooms/rooms.routes.js';
 import typesRoutes from './modules/types/types.routes.js';
 import loginRoutes from './modules/login/login.routes.js';
 import departmentsRoutes from './modules/departments/departments.routes.js';
+import groupsRoutes from './modules/groups/groups.routes.js';
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use('/api/rooms', roomsRoutes);
 app.use('/api/types', typesRoutes);
 app.use('/api/departments', departmentsRoutes);
 app.use('/api/login', loginRoutes);
+app.use('/api/groups', groupsRoutes);
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
