@@ -48,7 +48,7 @@ export async function createAppointmentController(req, res) {
     }
 
     // וולידציה על סטטוס
-    const validStatuses = ['מתוזמנת', 'הושלמה', 'בוטלה'];
+    const validStatuses = ['מתוזמנת', 'הושלמה', 'בוטלה','נדחתה'];
     if (appointmentData.status && !validStatuses.includes(appointmentData.status)) {
       return res.status(400).json({
         success: false,
@@ -182,7 +182,7 @@ export async function updateAppointmentController(req, res) {
 
     // Validate status if provided
     if (updateData.status) {
-      const validStatuses = ['מתוזמנת', 'הושלמה', 'בוטלה'];
+      const validStatuses = ['מתוזמנת', 'הושלמה', 'בוטלה','נדחתה'];
       if (!validStatuses.includes(updateData.status)) {
         return res.status(400).json({
           success: false,

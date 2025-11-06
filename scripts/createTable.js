@@ -81,7 +81,7 @@ const appointmentsTableSQL = `
     start_time TIME NOT NULL, 
     end_time TIME NOT NULL, 
     total_minutes INT AS (TIMESTAMPDIFF(MINUTE, start_time, end_time)) STORED,
-    status ENUM('מתוזמנת', 'הושלמה', 'בוטלה') NOT NULL DEFAULT 'מתוזמנת',
+    status ENUM('מתוזמנת', 'הושלמה', 'בוטלה','נדחתה') NOT NULL DEFAULT 'מתוזמנת',
     FOREIGN KEY (therapist_id) REFERENCES Therapists(therapist_id),
     FOREIGN KEY (patient_id) REFERENCES Patients(patient_id),
     FOREIGN KEY (type_id) REFERENCES TreatmentTypes(type_id),
@@ -157,10 +157,10 @@ CREATE TABLE IF NOT EXISTS UserGroups (
 // createTable(roomsTableSQL);
 // createTable(therapistsTableSQL);
 // createTable(patientsTableSQL);
-// createTable(appointmentsTableSQL);
+createTable(appointmentsTableSQL);
 // createTable(paymentsTableSQL);
 // createTable(therapistToVideoTableSQL);
 // createTable(departmentsTableSQL);
 // createTable(userDepartmentsTableSQL);
-//createTable(groupListTableSQL);
- createTable(userGroupsTableSQL);
+// createTable(groupListTableSQL);
+//  createTable(userGroupsTableSQL);
