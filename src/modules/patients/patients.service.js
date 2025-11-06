@@ -56,6 +56,20 @@ export async function createPatient(patientData) {
         console.log('--- מטופל חדש נוצר: newPatient ---');
         console.log(JSON.stringify(newPatient, null, 2));
 
+        // שיוך למחלקה אם נבחרה
+        if (patientData.department_id) {
+            const sql = `INSERT INTO UserDepartments (user_id, department_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE department_id = VALUES(department_id)`;
+            await pool.query(sql, [newUser.user_id, patientData.department_id]);
+        }
+
+        // שיוך לקבוצות אם נבחרו
+        if (Array.isArray(patientData.group_ids) && patientData.group_ids.length > 0) {
+            for (const groupId of patientData.group_ids) {
+                const sql = `INSERT INTO UserGroups (user_id, group_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE group_id = VALUES(group_id)`;
+                await pool.query(sql, [newUser.user_id, groupId]);
+            }
+        }
+
         // החזרת אובייקט מטופל מלא להצגה ברשימה
         return {
             patient_id: newPatient.patient_id,
