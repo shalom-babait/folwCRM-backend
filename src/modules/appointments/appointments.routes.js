@@ -19,5 +19,6 @@ router.delete("/deleteAppointment/:appointmentId", deleteAppointmentController);
 
 // PUT /api/appointments/updateAppointment/:appointmentId - עדכון תור
 router.put("/updateAppointment/:appointmentId", updateAppointmentController);
+router.put("/:appointmentId/status", updateAppointmentController);
 
 export default router;
