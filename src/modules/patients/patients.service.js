@@ -10,7 +10,8 @@ import {
     updateToPatients,
     getPatientOnly,
     updateToUsers,
-    createUser
+    createUser,
+    getPatientFullData
 } from "./patients.repo.js";
 
 // שליפת נתוני מטופל בלבד
@@ -101,8 +102,7 @@ export async function fetchPatientsByTherapist(therapistId) {
 }
 
 export const fetchPatientDetails = async (patientId) => {
-    const patientDetails = await getPatientDetails(patientId);
-    return patientDetails;
+    return await getPatientFullData(patientId);
 };
 
 export async function deletePatient(patientId) {
