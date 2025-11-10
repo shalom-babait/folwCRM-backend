@@ -1,28 +1,30 @@
 import { 
   create, 
   getTherapists,
-  deleteFromTherapists,
   updateToTherapists 
 } from "./therapists.repo.js";
 import pool from "../../services/database.js";
 
 export async function createTherapist(therapistData) {
-  console.log("In therapists.service.js - createTherapist function");
   try {
     // therapistData: { user: {...}, therapist: {...} }
     const newTherapist = await create(therapistData);
 
-    // שיוך למחלקה אם נבחרה
-    if (therapistData.user && therapistData.user.department_id) {
-      const sql = `INSERT INTO UserDepartments (user_id, department_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE department_id = VALUES(department_id)`;
-      await pool.query(sql, [newTherapist.user_id, therapistData.user.department_id]);
-    }
 
-    // שיוך לקבוצות אם נבחרו
-    if (therapistData.user && Array.isArray(therapistData.user.group_ids) && therapistData.user.group_ids.length > 0) {
-      for (const groupId of therapistData.user.group_ids) {
-        const sql = `INSERT INTO UserGroups (user_id, group_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE group_id = VALUES(group_id)`;
-        await pool.query(sql, [newTherapist.user_id, groupId]);
+    // שיוך למחלקות ולקבוצות לפי selectedDepartments
+    if (Array.isArray(therapistData.selectedDepartments)) {
+      for (const dep of therapistData.selectedDepartments) {
+        // שיוך למחלקה
+        const depSql = `INSERT INTO UserDepartments (user_id, department_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE department_id = VALUES(department_id)`;
+        await pool.query(depSql, [newTherapist.user_id, dep.department_id]);
+
+        // שיוך לקבוצות במחלקה
+        if (Array.isArray(dep.group_ids)) {
+          for (const groupId of dep.group_ids) {
+            const groupSql = `INSERT INTO UserGroups (user_id, group_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE group_id = VALUES(group_id)`;
+            await pool.query(groupSql, [newTherapist.user_id, groupId]);
+          }
+        }
       }
     }
 
