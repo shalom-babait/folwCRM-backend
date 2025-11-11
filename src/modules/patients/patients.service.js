@@ -1,6 +1,3 @@
-
-
-
 import { 
     create, 
     getPatientsByTherapist, 
@@ -13,7 +10,7 @@ import {
     createUser,
     getPatientFullData
 } from "./patients.repo.js";
-
+import pool from '../../services/database.js';
 // שליפת נתוני מטופל בלבד
 export const fetchPatientOnly = async (patientId) => {
     const patient = await getPatientOnly(patientId);
@@ -22,11 +19,14 @@ export const fetchPatientOnly = async (patientId) => {
 
 export async function createPatient(patientData) {
     try {
+        // מצפה ל-PatientCreationData: { user, patient, selectedDepartments }
+        const { user, patient, selectedDepartments } = patientData;
         console.log('--- יצירת מטופל: נתונים שהתקבלו ל-service ---');
         console.log(JSON.stringify(patientData, null, 2));
+
         // וולידציה על תאריך לידה
-        if (patientData.birth_date) {
-            const birthDate = new Date(patientData.birth_date);
+        if (user.birth_date) {
+            const birthDate = new Date(user.birth_date);
             const today = new Date();
             if (birthDate > today) {
                 throw new Error("Birth date cannot be in the future");
@@ -34,59 +34,48 @@ export async function createPatient(patientData) {
         }
 
         // יצירת משתמש חדש בטבלת Users
-        const userFields = ['first_name', 'last_name', 'teudat_zehut', 'phone', 'city', 'address', 'email'];
-        const userData = {};
-        userFields.forEach(field => {
-            if (patientData[field] !== undefined) userData[field] = patientData[field];
-        });
-        console.log('--- יצירת משתמש חדש: userData ---');
-        console.log(JSON.stringify(userData, null, 2));
-        const newUser = await createUser(userData);
+        const newUser = await createUser(user);
         console.log('--- משתמש חדש נוצר: newUser ---');
         console.log(JSON.stringify(newUser, null, 2));
 
-        // יצירת מטופל עם ה-user_id החדש
-        const patientFields = ['therapist_id', 'birth_date', 'gender', 'status', 'history_notes'];
-        const patientInsertData = { user_id: newUser.user_id };
-        patientFields.forEach(field => {
-            if (patientData[field] !== undefined) patientInsertData[field] = patientData[field];
-        });
-        console.log('--- יצירת מטופל חדש: patientInsertData ---');
-        console.log(JSON.stringify(patientInsertData, null, 2));
-        const newPatient = await create(patientInsertData);
-        console.log('--- מטופל חדש נוצר: newPatient ---');
-        console.log(JSON.stringify(newPatient, null, 2));
+    // המרת gender באנגלית לעברית לפי ערכי ה-ENUM במסד הנתונים
+    let patientGender = patient.gender;
+    if (patientGender === 'male') patientGender = 'זכר';
+    else if (patientGender === 'female') patientGender = 'נקבה';
+    else if (patientGender === 'other') patientGender = 'אחר';
 
-        // שיוך למחלקה אם נבחרה
-        if (patientData.department_id) {
-            const sql = `INSERT INTO UserDepartments (user_id, department_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE department_id = VALUES(department_id)`;
-            await pool.query(sql, [newUser.user_id, patientData.department_id]);
-        }
+    // יצירת מטופל עם ה-user_id החדש
+    const patientInsertData = { ...patient, user_id: newUser.user_id, gender: patientGender };
+    const newPatient = await create(patientInsertData);
+    console.log('--- מטופל חדש נוצר: newPatient ---');
+    console.log(JSON.stringify(newPatient, null, 2));
 
-        // שיוך לקבוצות אם נבחרו
-        if (Array.isArray(patientData.group_ids) && patientData.group_ids.length > 0) {
-            for (const groupId of patientData.group_ids) {
-                const sql = `INSERT INTO UserGroups (user_id, group_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE group_id = VALUES(group_id)`;
-                await pool.query(sql, [newUser.user_id, groupId]);
+        // שיוך למחלקות וקבוצות
+        if (Array.isArray(selectedDepartments)) {
+            for (const dep of selectedDepartments) {
+                // שיוך למחלקה
+                const depSql = `INSERT INTO UserDepartments (user_id, department_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE department_id = VALUES(department_id)`;
+                await pool.query(depSql, [newUser.user_id, dep.department_id]);
+                // שיוך לקבוצות במחלקה
+                if (Array.isArray(dep.group_ids)) {
+                    for (const groupId of dep.group_ids) {
+                        const groupSql = `INSERT INTO UserGroups (user_id, group_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE group_id = VALUES(group_id)`;
+                        await pool.query(groupSql, [newUser.user_id, groupId]);
+                    }
+                }
             }
         }
 
-        // החזרת אובייקט מטופל מלא להצגה ברשימה
+        // החזרת אובייקט מלא
         return {
-            patient_id: newPatient.patient_id,
-            therapist_id: newPatient.therapist_id,
-            birth_date: newPatient.birth_date,
-            gender: newPatient.gender,
-            status: newPatient.status,
-            history_notes: newPatient.history_notes,
-            user_id: newUser.user_id,
-            first_name: newUser.first_name,
-            last_name: newUser.last_name,
-            teudat_zehut: newUser.teudat_zehut,
-            phone: newUser.phone,
-            city: newUser.city,
-            address: newUser.address,
-            email: newUser.email
+            user: {
+                ...newUser,
+                password: undefined // לא מחזירים סיסמה
+            },
+            patient: {
+                ...newPatient
+            },
+            selectedDepartments: selectedDepartments || []
         };
     } catch (error) {
         console.error('--- שגיאה ב-service ביצירת מטופל ---');
