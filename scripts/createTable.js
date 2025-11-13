@@ -151,16 +151,96 @@ CREATE TABLE IF NOT EXISTS UserGroups (
     UNIQUE (user_id, group_id) 
 );
 `;
+const prospectsTableSQL = `
+  CREATE TABLE IF NOT EXISTS Prospects (
+    prospect_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(15) NOT NULL,
+    last_name VARCHAR(20) NOT NULL,
+    phone VARCHAR(10) NOT NULL,
+    phone_alt VARCHAR(10),
+    email VARCHAR(30),
+    city VARCHAR(15),
+    referral_source VARCHAR(50),
+    reason_for_visit VARCHAR(200),
+    notes TEXT,
+    status ENUM('new', 'contacted', 'converted', 'not_relevant') DEFAULT 'new',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    converted_to_patient_id INT,
+    FOREIGN KEY (converted_to_patient_id) REFERENCES Patients(patient_id)
+  );
+`;
+// -- טבלה ראשית לקטגוריות
+const categoriesTableSQL = `
+CREATE TABLE IF NOT EXISTS Categories (
+  category_id INT AUTO_INCREMENT PRIMARY KEY,
+  category_type ENUM('prospect', 'patient', 'employee', 'treatment') NOT NULL,
+  category_name VARCHAR(50) NOT NULL,
+  category_label VARCHAR(50) NOT NULL,
+  description TEXT,
+  color VARCHAR(20) DEFAULT '#2196F3',
+  icon VARCHAR(30),
+  display_order INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY unique_category (category_type, category_name)
+);
+`;
+// --- שיוך קטגוריות למתעניינים ---
+const prospectCategoriesTableSQL = `
+  CREATE TABLE IF NOT EXISTS ProspectCategories (
+    prospect_category_id INT AUTO_INCREMENT PRIMARY KEY,
+    prospect_id INT NOT NULL,
+    category_id INT NOT NULL,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    assigned_by INT,
+    FOREIGN KEY (prospect_id) REFERENCES Prospects(prospect_id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES Categories(category_id) ON DELETE CASCADE,
+    FOREIGN KEY (assigned_by) REFERENCES Users(user_id),
+    UNIQUE KEY unique_prospect_category (prospect_id, category_id)
+  );
+`;
+// --- שיוך קטגוריות למטופלים ---
+const patientCategoriesTableSQL = `
+  CREATE TABLE IF NOT EXISTS PatientCategories (
+    patient_category_id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT NOT NULL,
+    category_id INT NOT NULL,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    assigned_by INT,
+    FOREIGN KEY (patient_id) REFERENCES Patients(patient_id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES Categories(category_id) ON DELETE CASCADE,
+    FOREIGN KEY (assigned_by) REFERENCES Users(user_id),
+    UNIQUE KEY unique_patient_category (patient_id, category_id)
+  );
+`;
+// --- שיוך קטגוריות לעובדים (Users עם role מסוים) ---
+const userCategoriesTableSQL = `
+  CREATE TABLE IF NOT EXISTS UserCategories (
+    user_category_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    category_id INT NOT NULL,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES Categories(category_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_category (user_id, category_id)
+  );
+`;
 // --- הפעלה לפי הצורך ---
 // createTable(usersTableSQL);
 // createTable(treatmentTypesTableSQL);
 // createTable(roomsTableSQL);
 // createTable(therapistsTableSQL);
 // createTable(patientsTableSQL);
-createTable(appointmentsTableSQL);
+// createTable(appointmentsTableSQL);
 // createTable(paymentsTableSQL);
 // createTable(therapistToVideoTableSQL);
 // createTable(departmentsTableSQL);
 // createTable(userDepartmentsTableSQL);
 // createTable(groupListTableSQL);
 //  createTable(userGroupsTableSQL);
+//הוספתי
+// createTable(categoriesTableSQL);
+// createTable(prospectCategoriesTableSQL);
+//  createTable(patientCategoriesTableSQL);
+createTable(userCategoriesTableSQL);
