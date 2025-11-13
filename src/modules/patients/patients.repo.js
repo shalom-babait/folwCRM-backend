@@ -1,4 +1,3 @@
-// מחזיר את כל נתוני המטופל במבנה המתאים לפרונט
 export async function getPatientFullData(patientId) {
   // שליפת נתוני משתמש ומטופל
   const userPatientSql = `
@@ -58,7 +57,9 @@ export async function getPatientFullData(patientId) {
   };
   return { user, patient, selectedDepartments };
 }
-// יצירת משתמש חדש בטבלת Users
+/**
+ * יצירת משתמש חדש בטבלת Users
+ */
 export async function createUser(userData) {
   const { first_name, last_name, teudat_zehut, phone, city, address, email, password } = userData;
   // אם לא נשלח password, נשתמש בערך ברירת מחדל
@@ -96,7 +97,9 @@ export async function createUser(userData) {
 
 import pool, { deleteFromTable, updateTable } from "../../services/database.js";
 
-// שליפת נתוני מטופל בלבד לפי מזהה
+/**
+ * שליפת נתוני מטופל בלבד לפי מזהה
+ */
 export const getPatientOnly = async (patientId) => {
   const sql = `
     SELECT
@@ -122,6 +125,9 @@ export const getPatientOnly = async (patientId) => {
   return rows[0] || null;
 };
 
+/**
+ * יצירת מטופל חדש בטבלת Patients
+ */
 export async function create(patientData) {
   const { user_id, therapist_id, birth_date, gender, status, history_notes } = patientData;
   
@@ -156,6 +162,9 @@ export async function create(patientData) {
 }
 
 
+/**
+ * שליפת כל המטופלים של מטפל
+ */
 export async function getPatientsByTherapist(therapistId) {
   // שליפת כל המטופלים של המטפל
   const sql = `
@@ -221,6 +230,9 @@ export async function getPatientsByTherapist(therapistId) {
     return { user, patient, selectedDepartments };
   });
 }
+/**
+ * שליפת כל הפגישות של מטופל
+ */
 export const getPatientDetails = async (patientId) => {
   const sql = `
     SELECT
@@ -250,6 +262,9 @@ export const getPatientDetails = async (patientId) => {
   return rows;
 };
 
+/**
+ * סטטיסטיקות פגישות של מטופל
+ */
 export const getPatientStats = async (patientId) => {
   const sql = `
     SELECT
@@ -262,18 +277,23 @@ export const getPatientStats = async (patientId) => {
   return rows[0]; // מחזיר אובייקט אחד עם total_appointments ו-total_treatment_minutes
 };
 
+/**
+ * מחיקת מטופל לפי מזהה
+ */
 export async function deleteFromPatients(patientId) {
   return deleteFromTable('Patients', { patient_id: patientId });
 }
 
+/**
+ * עדכון נתוני מטופל לפי מזהה
+ */
 export async function updateToPatients(patientId, updateData) {
   return updateTable('Patients', updateData, { patient_id: patientId });
 }
 
-// Update Users table by userId
+/**
+ * עדכון נתוני משתמש לפי מזהה
+ */
 export async function updateToUsers(userId, updateData) {
-  console.log('Updating Users:', userId, updateData);
-  const result = await updateTable('Users', updateData, { user_id: userId });
-  console.log('UpdateTable result:', result);
-  return result;
+  return updateTable('Users', updateData, { user_id: userId });
 }
