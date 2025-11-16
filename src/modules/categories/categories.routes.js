@@ -1,9 +1,8 @@
 // src/modules/categories/categories.routes.js
 import express from 'express';
 import categoriesController from './categories.controller.js';
-import { authenticate, authorize } from '../../middleware/auth.js';
-import { validate } from '../../middleware/validation.js';
-import {
+import { authenticate, authorize } from '../../middlewares/auth.middleware.js';
+import { validate } from '../../middlewares/validation.js';import {
   createCategorySchema,
   updateCategorySchema,
   assignCategorySchema,
