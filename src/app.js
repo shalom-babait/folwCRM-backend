@@ -16,8 +16,8 @@ const app = express();
 
 // הגדרת CORS - מאפשר גישה מהאתר בפרודקשן ומסביבת הפיתוח
 const allowedOrigins = [
-  'https://shalombabait-production.up.railway.app/', // 👈 החליפי בכתובת האתר בפרודקשן
-  'http://localhost:4200' // לפיתוח מקומי
+  'https://shalombabait-production.up.railway.app', // 👈 בלי /
+  'http://localhost:4200'
 ];
 
 const corsOptions = {
