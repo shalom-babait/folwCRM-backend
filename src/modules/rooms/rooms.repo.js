@@ -1,4 +1,4 @@
-import pool from "../../services/database.js";
+import pool, { deleteFromTable, updateTable } from "../../services/database.js";
 
 export async function getRooms() {
   try {
@@ -31,4 +31,12 @@ export async function create(roomData) {
   } catch (error) {
     throw error;
   }
+}
+
+export async function deleteFromRooms(roomId) {
+  return deleteFromTable('Rooms', { room_id: roomId });
+}
+
+export async function updateToRooms(roomId, updateData) {
+  return updateTable('Rooms', updateData, { room_id: roomId });
 }

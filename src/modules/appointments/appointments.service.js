@@ -1,4 +1,8 @@
-import { create, checkTimeConflict,getAppointmentsByPatientAndTherapist } from "./appointments.repo.js";
+import { create, checkTimeConflict, getAppointmentsByPatientAndTherapist, deleteFromAppointments, updateToAppointments, getAppointmentsByRoom } from "./appointments.repo.js";
+
+export async function fetchAppointmentsByRoom(roomId) {
+  return await getAppointmentsByRoom(roomId);
+}
 import pool from "../../services/database.js";
 
 export async function createAppointment(appointmentData) {
@@ -76,4 +80,53 @@ export async function createAppointment(appointmentData) {
 
 export async function fetchAppointments(patientId, therapistId) {
   return await getAppointmentsByPatientAndTherapist(patientId, therapistId);
+}
+
+export async function deleteAppointment(appointmentId) {
+  try {
+    // Check if appointment exists before deleting
+    const [appointment] = await pool.execute(
+      "SELECT * FROM Appointments WHERE appointment_id = ?",
+      [appointmentId]
+    );
+    if (appointment.length === 0) {
+      return false;
+    }
+    
+    return await deleteFromAppointments(appointmentId);
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function updateAppointment(appointmentId, updateData) {
+  try {
+    // Check if appointment exists
+    const [appointment] = await pool.execute(
+      "SELECT * FROM Appointments WHERE appointment_id = ?",
+      [appointmentId]
+    );
+    if (appointment.length === 0) {
+      return false;
+    }
+
+    // If updating time-related fields, check for conflicts
+    if (updateData.start_time && updateData.end_time) {
+      const hasConflict = await checkTimeConflict(
+        updateData.therapist_id || appointment[0].therapist_id,
+        updateData.room_id || appointment[0].room_id,
+        updateData.appointment_date || appointment[0].appointment_date,
+        updateData.start_time,
+        updateData.end_time
+      );
+
+      if (hasConflict) {
+        throw new Error("Time conflict: Therapist or room is not available at this time");
+      }
+    }
+
+    return await updateToAppointments(appointmentId, updateData);
+  } catch (error) {
+    throw error;
+  }
 }

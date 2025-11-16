@@ -1,39 +1,26 @@
-import { loginUser } from "../users/user.service.js";
+import { loginService } from './login.service.js';
 
 export async function loginController(req, res) {
   try {
     const { email, password } = req.body;
-    
-    // וולידציה בסיסית
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Email and password are required"
-      });
-    }
-
-    // ניקוי רווחים מיותרים
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanPassword = password.trim();
-
-    const loginResult = await loginUser(cleanEmail, cleanPassword);
-    
-    res.status(200).json({
+    const result = await loginService(email, password);
+    // מחזירים רק מזהה רלוונטי לפי role
+    const userRole = result.user?.role;
+    const response = {
       success: true,
-      data: loginResult
-    });
-  } catch (error) {
-    // טיפול בשגיאות התחברות
-    if (error.message === "User not found" || error.message === "Invalid password") {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password"
-      });
+      token: result.token,
+      user: result.user,
+      message: result.message
+    };
+    if (userRole === 'therapist' && result.therapist_id) {
+      response.therapist_id = result.therapist_id;
+    } else if (userRole === 'patient' && result.patient_id) {
+      response.patient_id = result.patient_id;
+    } else if (userRole === 'secretary' && result.secretary_id) {
+      response.secretary_id = result.secretary_id;
     }
-
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
+    res.json(response);
+  } catch (error) {
+    res.status(401).json({ success: false, message: error.message });
   }
 }

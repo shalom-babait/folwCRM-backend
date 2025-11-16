@@ -1,11 +1,11 @@
-import { createUser } from "./user.service.js";
+import { createUser, deleteUser, updateUser } from "./user.service.js";
 
 export async function createUserController(req, res) {
   try {
     const userData = req.body;
     
     // וולידציה בסיסית על שדות חובה
-    const requiredFields = ['first_name', 'last_name', 'phone', 'city', 'email', 'password'];
+  const requiredFields = ['first_name', 'last_name', 'phone', 'city', 'email', 'password', 'gender'];
     
     for (const field of requiredFields) {
       if (!userData[field] || userData[field].trim() === '') {
@@ -17,11 +17,11 @@ export async function createUserController(req, res) {
     }
 
     // וולידציה על תפקיד
-    const validRoles = ['מזכיר', 'מנהל', 'מטפל', 'מטופל'];
+    const validRoles = ['secretary', 'manager', 'therapist', 'patient', 'other'];
     if (userData.role && !validRoles.includes(userData.role)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid role value. Must be one of: מזכיר, מנהל, מטפל, מטופל"
+        message: "Invalid role value. Must be one of: secretary, manager, therapist, patient, other"
       });
     }
 
@@ -63,6 +63,78 @@ export async function createUserController(req, res) {
     });
   }
 }
+
+export async function deleteUserController(req, res) {
+  try {
+    const { id } = req.params;
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ID"
+      });
+    }
+    const result = await deleteUser(id);
+    if (result) {
+      res.json({
+        success: true,
+        message: "User deleted successfully"
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error deleting User"
+    });
+  }
+}
+
+export async function updateUserController(req, res) {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ID"
+      });
+    }
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No update data provided"
+      });
+    }
+    
+    const result = await updateUser(id, updateData);
+    if (result) {
+      res.json({
+        success: true,
+        message: "User updated successfully"
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "User not found or no changes made"
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error updating User"
+    });
+    console.log(error.message);
+    
+  }
+}
+
+
+
 
 // import { addUser } from './user.service.js';
 

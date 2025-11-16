@@ -1,24 +1,29 @@
-import pool from "../../services/database.js";
+import pool, { deleteFromTable, updateTable } from "../../services/database.js";
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 export async function create(userData) {
-  const { 
-    first_name, 
-    last_name, 
-    teudat_zehut, 
-    phone, 
-    city, 
-    address, 
-    email, 
-    password, 
-    role, 
-    agree 
+  const {
+    first_name,
+    last_name,
+    teudat_zehut,
+    phone,
+    city,
+    address,
+    email,
+    password,
+    role,
+    agree
   } = userData;
-  
+
+  // הצפנת הסיסמה
+  const hashedPassword = await bcrypt.hash(password, 10);
+
   const query = `
-    INSERT INTO Users (first_name, last_name, teudat_zehut, phone, city, address, email, password, role, agree)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO Users (first_name, last_name, teudat_zehut, phone, city, address, email, password, role, agree, gender, birth_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
-  
+
   try {
     const [result] = await pool.execute(query, [
       first_name,
@@ -28,11 +33,21 @@ export async function create(userData) {
       city,
       address || null,
       email,
-      password,
-      role || 'מטופל',
-      agree || 0
+      hashedPassword,
+      role || 'patient',
+      agree || 0,
+      userData.gender,
+      userData.birth_date || null
     ]);
-    
+
+    // יצירת טוקן JWT
+    const SECRET = process.env.JWT_SECRET || 'yourSecretKey';
+    const token = jwt.sign(
+  { id: result.insertId, role: role || 'patient' },
+      SECRET,
+      { expiresIn: '1h' }
+    );
+
     return {
       user_id: result.insertId,
       first_name,
@@ -42,8 +57,11 @@ export async function create(userData) {
       city,
       address,
       email,
-      role: role || 'מטופל',
+      role: role || 'patient',
       agree: agree || 0,
+      gender: userData.gender,
+      birth_date: userData.birth_date || null,
+      token,
       message: "User created successfully"
     };
   } catch (error) {
@@ -52,8 +70,7 @@ export async function create(userData) {
 }
 
 export async function findByEmail(email) {
-  const query = "SELECT * FROM Users WHERE email = ?";
-  
+    const query = "SELECT * FROM Users WHERE email = ?";
   try {
     const [rows] = await pool.execute(query, [email]);
     return rows[0] || null;
@@ -84,26 +101,12 @@ export async function findByPhone(phone) {
   }
 }
 
-// export async function createUser(name, email, hashedPassword) {
-//   const [result] = await pool
-//     // .promise()
-//     .query('INSERT INTO Users (name, email, password) VALUES (?, ?, ?)', [
-//       name,
-//       email,
-//       hashedPassword,
-//     ]);
-//   return result.insertId;
-// }
-// export async function createUser(name, email, hashedPassword) {
-//   const [result] = await pool.query(
-//     'INSERT INTO Users (name, email, password) VALUES (?, ?, ?)',
-//     [name, email, hashedPassword]
-//   );
-//   return result.insertId;
-// }
-
-// const findById = (id) => db('users').where({ id }).first();
-
 // const findByEmail = (email) => db('users').where({ email }).first();
 
-// module.exports = { createUser, findById, findByEmail };
+export async function deleteFromUsers(userId) {
+  return deleteFromTable('Users', { user_id: userId });
+}
+
+export async function updateToUsers(userId, updateData) {
+  return updateTable('Users', updateData, { user_id: userId });
+}

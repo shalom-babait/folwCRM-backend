@@ -1,4 +1,12 @@
-import pool from "../../services/database.js";
+import pool, { deleteFromTable, updateTable } from "../../services/database.js";
+
+export async function getAppointmentsByRoom(roomId) {
+  const sql = `
+    SELECT * FROM Appointments WHERE room_id = ? ORDER BY appointment_date, start_time;
+  `;
+  const [rows] = await pool.query(sql, [roomId]);
+  return rows;
+}
 
 export async function create(appointmentData) {
   const { 
@@ -98,4 +106,12 @@ export async function getAppointmentsByPatientAndTherapist(patientId, therapistI
   `;
   const [rows] = await pool.query(sql, [patientId, therapistId]);
   return rows;
+}
+
+export async function deleteFromAppointments(appointmentId) {
+  return deleteFromTable('Appointments', { appointment_id: appointmentId });
+}
+
+export async function updateToAppointments(appointmentId, updateData) {
+  return updateTable('Appointments', updateData, { appointment_id: appointmentId });
 }

@@ -1,6 +1,7 @@
-import { createUser } from './user.repo.js';
-
-import { create, findByEmail, findByTeudatZehut, findByPhone } from "./user.repo.js";
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { create, findByEmail, findByTeudatZehut, findByPhone, updateToUsers, deleteFromUsers } from "./user.repo.js";
+import pool from "../../services/database.js";
 
 export async function createUser(userData) {
   try {
@@ -69,7 +70,7 @@ export async function createUser(userData) {
     if (userData.password.length > 15) {
       throw new Error("Password cannot exceed 15 characters");
     }
-
+    userData.password = await bcrypt.hash(userData.password, 10);
     const newUser = await create(userData);
     
     // החזרת הנתונים ללא הסיסמה
@@ -83,32 +84,78 @@ export async function createUser(userData) {
 
 export async function loginUser(email, password) {
   try {
-    // חיפוש משתמש לפי אימייל
     const user = await findByEmail(email);
-    
     if (!user) {
       throw new Error("User not found");
     }
-
-    // בדיקת סיסמה
-    // אם אתם משתמשים בהצפנה:
-    // const isPasswordValid = await bcrypt.compare(password, user.password);
-    
-    // אם אתם לא משתמשים בהצפנה (לא מומלץ בסביבת פרודקשן):
-    const isPasswordValid = password === user.password;
-    
+    const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new Error("Invalid password");
     }
-
-    // החזרת נתוני המשתמש ללא הסיסמה
+    // יצירת טוקן JWT
+    const SECRET = process.env.JWT_SECRET || 'yourSecretKey';
+    const token = jwt.sign(
+      { id: user.user_id, role: user.role },
+      SECRET,
+      { expiresIn: '1h' }
+    );
     const { password: userPassword, ...userWithoutPassword } = user;
-    
     return {
+      token,
       user: userWithoutPassword,
       message: "Login successful"
     };
-    
+  } catch (error) {
+    throw error;
+  }
+}
+
+
+
+export async function deleteUser(id) {
+  try {
+    const [existing] = await pool.execute(
+      "SELECT * FROM Users WHERE user_id = ?",
+      [id]
+    );
+    if (existing.length === 0) {
+      return false;
+    }
+    return await deleteFromUsers(id);
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function updateUser(id, updateData) {
+  try {
+    const [existing] = await pool.execute(
+      "SELECT * FROM Users WHERE user_id = ?",
+      [id]
+    );
+    if (existing.length === 0) {
+      return false;
+    }
+
+    // Validate email format if it's being updated
+    if (updateData.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(updateData.email)) {
+        throw new Error("Invalid email format");
+      }
+    }
+
+    // Validate phone number if it's being updated
+    if (updateData.phone && !/^\d{10}$/.test(updateData.phone)) {
+      throw new Error("Phone number must be exactly 10 digits");
+    }
+
+    // Validate teudat_zehut if it's being updated
+    if (updateData.teudat_zehut && !/^\d{9}$/.test(updateData.teudat_zehut)) {
+      throw new Error("Teudat Zehut must be exactly 9 digits");
+    }
+
+    return await updateToUsers(id, updateData);
   } catch (error) {
     throw error;
   }
