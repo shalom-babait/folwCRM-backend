@@ -12,31 +12,46 @@ import departmentsRoutes from './modules/departments/departments.routes.js';
 import groupsRoutes from './modules/groups/groups.routes.js';
 import prospectsRoutes from './modules/prospects/prospects.routes.js';
 import categoriesRoutes from './modules/categories/categories.routes.js';
+
 const app = express();
 
-// הגדרת CORS - מאפשר גישה מהאתר בפרודקשן ומסביבת הפיתוח
+// ✅ רשימת דומיינים מורשים
 const allowedOrigins = [
-  'https://shalombabait-production.up.railway.app', // 👈 בלי /
+  'https://shalombabait-production.up.railway.app', // החליפי בדומיין שלך
   'http://localhost:4200'
 ];
 
+// ✅ הגדרת CORS
 const corsOptions = {
   origin: function(origin, callback) {
-    // אפשר בקשות ללא origin (כמו Postman או mobile apps)
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  optionsSuccessStatus: 200
+  methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
 };
 
 app.use(cors(corsOptions));
 app.use(express.json());
+
+// ✅ טיפול בבקשות OPTIONS לכל route
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
+    if (req.headers.origin) res.header('Access-Control-Allow-Credentials', 'true');
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+// route בסיסי ל־`/` כדי למנוע 502
+app.get('/', (req, res) => res.send('Server is running'));
 
 // app.use('/api/users', usersRouter);
 app.use('/api/email', emailRoutes);
@@ -51,7 +66,10 @@ app.use('/api/groups', groupsRoutes);
 app.use('/api/prospects', prospectsRoutes);
 app.use('/api/categories', categoriesRoutes);
 
+// מאזינים לפורט ש־Railway נותן
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+export default app;
