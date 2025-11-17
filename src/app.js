@@ -17,12 +17,12 @@ const app = express();
 
 // ✅ רשימת דומיינים מורשים
 const allowedOrigins = [
-  'https://shalombabait-production.up.railway.app', // החליפי בדומיין שלך
-  'http://localhost:4200'
+  'https://shalombabait-production.up.railway.app', // frontend production
+  'http://localhost:4200' // לפיתוח מקומי
 ];
 
 // ✅ הגדרת CORS
-const corsOptions = {
+app.use(cors({
   origin: function(origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -33,24 +33,11 @@ const corsOptions = {
   credentials: true,
   methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization']
-};
+}));
 
-app.use(cors(corsOptions));
 app.use(express.json());
 
-// ✅ טיפול בבקשות OPTIONS לכל route
-app.use((req, res, next) => {
-  if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
-    if (req.headers.origin) res.header('Access-Control-Allow-Credentials', 'true');
-    return res.sendStatus(200);
-  }
-  next();
-});
-
-// route בסיסי ל־`/` כדי למנוע 502
+// route בסיסי ל־`/` כדי למנוע 502 אם ה‑frontend שולח GET לשורש
 app.get('/', (req, res) => res.send('Server is running'));
 
 // app.use('/api/users', usersRouter);
