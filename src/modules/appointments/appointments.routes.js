@@ -1,17 +1,23 @@
 import express from "express";
-import { 
-  createAppointmentController, 
+import {
+  createAppointmentController,
   getAppointments,
   deleteAppointmentController,
   updateAppointmentController,
-  getAppointmentsByRoom
+  getAppointmentsByRoom,
+  getAppointmentsByTherapist
 } from "./appointments.controller.js";
 
 const router = express.Router();
 
 // POST /api/appointments - יצירת תור חדש
 router.post("/", createAppointmentController);
+
 router.get("/byRoom/:roomId", getAppointmentsByRoom);
+
+// שליפת כל הפגישות של מטפל בלבד
+router.get("/therapist/:therapistId", getAppointmentsByTherapist);
+
 router.get("/:patientId/:therapistId", getAppointments);
 
 // DELETE /api/appointments/deleteAppointment/:appointmentId - מחיקת תור

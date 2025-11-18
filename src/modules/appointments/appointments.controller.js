@@ -1,3 +1,21 @@
+// שליפת כל הפגישות של מטפל בלבד
+import { fetchAppointmentsByTherapist } from "./appointments.service.js";
+
+export async function getAppointmentsByTherapist(req, res) {
+  try {
+    const { therapistId } = req.params;
+    console.log('getAppointmentsByTherapist - therapistId:', therapistId, typeof therapistId);
+    const appointments = await fetchAppointmentsByTherapist(therapistId);
+    console.log('getAppointmentsByTherapist - appointments:', appointments);
+    if (!appointments || appointments.length === 0) {
+      console.warn('No appointments found for therapistId:', therapistId);
+    }
+    res.json({ success: true, data: appointments });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error fetching appointments by therapist" });
+  }
+}
 import { createAppointment, fetchAppointments, deleteAppointment, updateAppointment, fetchAppointmentsByRoom } from "./appointments.service.js";
 export async function getAppointmentsByRoom(req, res) {
   try {
