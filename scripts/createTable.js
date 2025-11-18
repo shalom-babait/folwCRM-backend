@@ -157,10 +157,10 @@ CREATE TABLE IF NOT EXISTS UserGroups (
 // createTable(roomsTableSQL);
 // createTable(therapistsTableSQL);
 // createTable(patientsTableSQL);
-createTable(appointmentsTableSQL);
+// createTable(appointmentsTableSQL);
 // createTable(paymentsTableSQL);
 // createTable(therapistToVideoTableSQL);
 // createTable(departmentsTableSQL);
 // createTable(userDepartmentsTableSQL);
 // createTable(groupListTableSQL);
-//  createTable(userGroupsTableSQL);
+ createTable(userGroupsTableSQL);
