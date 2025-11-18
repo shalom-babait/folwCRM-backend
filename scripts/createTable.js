@@ -243,4 +243,8 @@ const userCategoriesTableSQL = `
 // createTable(categoriesTableSQL);
 // createTable(prospectCategoriesTableSQL);
 //  createTable(patientCategoriesTableSQL);
-createTable(userCategoriesTableSQL);
+// createTable(userCategoriesTableSQL);
+// createTable(userCategoriesTableSQL);
+//workbench
+// ALTER TABLE Categories
+// DROP COLUMN category_label;

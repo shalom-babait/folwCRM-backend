@@ -2,48 +2,40 @@
 import categoriesService from './categories.service.js';
 
 class CategoriesController {
-  // ========== Categories CRUD ==========
-  
-  async getAllCategories(req, res, next) {
+
+  // Wrapper ל-error handling
+  async handleRequest(res, next, fn) {
     try {
-      const categories = await categoriesService.getAllCategories();
-      res.json({
-        success: true,
-        data: categories
-      });
-    } catch (error) {
-      next(error);
+      await fn();
+    } catch (err) {
+      next(err);
     }
   }
 
-  async getCategoriesByType(req, res, next) {
-    try {
+  // ================= Categories CRUD =================
+  getAllCategories = (req, res, next) =>
+    this.handleRequest(res, next, async () => {
+      const categories = await categoriesService.getAllCategories();
+      res.json({ success: true, data: categories });
+    });
+
+  getCategoriesByType = (req, res, next) =>
+    this.handleRequest(res, next, async () => {
       const { type } = req.params;
       const categories = await categoriesService.getCategoriesByType(type);
-      res.json({
-        success: true,
-        data: categories
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+      res.json({ success: true, data: categories });
+    });
 
-  async getCategoryById(req, res, next) {
-    try {
-      const { id } = req.params;
+  getCategoryById = (req, res, next) =>
+    this.handleRequest(res, next, async () => {
+      const id = req.params.id || req.params.categoryId;
       const category = await categoriesService.getCategoryById(id);
-      res.json({
-        success: true,
-        data: category
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+      res.json({ success: true, data: category });
+    });
 
-  async createCategory(req, res, next) {
-    try {
+  createCategory = (req, res, next) =>
+    this.handleRequest(res, next, async () => {
+      console.log('Creating category with data:', req.body);
       const categoryId = await categoriesService.createCategory(req.body);
       const category = await categoriesService.getCategoryById(categoryId);
       res.status(201).json({
@@ -51,14 +43,11 @@ class CategoriesController {
         message: 'Category created successfully',
         data: category
       });
-    } catch (error) {
-      next(error);
-    }
-  }
+    });
 
-  async updateCategory(req, res, next) {
-    try {
-      const { id } = req.params;
+  updateCategory = (req, res, next) =>
+    this.handleRequest(res, next, async () => {
+      const id = req.params.id || req.params.categoryId;
       await categoriesService.updateCategory(id, req.body);
       const category = await categoriesService.getCategoryById(id);
       res.json({
@@ -66,166 +55,67 @@ class CategoriesController {
         message: 'Category updated successfully',
         data: category
       });
-    } catch (error) {
-      next(error);
-    }
-  }
+    });
 
-  async deleteCategory(req, res, next) {
-    try {
-      const { id } = req.params;
+  deleteCategory = (req, res, next) =>
+    this.handleRequest(res, next, async () => {
+      const id = req.params.id || req.params.categoryId;
       await categoriesService.deleteCategory(id);
-      res.json({
-        success: true,
-        message: 'Category deleted successfully'
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+      res.json({ success: true, message: 'Category deleted successfully' });
+    });
 
-  // ========== Prospect Categories ==========
-  
-  async assignToProspect(req, res, next) {
-    try {
-      const { prospect_id, category_id } = req.body;
-      const userId = req.user?.user_id; // מה-JWT
-      
-      await categoriesService.assignCategoryToProspect(prospect_id, category_id, userId);
-      
-      res.status(201).json({
-        success: true,
-        message: 'Category assigned to prospect successfully'
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async removeFromProspect(req, res, next) {
-    try {
-      const { prospectId, categoryId } = req.params;
-      await categoriesService.removeCategoryFromProspect(prospectId, categoryId);
-      res.json({
-        success: true,
-        message: 'Category removed from prospect successfully'
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getProspectCategories(req, res, next) {
-    try {
-      const { prospectId } = req.params;
-      const categories = await categoriesService.getProspectCategories(prospectId);
-      res.json({
-        success: true,
-        data: categories
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getProspectsByCategory(req, res, next) {
-    try {
-      const { categoryId } = req.params;
-      const prospects = await categoriesService.getProspectsByCategory(categoryId);
-      res.json({
-        success: true,
-        data: prospects
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  // ========== Patient Categories ==========
-  
-  async assignToPatient(req, res, next) {
-    try {
-      const { patient_id, category_id } = req.body;
+  // ================= Generic Assign / Remove / Get =================
+  assignCategory = (entityType) => (req, res, next) =>
+    this.handleRequest(res, next, async () => {
+      const { entityId, categoryId } = req.body;
       const userId = req.user?.user_id;
-      
-      await categoriesService.assignCategoryToPatient(patient_id, category_id, userId);
-      
+      await categoriesService.assignCategory(entityType, entityId, categoryId, userId);
       res.status(201).json({
         success: true,
-        message: 'Category assigned to patient successfully'
+        message: `Category assigned to ${entityType} successfully`
       });
-    } catch (error) {
-      next(error);
-    }
-  }
+    });
 
-  async removeFromPatient(req, res, next) {
-    try {
-      const { patientId, categoryId } = req.params;
-      await categoriesService.removeCategoryFromPatient(patientId, categoryId);
+  removeCategory = (entityType) => (req, res, next) =>
+    this.handleRequest(res, next, async () => {
+      // Accept either params or body depending on route
+      const entityId = req.params.entityId || req.body.entityId || req.params.prospectId || req.params.patientId || req.params.userId;
+      const categoryId = req.params.categoryId || req.body.categoryId;
+      await categoriesService.removeCategory(entityType, entityId, categoryId);
       res.json({
         success: true,
-        message: 'Category removed from patient successfully'
+        message: `Category removed from ${entityType} successfully`
       });
-    } catch (error) {
-      next(error);
-    }
-  }
+    });
 
-  async getPatientCategories(req, res, next) {
-    try {
-      const { patientId } = req.params;
-      const categories = await categoriesService.getPatientCategories(patientId);
-      res.json({
-        success: true,
-        data: categories
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  getCategoriesByEntity = (entityType) => (req, res, next) =>
+    this.handleRequest(res, next, async () => {
+      const entityId = req.params.entityId || req.params.prospectId || req.params.patientId || req.params.userId;
+      const categories = await categoriesService.getCategories(entityType, entityId);
+      res.json({ success: true, data: categories });
+    });
 
-  // ========== User Categories ==========
-  
-  async assignToUser(req, res, next) {
-    try {
-      const { user_id, category_id } = req.body;
-      await categoriesService.assignCategoryToUser(user_id, category_id);
-      
-      res.status(201).json({
-        success: true,
-        message: 'Category assigned to user successfully'
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  getEntitiesByCategory = (entityType) => (req, res, next) =>
+    this.handleRequest(res, next, async () => {
+      const { categoryId } = req.params;
+      const entities = await categoriesService.getEntitiesByCategory(entityType, categoryId);
+      res.json({ success: true, data: entities });
+    });
 
-  async removeFromUser(req, res, next) {
-    try {
-      const { userId, categoryId } = req.params;
-      await categoriesService.removeCategoryFromUser(userId, categoryId);
-      res.json({
-        success: true,
-        message: 'Category removed from user successfully'
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  // Specific handlers expected by the routes (thin wrappers around the generic helpers)
+  assignToProspect = this.assignCategory('prospect');
+  removeFromProspect = this.removeCategory('prospect');
+  getProspectCategories = this.getCategoriesByEntity('prospect');
+  getProspectsByCategory = this.getEntitiesByCategory('prospect');
 
-  async getUserCategories(req, res, next) {
-    try {
-      const { userId } = req.params;
-      const categories = await categoriesService.getUserCategories(userId);
-      res.json({
-        success: true,
-        data: categories
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  assignToPatient = this.assignCategory('patient');
+  removeFromPatient = this.removeCategory('patient');
+  getPatientCategories = this.getCategoriesByEntity('patient');
+
+  assignToUser = this.assignCategory('employee');
+  removeFromUser = this.removeCategory('employee');
+  getUserCategories = this.getCategoriesByEntity('employee');
+
 }
 
 export default new CategoriesController();
