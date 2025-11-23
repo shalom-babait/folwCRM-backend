@@ -238,9 +238,90 @@ const userCategoriesTableSQL = `
 // createTable(departmentsTableSQL);
 // createTable(userDepartmentsTableSQL);
 // createTable(groupListTableSQL);
-//  createTable(userGroupsTableSQL);
+// createTable(userGroupsTableSQL);
 //הוספתי
 // createTable(categoriesTableSQL);
 // createTable(prospectCategoriesTableSQL);
-//  createTable(patientCategoriesTableSQL);
-createTable(userCategoriesTableSQL);
+// createTable(patientCategoriesTableSQL);
+// createTable(userCategoriesTableSQL);
+// createTable(userCategoriesTableSQL);
+//workbench
+// ALTER TABLE Categories
+// DROP COLUMN category_label;
+//הוספתי 2
+// --- החזרים על תשלומים ---
+const refundsTableSQL = `
+  CREATE TABLE IF NOT EXISTS Refunds (
+    refund_id INT AUTO_INCREMENT PRIMARY KEY,
+    pay_id INT NOT NULL,
+    refund_amount DECIMAL(10,2) NOT NULL,
+    refund_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    reason VARCHAR(200),
+    status ENUM('pending','completed','failed') DEFAULT 'completed',
+    FOREIGN KEY (pay_id) REFERENCES Payments(pay_id)
+  );
+`;
+
+// --- חשבוניות / קבלות ---
+const invoicesTableSQL = `
+  CREATE TABLE IF NOT EXISTS Invoices (
+    invoice_id INT AUTO_INCREMENT PRIMARY KEY,
+    pay_id INT NOT NULL,
+    invoice_number VARCHAR(50) UNIQUE NOT NULL,
+    issue_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    total DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (pay_id) REFERENCES Payments(pay_id)
+  );
+`;
+
+// --- היסטוריית סטטוס לתשלומים ---
+const paymentStatusHistoryTableSQL = `
+  CREATE TABLE IF NOT EXISTS PaymentStatusHistory (
+    history_id INT AUTO_INCREMENT PRIMARY KEY,
+    pay_id INT NOT NULL,
+    old_status VARCHAR(20),
+    new_status VARCHAR(20),
+    changed_by INT,
+    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (pay_id) REFERENCES Payments(pay_id),
+    FOREIGN KEY (changed_by) REFERENCES Users(user_id)
+  );
+`;
+// createTable(refundsTableSQL);
+// createTable(invoicesTableSQL);
+// createTable(paymentStatusHistoryTableSQL);
+
+//בworkbench
+// ALTER TABLE Payments
+// ADD COLUMN status ENUM('pending','paid','failed','refunded') DEFAULT 'pending';
+
+// ALTER TABLE Patients
+// DROP COLUMN gender;
+
+// ALTER TABLE Patients
+// ADD COLUMN gender ENUM('male','female','other') NOT NULL DEFAULT 'female';
+
+// ALTER TABLE UserDepartments
+// DROP FOREIGN KEY UserDepartments_ibfk_1,
+// ADD CONSTRAINT UserDepartments_user_fk
+//   FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE;
+
+//   ALTER TABLE UserGroups
+// DROP FOREIGN KEY UserGroups_ibfk_1,
+// ADD CONSTRAINT UserGroups_user_fk
+//   FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE;
+
+//   ALTER TABLE ProspectCategories
+// DROP FOREIGN KEY ProspectCategories_ibfk_1,
+// ADD CONSTRAINT ProspectCategories_prospect_fk 
+//   FOREIGN KEY (prospect_id) REFERENCES Prospects(prospect_id) ON DELETE CASCADE;
+
+//   ALTER TABLE PatientCategories
+// DROP FOREIGN KEY PatientCategories_ibfk_1,
+// ADD CONSTRAINT PatientCategories_patient_fk
+//   FOREIGN KEY (patient_id) REFERENCES Patients(patient_id) ON DELETE CASCADE;
+
+//   ALTER TABLE UserCategories
+// DROP FOREIGN KEY UserCategories_ibfk_1,
+// ADD CONSTRAINT UserCategories_user_fk
+//   FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE;

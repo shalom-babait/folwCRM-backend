@@ -1,3 +1,12 @@
+// מחזיר therapist_id לפי user_id
+export async function getTherapistIdByUserId(user_id) {
+  const query = `SELECT therapist_id FROM Therapists WHERE user_id = ? LIMIT 1`;
+  const [rows] = await pool.execute(query, [user_id]);
+  if (rows.length > 0) {
+    return rows[0].therapist_id;
+  }
+  return null;
+}
 
 import pool, { deleteFromTable, updateTable } from "../../services/database.js";
 import { create as createUser } from "../users/user.repo.js";

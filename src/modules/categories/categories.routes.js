@@ -1,8 +1,9 @@
-// src/modules/categories/categories.routes.js
 import express from 'express';
 import categoriesController from './categories.controller.js';
 import { authenticate, authorize } from '../../middlewares/auth.middleware.js';
-import { validate } from '../../middlewares/validation.js';import {
+import { validate } from '../../middlewares/validation.js';
+
+import {
   createCategorySchema,
   updateCategorySchema,
   assignCategorySchema,
@@ -12,107 +13,101 @@ import { validate } from '../../middlewares/validation.js';import {
 
 const router = express.Router();
 
-// ========== Categories Management ========== 
-
 // שליפת כל הקטגוריות
 router.get(
-  '/',
-  authenticate,
+  '/list',
+  // authenticate,
   categoriesController.getAllCategories
 );
-// שליפת קטגוריות לפי סוג (type)
+
+// שליפת קטגוריות לפי סוג
 router.get(
-  '/type/:type',
-  authenticate,
-  validate(categoryTypeSchema, 'params'),
+  '/list/type/:type',
+  // authenticate,
+  // validate(categoryTypeSchema, 'params'),
   categoriesController.getCategoriesByType
 );
+
 // שליפת קטגוריה לפי מזהה
 router.get(
-  '/:id',
+  '/get/:id',
   authenticate,
   validate(categoryIdSchema, 'params'),
   categoriesController.getCategoryById
 );
-// יצירת קטגוריה חדשה
+
+// יצירת קטגוריה
 router.post(
-  '/',
-  authenticate,
-  authorize(['manager', 'secretary']),
-  validate(createCategorySchema),
+  '/create',
+  // authenticate,
+  // authorize(['manager', 'secretary']),
+  // validate(createCategorySchema),
   categoriesController.createCategory
 );
-// עדכון קטגוריה קיימת
+
+// עדכון קטגוריה
 router.put(
-  '/:id',
+  '/update/:id',
   authenticate,
   authorize(['manager', 'secretary']),
   validate(categoryIdSchema, 'params'),
   validate(updateCategorySchema),
   categoriesController.updateCategory
 );
-// מחיקת קטגוריה לפי מזהה
+
+// מחיקת קטגוריה
 router.delete(
-  '/:id',
+  '/delete/:id',
   authenticate,
   authorize(['manager']),
   validate(categoryIdSchema, 'params'),
   categoriesController.deleteCategory
 );
 
-// ========== Prospect Categories ========== 
-
-// שיוך קטגוריה למתעניין (prospect)
 router.post(
   '/assign/prospect',
   authenticate,
   validate(assignCategorySchema),
   categoriesController.assignToProspect
 );
-// הסרת שיוך קטגוריה ממתעניין
+
 router.delete(
-  '/assign/prospect/:prospectId/:categoryId',
+  '/remove/prospect/:prospectId/:categoryId',
   authenticate,
   categoriesController.removeFromProspect
 );
-// שליפת כל הקטגוריות של מתעניין
+
 router.get(
-  '/prospect/:prospectId',
+  '/prospect/:prospectId/categories',
   authenticate,
   categoriesController.getProspectCategories
 );
-// שליפת כל המתעניינים לפי קטגוריה
+
 router.get(
   '/prospects-by-category/:categoryId',
   authenticate,
   categoriesController.getProspectsByCategory
 );
 
-// ========== Patient Categories ========== 
-
-// שיוך קטגוריה למטופל
 router.post(
   '/assign/patient',
   authenticate,
   validate(assignCategorySchema),
   categoriesController.assignToPatient
 );
-// הסרת שיוך קטגוריה ממטופל
+
 router.delete(
-  '/assign/patient/:patientId/:categoryId',
+  '/remove/patient/:patientId/:categoryId',
   authenticate,
   categoriesController.removeFromPatient
 );
-// שליפת כל הקטגוריות של מטופל
+
 router.get(
-  '/patient/:patientId',
+  '/patient/:patientId/categories',
   authenticate,
   categoriesController.getPatientCategories
 );
 
-// ========== User Categories ========== 
-
-// שיוך קטגוריה למשתמש (עובד)
 router.post(
   '/assign/user',
   authenticate,
@@ -120,18 +115,19 @@ router.post(
   validate(assignCategorySchema),
   categoriesController.assignToUser
 );
-// הסרת שיוך קטגוריה ממשתמש (עובד)
+
 router.delete(
-  '/assign/user/:userId/:categoryId',
+  '/remove/user/:userId/:categoryId',
   authenticate,
   authorize(['manager']),
   categoriesController.removeFromUser
 );
-// שליפת כל הקטגוריות של משתמש (עובד)
+
 router.get(
-  '/user/:userId',
+  '/user/:userId/categories',
   authenticate,
   categoriesController.getUserCategories
 );
+
 
 export default router;
