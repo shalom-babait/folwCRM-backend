@@ -3,7 +3,8 @@ import {
   addGroupService,
   editGroupService,
   deleteGroupService,
-  getGroupUsersService
+  getGroupUsersService,
+  getTherapistsByGroupService
 } from './groups.service.js';
 export async function getAllGroupsWithDepartmentController(req, res) {
   try {
@@ -47,6 +48,16 @@ export async function getGroupUsersController(req, res) {
   try {
     const { group_id } = req.params;
     const users = await getGroupUsersService(group_id);
+    res.json({ success: true, data: users });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function getTherapistsByGroupController(req, res) {  
+  try {
+    const { group_id } = req.params;
+    const users = await getTherapistsByGroupService(group_id);    
     res.json({ success: true, data: users });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

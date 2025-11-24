@@ -238,10 +238,12 @@ const userCategoriesTableSQL = `
 // createTable(departmentsTableSQL);
 // createTable(userDepartmentsTableSQL);
 // createTable(groupListTableSQL);
-createTable(userGroupsTableSQL);
+// createTable(userGroupsTableSQL);
 //הוספתי
 // createTable(categoriesTableSQL);
-// createTable(prospectCategoriesTableSQL);
+createTable(prospectCategoriesTableSQL);
+
+// createTable(prospectsTableSQL);
 // createTable(patientCategoriesTableSQL);
 // createTable(userCategoriesTableSQL);
 // createTable(userCategoriesTableSQL);
