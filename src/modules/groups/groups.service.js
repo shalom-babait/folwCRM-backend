@@ -3,7 +3,7 @@ import { groupSchema } from './group.model.js';
 import { addGroup as addGroupRepo } from './groups.repo.js';
 import { editGroup as editGroupRepo } from './groups.repo.js';
 import { deleteGroupIfNoUsers } from './groups.repo.js';
-import { getGroupUsers } from './groups.repo.js';
+import { getGroupUsers ,getTherapistsByGroup} from './groups.repo.js';
 
 export async function getAllGroupsWithDepartmentService() {
   return await getAllGroupsWithDepartment();
@@ -31,6 +31,10 @@ export async function deleteGroupService(group_id) {
 
 export async function getGroupUsersService(group_id) {
   return await getGroupUsers(group_id);
+}
+
+export async function getTherapistsByGroupService(group_id) {
+  return await getTherapistsByGroup(group_id);
 }
 
 // אפשר להוסיף כאן פונקציות CRUD נוספות לקבוצות

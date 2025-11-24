@@ -53,7 +53,7 @@ export async function getDepartmentsWithGroups() {
     ORDER BY d.department_id, g.group_id;
   `;
   const [rows] = await pool.query(sql);
-  console.log('getDepartmentsWithGroups rows:', rows);  
+  // console.log('getDepartmentsWithGroups rows:', rows);  
   // עיבוד התוצאה למבנה DepartmentWithGroups
   const departmentsMap = new Map();
   for (const row of rows) {
@@ -75,6 +75,6 @@ export async function getDepartmentsWithGroups() {
       });
     }
   }
-  console.log('Processed departmentsWithGroups:', Array.from(departmentsMap.values())); 
+  // console.log('Processed departmentsWithGroups:', Array.from(departmentsMap.values())); 
   return Array.from(departmentsMap.values());
 }
