@@ -17,11 +17,11 @@ const app = express();
 
 // ✅ רשימת דומיינים מורשים
 const allowedOrigins = [
-  'https://shalombabait-production.up.railway.app', 
+  'https://shalombabait-production.up.railway.app',
   'http://localhost:4200' // לפיתוח מקומי
 ];
 
-// ✅ הגדרת CORS
+// ✅ middleware של CORS
 app.use(cors({
   origin: function(origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -35,11 +35,21 @@ app.use(cors({
   allowedHeaders: ['Content-Type','Authorization']
 }));
 
+// ✅ טיפול בבקשות OPTIONS (preflight)
+app.options('*', cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
+}));
+
+// ✅ Body parser
 app.use(express.json());
 
-// route בסיסי ל־`/` כדי למנוע 502 אם ה‑frontend שולח GET לשורש
+// route בסיסי ל־`/` כדי למנוע 502
 app.get('/', (req, res) => res.send('Server is running'));
 
+// ✅ Routes
 // app.use('/api/users', usersRouter);
 app.use('/api/email', emailRoutes);
 app.use('/api/therapists', therapistRoutes);
@@ -53,6 +63,7 @@ app.use('/api/groups', groupsRoutes);
 app.use('/api/prospects', prospectsRoutes);
 app.use('/api/categories', categoriesRoutes);
 
+// ✅ Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
