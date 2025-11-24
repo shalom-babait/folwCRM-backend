@@ -17,7 +17,7 @@ const app = express();
 
 // ✅ רשימת דומיינים מורשים
 const allowedOrigins = [
-  'https://shalombabait-production.up.railway.app', // frontend production
+  'https://shalombabait-production.up.railway.app', 
   'http://localhost:4200' // לפיתוח מקומי
 ];
 
@@ -53,7 +53,6 @@ app.use('/api/groups', groupsRoutes);
 app.use('/api/prospects', prospectsRoutes);
 app.use('/api/categories', categoriesRoutes);
 
-// מאזינים לפורט ש־Railway נותן
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
