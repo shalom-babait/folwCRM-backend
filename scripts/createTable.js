@@ -241,7 +241,9 @@ const userCategoriesTableSQL = `
 // createTable(userGroupsTableSQL);
 //הוספתי
 // createTable(categoriesTableSQL);
-// createTable(prospectCategoriesTableSQL);
+createTable(prospectCategoriesTableSQL);
+
+// createTable(prospectsTableSQL);
 // createTable(patientCategoriesTableSQL);
 // createTable(userCategoriesTableSQL);
 // createTable(userCategoriesTableSQL);

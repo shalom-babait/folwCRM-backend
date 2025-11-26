@@ -24,7 +24,7 @@ export const getPatientOnlyController = async (req, res) => {
 
 export async function createPatientController(req, res) {
   try {
-    const patientData = req.body;
+    const patientData = req.body;    
     // וולידציה בסיסית לשדות משתמש
     if (!patientData.user.first_name || !patientData.user.last_name || !patientData.user.email) {
       return res.status(400).json({
