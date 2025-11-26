@@ -130,22 +130,22 @@ export const getPatientOnly = async (patientId) => {
  */
 export async function create(patientData) {
   const { user_id, therapist_id, birth_date, gender, status, history_notes } = patientData;
-  
+
   const query = `
     INSERT INTO Patients (user_id, therapist_id, birth_date, gender, status, history_notes)
     VALUES (?, ?, ?, ?, ?, ?)
   `;
-  
+
   try {
     const [result] = await pool.execute(query, [
-      user_id, 
-      therapist_id, 
-      birth_date, 
-      gender, 
-      status || 'פעיל', 
+      user_id,
+      therapist_id,
+      birth_date,
+      gender,
+      status || 'פעיל',
       history_notes || null
     ]);
-    
+
     return {
       patient_id: result.insertId,
       user_id,
@@ -276,6 +276,19 @@ export const getPatientStats = async (patientId) => {
   const [rows] = await pool.query(sql, [patientId]);
   return rows[0]; // מחזיר אובייקט אחד עם total_appointments ו-total_treatment_minutes
 };
+
+
+export const fetchAllPatients = async () => {
+  const sql = `
+    SELECT p.*
+    FROM users u
+    JOIN patients p ON u.id = p.user_id
+    WHERE u.role = 'patient';
+  `;
+  const [rows] = await pool.query(sql);
+  return rows; // מחזיר את כל המטופלים
+}
+
 
 /**
  * מחיקת מטופל לפי מזהה

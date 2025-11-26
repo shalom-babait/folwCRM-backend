@@ -90,6 +90,10 @@ export async function fetchPatientsByTherapist(therapistId) {
     return patients;
 }
 
+export async function fetchAllPatients(){
+    const allPatients =await getAllPatients ();
+}
+
 export const fetchPatientDetails = async (patientId) => {
     return await getPatientFullData(patientId);
 };

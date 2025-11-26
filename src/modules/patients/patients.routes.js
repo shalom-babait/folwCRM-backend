@@ -15,6 +15,7 @@ const router = express.Router();
 // GET /patients/only/:patientId - מחזיר אובייקט מטופל בלבד
 
 router.get("/only/:patientId", getPatientOnlyController);
+router.post("/getAllPatients", getAllPatientsController);
 
 // POST /api/patients - יצירת מטופל חדש
 router.post("/", createPatientController);

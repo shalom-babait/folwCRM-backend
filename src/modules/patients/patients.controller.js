@@ -69,6 +69,15 @@ export async function getPatientsByTherapistController(req, res) {
   }
 }
 
+export async function getAllPatientsController(req, res) {
+  try {
+    const allPatients = await fetchAllPatients();
+    res.json(allPatients);
+  } catch (error) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+}
 
 export const getPatientDetailsController = async (req, res) => {
   try {
