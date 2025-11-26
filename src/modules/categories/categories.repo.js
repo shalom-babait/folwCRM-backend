@@ -1,160 +1,183 @@
-// src/modules/categories/categories.repo.js
-import pool from '../../services/database.js';
+import logger from "../../config/logger.js";
+import pool from "../../services/database.js";
 
-class CategoriesRepo {
-  // ========== Categories Table ==========
-  
-  async findAll() {
-    const [rows] = await pool.query(
-      'SELECT * FROM Categories WHERE is_active = 1 ORDER BY display_order'
-    );
-    return rows;
-  }
-
-  async findByType(type) {
-    const [rows] = await pool.query(
-      'SELECT * FROM Categories WHERE category_type = ? AND is_active = 1 ORDER BY display_order',
-      [type]
-    );
-    return rows;
-  }
-
-  async findById(id) {
-    const [rows] = await pool.query(
-      'SELECT * FROM Categories WHERE category_id = ?',
-      [id]
-    );
-    return rows[0];
-  }
-
+const CategoriesRepository = {
+  // יצירת קטגוריה חדשה
   async create(categoryData) {
-    const { category_type, category_name, category_label, description, color, icon, display_order } = categoryData;
-    const [result] = await pool.query(
-      `INSERT INTO Categories 
-       (category_type, category_name, category_label, description, color, icon, display_order) 
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [category_type, category_name, category_label, description, color, icon, display_order]
-    );
-    return result.insertId;
-  }
+    try {
+      const {
+        category_type,
+        category_name,
+        description,
+        color,
+        icon,
+        display_order
+      } = categoryData;
 
+      const [result] = await pool.query(
+        `INSERT INTO Categories
+         (category_type, category_name, description, color, icon, display_order)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          category_type,
+          category_name,
+          description,
+          color,
+          icon,
+          display_order
+        ]
+      );
+
+      // return the inserted id so callers can fetch the new record
+      return result.insertId;
+    } catch (error) {
+      logger.error("Error creating category:", error);
+      throw error;
+    }
+  },
+
+  // קבלת כל הקטגוריות
+  async findAll() {
+    try {
+      const [rows] = await pool.query(
+        `SELECT * FROM Categories ORDER BY display_order ASC`
+      );
+      return rows;
+    } catch (error) {
+      logger.error("Error retrieving categories:", error);
+      throw error;
+    }
+  },
+
+  // קבלת קטגוריות לפי type (לשימוש ב-service)
+  async findByType(type) {
+    try {
+      const [rows] = await pool.query(
+        `SELECT * FROM Categories WHERE category_type = ? AND (is_active IS NULL OR is_active = 1) ORDER BY display_order ASC`,
+        [type]
+      );
+      return rows;
+    } catch (error) {
+      logger.error("Error retrieving categories by type:", error);
+      throw error;
+    }
+  },
+
+  // קבלת קטגוריה לפי ID
+  async findById(id) {
+    try {
+      const [rows] = await pool.query(
+        `SELECT * FROM Categories WHERE category_id = ?`,
+        [id]
+      );
+      return rows[0] || null;
+    } catch (error) {
+      logger.error("Error retrieving category by ID:", error);
+      throw error;
+    }
+  },
+
+  // עדכון קטגוריה
   async update(id, categoryData) {
-    const { category_label, description, color, icon, display_order, is_active } = categoryData;
-    await pool.query(
-      `UPDATE Categories 
-       SET category_label = ?, description = ?, color = ?, icon = ?, display_order = ?, is_active = ?
-       WHERE category_id = ?`,
-      [category_label, description, color, icon, display_order, is_active, id]
-    );
-  }
+    try {
+      const {
+        description,
+        color,
+        icon,
+        display_order,
+        is_active
+      } = categoryData;
 
-  async delete(id) {
-    await pool.query('DELETE FROM Categories WHERE category_id = ?', [id]);
-  }
+      await pool.query(
+        `UPDATE Categories 
+         SET description = ?, color = ?, icon = ?, display_order = ?, is_active = ?
+         WHERE category_id = ?`,
+        [
+          description,
+          color,
+          icon,
+          display_order,
+          is_active,
+          id
+        ]
+      );
 
+      return { success: true };
+    } catch (error) {
+      logger.error("Error updating category:", error);
+      throw error;
+    }
+  },
+
+  // סימון מחיקה רכה (soft delete)
   async softDelete(id) {
-    await pool.query('UPDATE Categories SET is_active = 0 WHERE category_id = ?', [id]);
-  }
+    try {
+      await pool.query(
+        `UPDATE Categories SET is_active = 0 WHERE category_id = ?`,
+        [id]
+      );
+      return { success: true };
+    } catch (error) {
+      logger.error("Error soft deleting category:", error);
+      throw error;
+    }
+  },
 
-  // ========== ProspectCategories ==========
-  
-  async assignToProspect(prospectId, categoryId, assignedBy = null) {
-    const [result] = await pool.query(
-      'INSERT INTO ProspectCategories (prospect_id, category_id, assigned_by) VALUES (?, ?, ?)',
-      [prospectId, categoryId, assignedBy]
-    );
-    return result.insertId;
-  }
+  // מחיקת קטגוריה
+  async delete(id) {
+    try {
+      await pool.query(
+        `DELETE FROM Categories WHERE category_id = ?`,
+        [id]
+      );
 
-  async removeFromProspect(prospectId, categoryId) {
-    await pool.query(
-      'DELETE FROM ProspectCategories WHERE prospect_id = ? AND category_id = ?',
-      [prospectId, categoryId]
-    );
-  }
+      return { success: true };
+    } catch (error) {
+      logger.error("Error deleting category:", error);
+      throw error;
+    }
+  },
 
+  // שיוך קטגוריות לפרוספקט
+  async assignToProspect(prospectId, categoryIds) {
+    try {
+      await pool.query(
+        `DELETE FROM Prospect_Categories WHERE prospect_id = ?`,
+        [prospectId]
+      );
+
+      if (categoryIds.length > 0) {
+        const values = categoryIds.map(id => [prospectId, id]);
+        await pool.query(
+          `INSERT INTO Prospect_Categories (prospect_id, category_id) VALUES ?`,
+          [values]
+        );
+      }
+
+      return { success: true };
+    } catch (error) {
+      logger.error("Error assigning categories to prospect:", error);
+      throw error;
+    }
+  },
+
+  // שליפת קטגוריות של פרוספקט
   async findProspectCategories(prospectId) {
-    const [rows] = await pool.query(
-      `SELECT c.*, pc.assigned_at, pc.assigned_by, u.first_name, u.last_name
-       FROM Categories c
-       JOIN ProspectCategories pc ON c.category_id = pc.category_id
-       LEFT JOIN Users u ON pc.assigned_by = u.user_id
-       WHERE pc.prospect_id = ?
-       ORDER BY c.display_order`,
-      [prospectId]
-    );
-    return rows;
-  }
+    try {
+      const [rows] = await pool.query(
+        `SELECT c.*
+         FROM Categories c
+         JOIN Prospect_Categories pc ON c.category_id = pc.category_id
+         WHERE pc.prospect_id = ?`,
+        [prospectId]
+      );
 
-  async findProspectsByCategory(categoryId) {
-    const [rows] = await pool.query(
-      `SELECT p.*, pc.assigned_at
-       FROM Prospects p
-       JOIN ProspectCategories pc ON p.prospect_id = pc.prospect_id
-       WHERE pc.category_id = ?
-       ORDER BY pc.assigned_at DESC`,
-      [categoryId]
-    );
-    return rows;
+      return rows;
+    } catch (error) {
+      logger.error("Error retrieving prospect categories:", error);
+      throw error;
+    }
   }
+};
 
-  // ========== PatientCategories ==========
-  
-  async assignToPatient(patientId, categoryId, assignedBy = null) {
-    const [result] = await pool.query(
-      'INSERT INTO PatientCategories (patient_id, category_id, assigned_by) VALUES (?, ?, ?)',
-      [patientId, categoryId, assignedBy]
-    );
-    return result.insertId;
-  }
-
-  async removeFromPatient(patientId, categoryId) {
-    await pool.query(
-      'DELETE FROM PatientCategories WHERE patient_id = ? AND category_id = ?',
-      [patientId, categoryId]
-    );
-  }
-
-  async findPatientCategories(patientId) {
-    const [rows] = await pool.query(
-      `SELECT c.*, pc.assigned_at, pc.assigned_by
-       FROM Categories c
-       JOIN PatientCategories pc ON c.category_id = pc.category_id
-       WHERE pc.patient_id = ?
-       ORDER BY c.display_order`,
-      [patientId]
-    );
-    return rows;
-  }
-
-  // ========== UserCategories ==========
-  
-  async assignToUser(userId, categoryId) {
-    const [result] = await pool.query(
-      'INSERT INTO UserCategories (user_id, category_id) VALUES (?, ?)',
-      [userId, categoryId]
-    );
-    return result.insertId;
-  }
-
-  async removeFromUser(userId, categoryId) {
-    await pool.query(
-      'DELETE FROM UserCategories WHERE user_id = ? AND category_id = ?',
-      [userId, categoryId]
-    );
-  }
-
-  async findUserCategories(userId) {
-    const [rows] = await pool.query(
-      `SELECT c.*, uc.assigned_at
-       FROM Categories c
-       JOIN UserCategories uc ON c.category_id = uc.category_id
-       WHERE uc.user_id = ?
-       ORDER BY c.display_order`,
-      [userId]
-    );
-    return rows;
-  }
-}
-
-export default new CategoriesRepo();
+export default CategoriesRepository;
