@@ -102,7 +102,7 @@ import pool, { deleteFromTable, updateTable } from "../../services/database.js";
  */
 export const getPatientOnly = async (patientId) => {
   const sql = `
-    SELECT
+    SELECT 
       P.patient_id,
       P.user_id,
       P.therapist_id,
@@ -119,7 +119,7 @@ export const getPatientOnly = async (patientId) => {
       U.teudat_zehut
     FROM Patients AS P
     JOIN Users AS U ON P.user_id = U.user_id
-    WHERE P.patient_id = ?
+    WHERE P.user_id = ?
   `;
   const [rows] = await pool.query(sql, [patientId]);
   return rows[0] || null;
@@ -130,22 +130,22 @@ export const getPatientOnly = async (patientId) => {
  */
 export async function create(patientData) {
   const { user_id, therapist_id, birth_date, gender, status, history_notes } = patientData;
-  
+
   const query = `
     INSERT INTO Patients (user_id, therapist_id, birth_date, gender, status, history_notes)
     VALUES (?, ?, ?, ?, ?, ?)
   `;
-  
+
   try {
     const [result] = await pool.execute(query, [
-      user_id, 
-      therapist_id, 
-      birth_date, 
-      gender, 
-      status || 'פעיל', 
+      user_id,
+      therapist_id,
+      birth_date,
+      gender,
+      status || 'פעיל',
       history_notes || null
     ]);
-    
+
     return {
       patient_id: result.insertId,
       user_id,
