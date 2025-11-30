@@ -35,13 +35,13 @@ app.use(cors({
   allowedHeaders: ['Content-Type','Authorization']
 }));
 
-// ✅ טיפול בבקשות OPTIONS (preflight)
-app.options('*', cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization']
-}));
+// // ✅ טיפול בבקשות OPTIONS (preflight)
+// app.options('*', cors({
+//   origin: allowedOrigins,
+//   credentials: true,
+//   methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
+//   allowedHeaders: ['Content-Type','Authorization']
+// }));
 
 // ✅ Body parser
 app.use(express.json());

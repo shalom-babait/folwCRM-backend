@@ -1,14 +1,15 @@
-import { 
-    create, 
-    getPatientsByTherapist, 
-    getPatientDetails, 
+import {
+    create,
+    getPatientsByTherapist,
+    getPatientDetails,
     getPatientStats,
     deleteFromPatients,
     updateToPatients,
     getPatientOnly,
     updateToUsers,
     createUser,
-    getPatientFullData
+    getPatientFullData,
+    getAllPatients
 } from "./patients.repo.js";
 import pool from '../../services/database.js';
 // שליפת נתוני מטופל בלבד
@@ -38,17 +39,17 @@ export async function createPatient(patientData) {
         console.log('--- משתמש חדש נוצר: newUser ---');
         console.log(JSON.stringify(newUser, null, 2));
 
-    // המרת gender באנגלית לעברית לפי ערכי ה-ENUM במסד הנתונים
-    let patientGender = patient.gender;
-    if (patientGender === 'male') patientGender = 'זכר';
-    else if (patientGender === 'female') patientGender = 'נקבה';
-    else if (patientGender === 'other') patientGender = 'אחר';
+        // המרת gender באנגלית לעברית לפי ערכי ה-ENUM במסד הנתונים
+        let patientGender = patient.gender;
+        if (patientGender === 'male') patientGender = 'זכר';
+        else if (patientGender === 'female') patientGender = 'נקבה';
+        else if (patientGender === 'other') patientGender = 'אחר';
 
-    // יצירת מטופל עם ה-user_id החדש
-    const patientInsertData = { ...patient, user_id: newUser.user_id, gender: patientGender };
-    const newPatient = await create(patientInsertData);
-    console.log('--- מטופל חדש נוצר: newPatient ---');
-    console.log(JSON.stringify(newPatient, null, 2));
+        // יצירת מטופל עם ה-user_id החדש
+        const patientInsertData = { ...patient, user_id: newUser.user_id, gender: patientGender };
+        const newPatient = await create(patientInsertData);
+        console.log('--- מטופל חדש נוצר: newPatient ---');
+        console.log(JSON.stringify(newPatient, null, 2));
 
         // שיוך למחלקות וקבוצות
         if (Array.isArray(selectedDepartments)) {
@@ -90,6 +91,11 @@ export async function fetchPatientsByTherapist(therapistId) {
     return patients;
 }
 
+export async function fetchAllPatients() {
+    const allPatients = await getAllPatients();    
+    return allPatients
+}
+
 export const fetchPatientDetails = async (patientId) => {
     return await getPatientFullData(patientId);
 };
@@ -101,7 +107,7 @@ export async function deletePatient(patientId) {
         if (!patient) {
             return false;
         }
-        
+
         return await deleteFromPatients(patientId);
     } catch (error) {
         throw error;
@@ -111,7 +117,7 @@ export async function deletePatient(patientId) {
 export async function updatePatient(patientId, updateData) {
     try {
         // Check if patient exists
-    const patient = await getPatientOnly(patientId);
+        const patient = await getPatientOnly(patientId);
         if (!patient) {
             return false;
         }
