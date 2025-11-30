@@ -1,7 +1,6 @@
 import { getAppointmentsByTherapist } from "./appointments.repo.js";
 
 export async function fetchAppointmentsByTherapist(therapistId) {
-  console.log('sssssssssssss',therapistId);
   
   return await getAppointmentsByTherapist(therapistId);
 }

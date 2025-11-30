@@ -280,9 +280,9 @@ export const getPatientStats = async (patientId) => {
 
 export const getAllPatients = async () => {
   const sql = `
-    SELECT p.*
+    SELECT *
     FROM users u
-    JOIN patients p ON u.id = p.user_id
+    JOIN patients p ON u.user_id = p.user_id
     WHERE u.role = 'patient';
   `;
   const [rows] = await pool.query(sql);

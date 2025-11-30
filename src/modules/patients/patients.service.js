@@ -92,7 +92,7 @@ export async function fetchPatientsByTherapist(therapistId) {
 }
 
 export async function fetchAllPatients() {
-    const allPatients = await getAllPatients();
+    const allPatients = await getAllPatients();    
     return allPatients
 }
 

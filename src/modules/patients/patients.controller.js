@@ -25,7 +25,7 @@ export const getPatientOnlyController = async (req, res) => {
 
 export async function createPatientController(req, res) {
   try {
-    const patientData = req.body;    
+    const patientData = req.body;
     // וולידציה בסיסית לשדות משתמש
     if (!patientData.user.first_name || !patientData.user.last_name || !patientData.user.email) {
       return res.status(400).json({
@@ -73,12 +73,13 @@ export async function getPatientsByTherapistController(req, res) {
 export async function getAllPatientsController(req, res) {
   try {
     const allPatients = await fetchAllPatients();
-    res.json(allPatients);
+    res.json({ success: true, data: allPatients });
   } catch (error) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 }
+
 
 export const getPatientDetailsController = async (req, res) => {
   try {
