@@ -277,6 +277,19 @@ export const getPatientStats = async (patientId) => {
   return rows[0]; // מחזיר אובייקט אחד עם total_appointments ו-total_treatment_minutes
 };
 
+
+export const getAllPatients = async () => {
+  const sql = `
+    SELECT *
+    FROM users u
+    JOIN patients p ON u.user_id = p.user_id
+    WHERE u.role = 'patient';
+  `;
+  const [rows] = await pool.query(sql);
+  return rows; // מחזיר את כל המטופלים
+}
+
+
 /**
  * מחיקת מטופל לפי מזהה
  */
