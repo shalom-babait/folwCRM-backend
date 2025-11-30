@@ -66,11 +66,23 @@ export async function deleteGroupIfNoUsers(group_id) {
 export async function getGroupUsers(group_id) {
   const sql = `
     SELECT u.user_id, u.first_name, u.last_name, u.email, u.phone
-    FROM Users u
+    FROM Users u 
     INNER JOIN UserGroups ug ON u.user_id = ug.user_id
-    WHERE ug.group_id = ?
+    WHERE ug.group_id = ? AND u.role = 'patient'
     ORDER BY u.last_name, u.first_name;
   `;
-  const [rows] = await pool.query(sql, [group_id]);
+  const [rows] = await pool.query(sql, [group_id]);  
+  return rows;
+}
+
+export async function getTherapistsByGroup(group_id) {
+  const sql = `
+    SELECT u.user_id, u.first_name, u.last_name, u.email, u.phone
+    FROM Users u 
+    INNER JOIN UserGroups ug ON u.user_id = ug.user_id
+    WHERE ug.group_id = ? AND u.role = 'therapist'
+    ORDER BY u.last_name, u.first_name;
+  `;
+  const [rows] = await pool.query(sql, [group_id]);  
   return rows;
 }
