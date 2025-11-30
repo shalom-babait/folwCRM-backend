@@ -313,7 +313,7 @@ const paymentStatusHistoryTableSQL = `
 
 //   ALTER TABLE ProspectCategories
 // DROP FOREIGN KEY ProspectCategories_ibfk_1,
-// ADD CONSTRAINT ProspectCategories_prospect_fk 
+// ADD CONSTRAINT ProspectCategories_prospect_fk
 //   FOREIGN KEY (prospect_id) REFERENCES Prospects(prospect_id) ON DELETE CASCADE;
 
 //   ALTER TABLE PatientCategories
