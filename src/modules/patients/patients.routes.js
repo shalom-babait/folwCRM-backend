@@ -7,7 +7,8 @@ import {
   getPatientStatsController,
   deletePatientController,
   updatePatientController,
-  getPatientOnlyController
+  getPatientOnlyController,
+  getAllPatientsController
 } from "./patients.controller.js";
 
 const router = express.Router();

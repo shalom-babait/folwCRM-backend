@@ -278,7 +278,7 @@ export const getPatientStats = async (patientId) => {
 };
 
 
-export const fetchAllPatients = async () => {
+export const getAllPatients = async () => {
   const sql = `
     SELECT p.*
     FROM users u
