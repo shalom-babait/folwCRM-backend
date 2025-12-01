@@ -29,7 +29,7 @@ const usersTableSQL = `
   );
 `;
 
-// --- סוגי טיפולים ---
+// --- סוגי טיפולים ---TreatmentTypes
 const treatmentTypesTableSQL = `
   CREATE TABLE IF NOT EXISTS TreatmentTypes (
     type_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -84,7 +84,7 @@ const appointmentsTableSQL = `
     status ENUM('מתוזמנת', 'הושלמה', 'בוטלה','נדחתה') NOT NULL DEFAULT 'מתוזמנת',
     FOREIGN KEY (therapist_id) REFERENCES Therapists(therapist_id),
     FOREIGN KEY (patient_id) REFERENCES Patients(patient_id),
-    FOREIGN KEY (type_id) REFERENCES TreatmentTypes(type_id),
+    FOREIGN KEY (type_id) REFERENCES group_list(group_id),
     FOREIGN KEY (room_id) REFERENCES Rooms(room_id)
   );
 `;
@@ -327,3 +327,11 @@ const paymentStatusHistoryTableSQL = `
 // DROP FOREIGN KEY UserCategories_ibfk_1,
 // ADD CONSTRAINT UserCategories_user_fk
 //   FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE;
+
+
+// להריץ את שתי הפקודות האלו בworkbench אחרי שינוי בטבלת Appointments
+// ALTER TABLE Appointments
+// DROP FOREIGN KEY appointments_ibfk_3;
+
+// ALTER TABLE Appointments
+// ADD FOREIGN KEY (type_id) REFERENCES group_list(group_id);

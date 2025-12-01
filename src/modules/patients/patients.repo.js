@@ -242,7 +242,7 @@ export const getPatientDetails = async (patientId) => {
       A.end_time,
       A.total_minutes,
       A.status,
-      TT.type_name AS treatment_type,
+      TT.group_name AS group_name,
       R.room_name AS room,
       P.patient_id,
       U.first_name AS patient_first_name,
@@ -253,7 +253,7 @@ export const getPatientDetails = async (patientId) => {
     FROM Appointments AS A
     JOIN Patients AS P ON A.patient_id = P.patient_id
     JOIN Users AS U ON P.user_id = U.user_id
-    JOIN TreatmentTypes AS TT ON A.type_id = TT.type_id
+    JOIN group_list AS TT ON A.type_id = TT.group_id
     JOIN Rooms AS R ON A.room_id = R.room_id
     WHERE A.patient_id = ? 
     ORDER BY A.appointment_date, A.start_time;

@@ -3,7 +3,13 @@ import pool, { deleteFromTable, updateTable } from "../../services/database.js";
 export async function getTypes() {
   try {
     const query = `
-        SELECT * FROM TreatmentTypes
+        -- SELECT * FROM TreatmentTypes
+        SELECT gl.group_id, gl.group_name
+FROM UserGroups ug
+JOIN Patients p ON ug.user_id = p.user_id
+JOIN group_list gl ON ug.group_id = gl.group_id
+WHERE p.patient_id = 19;
+
       `;
 
     const [rows] = await pool.execute(query);
