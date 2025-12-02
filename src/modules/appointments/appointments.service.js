@@ -12,6 +12,8 @@ export async function fetchAppointmentsByRoom(roomId) {
 import pool from "../../services/database.js";
 
 export async function createAppointment(appointmentData) {
+console.log({appointmentData});
+  
   try {
     // בדיקה שהמטפל קיים
     const [therapist] = await pool.execute(
@@ -30,14 +32,15 @@ export async function createAppointment(appointmentData) {
     if (patient.length === 0) {
       throw new Error("Patient not found");
     }
+console.log(appointmentData.type_id);
 
-    // בדיקה שסוג הטיפול קיים
-    const [treatmentType] = await pool.execute(
-      "SELECT * FROM TreatmentTypes WHERE type_id = ?",
+    // בדיקה שקבוצת הטיפול קיימת (ולא בודקים ב-TreatmentTypes)
+    const [group] = await pool.execute(
+      "SELECT * FROM group_list WHERE group_id = ?",
       [appointmentData.type_id]
     );
-    if (treatmentType.length === 0) {
-      throw new Error("Treatment type not found");
+    if (group.length === 0) {
+      throw new Error("Group not found");
     }
 
     // בדיקה שהחדר קיים
