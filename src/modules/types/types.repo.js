@@ -1,23 +1,22 @@
 import pool, { deleteFromTable, updateTable } from "../../services/database.js";
-
-export async function getTypes() {
+export async function getTypes(patientId) {
   try {
+    if (!patientId || isNaN(patientId)) {
+      throw new Error('Missing or invalid patientId');
+    }
     const query = `
-        -- SELECT * FROM TreatmentTypes
-        SELECT gl.group_id, gl.group_name
-FROM UserGroups ug
-JOIN Patients p ON ug.user_id = p.user_id
-JOIN group_list gl ON ug.group_id = gl.group_id
-WHERE p.patient_id = 19;
-
-      `;
-
-    const [rows] = await pool.execute(query);
+      SELECT gl.group_id, gl.group_name
+      FROM UserGroups ug
+      JOIN Patients p ON ug.user_id = p.user_id
+      JOIN group_list gl ON ug.group_id = gl.group_id
+      WHERE p.patient_id = ?;
+    `;
+    const [rows] = await pool.execute(query, [Number(patientId)]);
     return rows;
   } catch (error) {
     throw new Error(`Database error: ${error.message}`);
   }
-} 
+}
 
 export async function create(typeData) {
   const { type_name } = typeData;

@@ -119,7 +119,7 @@ export async function getAppointmentsByPatientAndTherapist(patientId, therapistI
       A.end_time,
       A.total_minutes,
       A.status,
-      GL.group_name AS ,
+      GL.group_name AS group_name,
       R.room_name AS room
     FROM
       Appointments AS A
