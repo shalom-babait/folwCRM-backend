@@ -1,19 +1,22 @@
-import { getAppointmentsByTherapist } from "./appointments.repo.js";
+import { getAppointmentsByGroupId, getAppointmentsByTherapist, create, checkTimeConflict, getAppointmentsByPatientAndTherapist, deleteFromAppointments, updateToAppointments, getAppointmentsByRoom } from "./appointments.repo.js";
+import pool from "../../services/database.js";
+
+export async function fetchAppointmentsByGroupId(groupId) {
+  return await getAppointmentsByGroupId(groupId);
+}
 
 export async function fetchAppointmentsByTherapist(therapistId) {
-  
+
   return await getAppointmentsByTherapist(therapistId);
 }
-import { create, checkTimeConflict, getAppointmentsByPatientAndTherapist, deleteFromAppointments, updateToAppointments, getAppointmentsByRoom } from "./appointments.repo.js";
 
 export async function fetchAppointmentsByRoom(roomId) {
   return await getAppointmentsByRoom(roomId);
 }
-import pool from "../../services/database.js";
 
 export async function createAppointment(appointmentData) {
-console.log({appointmentData});
-  
+  console.log({ appointmentData });
+
   try {
     // בדיקה שהמטפל קיים
     const [therapist] = await pool.execute(
@@ -32,7 +35,7 @@ console.log({appointmentData});
     if (patient.length === 0) {
       throw new Error("Patient not found");
     }
-console.log(appointmentData.type_id);
+    console.log(appointmentData.type_id);
 
     // בדיקה שקבוצת הטיפול קיימת (ולא בודקים ב-TreatmentTypes)
     const [group] = await pool.execute(
@@ -56,7 +59,7 @@ console.log(appointmentData.type_id);
     const appointmentDate = new Date(appointmentData.appointment_date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     if (appointmentDate < today) {
       throw new Error("Appointment date cannot be in the past");
     }
@@ -101,7 +104,7 @@ export async function deleteAppointment(appointmentId) {
     if (appointment.length === 0) {
       return false;
     }
-    
+
     return await deleteFromAppointments(appointmentId);
   } catch (error) {
     throw error;
