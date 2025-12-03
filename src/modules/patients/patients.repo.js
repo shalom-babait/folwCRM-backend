@@ -242,6 +242,38 @@ export async function getPatientsByTherapist(therapistId) {
 }
 
 /**
+ * שליפת כל הפגישות של מטופל
+ */
+export const getPatientDetails = async (patientId) => {
+  const sql = `
+    SELECT
+      A.appointment_id,
+      A.appointment_date,
+      A.start_time,
+      A.end_time,
+      A.total_minutes,
+      A.status,
+      TT.group_name AS group_name,
+      R.room_name AS room,
+      P.patient_id,
+      U.first_name AS patient_first_name,
+      U.last_name AS patient_last_name,
+      P.birth_date,
+      P.gender,
+      P.status AS patient_status
+    FROM Appointments AS A
+    JOIN Patients AS P ON A.patient_id = P.patient_id
+    JOIN Users AS U ON P.user_id = U.user_id
+    JOIN group_list AS TT ON A.type_id = TT.group_id
+    JOIN Rooms AS R ON A.room_id = R.room_id
+    WHERE A.patient_id = ? 
+    ORDER BY A.appointment_date, A.start_time;
+  `;
+  const [rows] = await pool.query(sql, [patientId]);
+  return rows;
+};
+
+/**
  * סטטיסטיקות פגישות של מטופל
  */
 export const getPatientStats = async (patientId) => {
@@ -255,6 +287,19 @@ export const getPatientStats = async (patientId) => {
   const [rows] = await pool.query(sql, [patientId]);
   return rows[0]; // מחזיר אובייקט אחד עם total_appointments ו-total_treatment_minutes
 };
+
+
+export const getAllPatients = async () => {
+  const sql = `
+    SELECT *
+    FROM users u
+    JOIN patients p ON u.user_id = p.user_id
+    WHERE u.role = 'patient';
+  `;
+  const [rows] = await pool.query(sql);
+  return rows; // מחזיר את כל המטופלים
+}
+
 
 /**
  * מחיקת מטופל לפי מזהה

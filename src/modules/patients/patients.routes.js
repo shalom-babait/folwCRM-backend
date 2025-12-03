@@ -7,7 +7,8 @@ import {
   getPatientStatsController,
   deletePatientController,
   updatePatientController,
-  getPatientOnlyController
+  getPatientOnlyController,
+  getAllPatientsController
 } from "./patients.controller.js";
 
 const router = express.Router();
@@ -15,6 +16,8 @@ const router = express.Router();
 // GET /patients/only/:patientId - מחזיר אובייקט מטופל בלבד
 
 router.get("/only/:patientId", getPatientOnlyController);
+
+router.get("/getAllPatients", getAllPatientsController);
 
 // POST /api/patients - יצירת מטופל חדש
 router.post("/", createPatientController);

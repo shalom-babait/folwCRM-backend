@@ -1,38 +1,72 @@
 import pool, { deleteFromTable, updateTable } from "../../services/database.js";
 
+// שליפת כל הפגישות של קבוצה מסוימת
+export async function getAppointmentsByGroupId(groupId) {
+  const sql = `
+    SELECT
+      A.appointment_id,
+      A.appointment_date,
+      A.start_time,
+      A.end_time,
+      A.total_minutes,
+      A.status,
+      GL.group_name AS group_name,
+      R.room_name AS room,
+      A.patient_id,
+      A.therapist_id,
+      CONCAT(U.first_name, ' ', U.last_name) AS therapist_name
+    FROM
+      Appointments AS A
+    LEFT JOIN group_list AS GL ON A.type_id = GL.group_id
+    JOIN Rooms AS R ON A.room_id = R.room_id
+    JOIN Therapists AS T ON A.therapist_id = T.therapist_id
+    JOIN Users AS U ON T.user_id = U.user_id
+    WHERE
+      A.type_id = ?
+    ORDER BY
+      A.appointment_date, A.start_time;
+  `;
+  const [rows] = await pool.query(sql, [groupId]);
+  return rows;
+}
+
 // שליפת כל הפגישות של מטפל בלבד
 export async function getAppointmentsByTherapist(therapistId) {
   console.log('getAppointmentsByTherapist - repo - therapistId:', therapistId, typeof therapistId);
   const sql = `
-  SELECT
-    A.appointment_id,
-    A.appointment_date,
-    A.start_time,
-    A.end_time,
-    A.total_minutes,
-    A.status,
-    TT.type_name AS treatment_type,
-    R.room_name AS room,
-    A.patient_id
-  FROM
-    Appointments AS A
-  JOIN
-    TreatmentTypes AS TT ON A.type_id = TT.type_id
-  JOIN
-    Rooms AS R ON A.room_id = R.room_id
-  WHERE
-    A.therapist_id = ?
-  ORDER BY
-    A.appointment_date, A.start_time;
+    SELECT
+      A.appointment_id,
+      A.appointment_date,
+      A.start_time,
+      A.end_time,
+      A.total_minutes,
+      A.status,
+      GL.group_name AS group_name,
+      R.room_name AS room,
+      A.patient_id
+    FROM
+      Appointments AS A
+   -- LEFT JOIN TreatmentTypes AS TT ON A.type_id = TT.type_id
+    LEFT JOIN group_list AS GL ON A.type_id = GL.group_id
+    JOIN Rooms AS R ON A.room_id = R.room_id
+    WHERE
+      A.therapist_id = ?
+    ORDER BY
+      A.appointment_date, A.start_time;
   `;
   const [rows] = await pool.query(sql, [therapistId]);
-  console.log('getAppointmentsByTherapist - repo - rows:', rows);
   return rows;
 }
 
 export async function getAppointmentsByRoom(roomId) {
   const sql = `
-    SELECT * FROM Appointments WHERE room_id = ? ORDER BY appointment_date, start_time;
+    SELECT
+      A.*, CONCAT(U.first_name, ' ', U.last_name) AS therapist_name
+    FROM Appointments AS A
+    JOIN Therapists AS T ON A.therapist_id = T.therapist_id
+    JOIN Users AS U ON T.user_id = U.user_id
+    WHERE A.room_id = ?
+    ORDER BY A.appointment_date, A.start_time;
   `;
   const [rows] = await pool.query(sql, [roomId]);
   return rows;
@@ -115,24 +149,22 @@ export async function checkTimeConflict(therapist_id, room_id, appointment_date,
 export async function getAppointmentsByPatientAndTherapist(patientId, therapistId) {
   const sql = `
     SELECT
-        A.appointment_id,
-        A.appointment_date,
-        A.start_time,
-        A.end_time,
-        A.total_minutes,
-        A.status,
-        TT.type_name AS treatment_type,
-        R.room_name AS room
+      A.appointment_id,
+      A.appointment_date,
+      A.start_time,
+      A.end_time,
+      A.total_minutes,
+      A.status,
+      GL.group_name AS group_name,
+      R.room_name AS room
     FROM
-        Appointments AS A
-    JOIN
-        TreatmentTypes AS TT ON A.type_id = TT.type_id
-    JOIN
-        Rooms AS R ON A.room_id = R.room_id
+      Appointments AS A
+    LEFT JOIN group_list AS GL ON A.type_id = GL.group_id
+    JOIN Rooms AS R ON A.room_id = R.room_id
     WHERE
-        A.patient_id = ? AND A.therapist_id = ?
+      A.patient_id = ? AND A.therapist_id = ?
     ORDER BY
-        A.appointment_date, A.start_time;
+      A.appointment_date, A.start_time;
   `;
   const [rows] = await pool.query(sql, [patientId, therapistId]);
   return rows;

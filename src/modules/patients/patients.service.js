@@ -1,13 +1,16 @@
-import { 
-    create, 
-    getPatientsByTherapist, 
+
+import {
+    create,
+    getPatientsByTherapist,
+    getPatientDetails,
     getPatientStats,
     deleteFromPatients,
     updateToPatients,
     getPatientOnly,
     updateToUsers,
     createUser,
-    getPatientFullData
+    getPatientFullData,
+    getAllPatients
 } from "./patients.repo.js";
 import pool from '../../services/database.js';
 // שליפת נתוני מטופל בלבד
@@ -71,6 +74,7 @@ export async function createPatient(patientData) {
             ...patientInsertData
         };
 
+
         // שיוך למחלקות וקבוצות
         if (Array.isArray(selectedDepartments)) {
             for (const dep of selectedDepartments) {
@@ -106,6 +110,11 @@ export async function fetchPatientsByTherapist(therapistId) {
     return patients;
 }
 
+export async function fetchAllPatients() {
+    const allPatients = await getAllPatients();    
+    return allPatients
+}
+
 export const fetchPatientDetails = async (patientId) => {
     return await getPatientFullData(patientId);
 };
@@ -117,7 +126,7 @@ export async function deletePatient(patientId) {
         if (!patient) {
             return false;
         }
-        
+
         return await deleteFromPatients(patientId);
     } catch (error) {
         throw error;

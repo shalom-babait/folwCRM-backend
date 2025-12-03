@@ -5,7 +5,8 @@ import {
   fetchPatientStats,
   deletePatient,
   updatePatient,
-  fetchPatientOnly
+  fetchPatientOnly,
+  fetchAllPatients
 } from "./patients.service.js";
 // מחזיר אובייקט מטופל בלבד
 export const getPatientOnlyController = async (req, res) => {
@@ -27,6 +28,7 @@ export async function createPatientController(req, res) {
     const patientData = req.body;
     // וולידציה בסיסית לשדות פרסון
     if (!patientData.person || !patientData.person.first_name || !patientData.person.last_name) {
+
       return res.status(400).json({
         success: false,
         message: "first_name and last_name are required in person object"
@@ -67,6 +69,16 @@ export async function getPatientsByTherapistController(req, res) {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
+  }
+}
+
+export async function getAllPatientsController(req, res) {
+  try {
+    const allPatients = await fetchAllPatients();
+    res.json({ success: true, data: allPatients });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 }
 

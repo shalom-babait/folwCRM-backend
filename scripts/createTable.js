@@ -414,3 +414,4 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 
 // ALTER TABLE UserGroups
 //   ADD UNIQUE KEY person_id_group_id (person_id, group_id);
+

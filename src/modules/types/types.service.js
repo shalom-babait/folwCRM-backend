@@ -1,14 +1,16 @@
 import { create, deleteFromTypes, getTypes, updateToTypes } from "./types.repo.js";
 import pool from "../../services/database.js";
 
-export const fetchTypes = async () => {
-    try {
-        const types = await getTypes();
-        return types;
-    } catch (error) {
-        throw error;
+export const fetchTypes = async (patientId) => {
+  try {
+    if (!patientId || isNaN(patientId)) {
+      throw new Error('Missing or invalid patientId');
     }
-
+    const types = await getTypes(Number(patientId));
+    return types;
+  } catch (error) {
+    throw error;
+  }
 };
 
 export async function createType(typeData) {
