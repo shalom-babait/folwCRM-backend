@@ -1,4 +1,3 @@
-
 import express from "express";
 import { createUserController, deleteUserController, updateUserController } from "./user.controller.js";
 import { loginController } from "../login/login.controller.js";
@@ -6,8 +5,7 @@ import { authenticateToken } from '../../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-
-// POST /api/users - יצירת משתמש חדש
+// POST /api/users - יצירת משתמש חדש (רק שדות משתמש, לא פרטים אישיים)
 router.post("/", createUserController);
 router.post("/login", loginController);
 // ראוטים מוגנים – דורשים טוקן תקין

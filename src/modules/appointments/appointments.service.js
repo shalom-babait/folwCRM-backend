@@ -1,8 +1,6 @@
 import { getAppointmentsByTherapist } from "./appointments.repo.js";
 
-export async function fetchAppointmentsByTherapist(therapistId) {
-  console.log('sssssssssssss',therapistId);
-  
+export async function fetchAppointmentsByTherapist(therapistId) {  
   return await getAppointmentsByTherapist(therapistId);
 }
 import { create, checkTimeConflict, getAppointmentsByPatientAndTherapist, deleteFromAppointments, updateToAppointments, getAppointmentsByRoom } from "./appointments.repo.js";

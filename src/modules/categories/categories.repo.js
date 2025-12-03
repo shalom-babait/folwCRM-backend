@@ -141,19 +141,12 @@ const CategoriesRepository = {
   // שיוך קטגוריות לפרוספקט
   async assignToProspect(prospectId, categoryIds) {
     try {
-      await pool.query(
-        `DELETE FROM Prospect_Categories WHERE prospect_id = ?`,
-        [prospectId]
-      );
-
-      if (categoryIds.length > 0) {
+      await pool.query(`DELETE FROM ProspectCategories WHERE prospect_id = ?`, [prospectId]);
+      if (!Array.isArray(categoryIds) && categoryIds) categoryIds = [categoryIds];
+      if (Array.isArray(categoryIds) && categoryIds.length > 0) {
         const values = categoryIds.map(id => [prospectId, id]);
-        await pool.query(
-          `INSERT INTO Prospect_Categories (prospect_id, category_id) VALUES ?`,
-          [values]
-        );
+        await pool.query(`INSERT INTO ProspectCategories (prospect_id, category_id) VALUES ?`, [values]);
       }
-
       return { success: true };
     } catch (error) {
       logger.error("Error assigning categories to prospect:", error);
@@ -167,14 +160,134 @@ const CategoriesRepository = {
       const [rows] = await pool.query(
         `SELECT c.*
          FROM Categories c
-         JOIN Prospect_Categories pc ON c.category_id = pc.category_id
+         JOIN ProspectCategories pc ON c.category_id = pc.category_id
          WHERE pc.prospect_id = ?`,
         [prospectId]
       );
-
       return rows;
     } catch (error) {
       logger.error("Error retrieving prospect categories:", error);
+      throw error;
+    }
+  },
+
+  // שיוך קטגוריות למטופל
+  async assignToPatient(patientId, categoryIds) {
+    try {
+      await pool.query(`DELETE FROM PatientCategories WHERE patient_id = ?`, [patientId]);
+      if (!Array.isArray(categoryIds) && categoryIds) categoryIds = [categoryIds];
+      if (Array.isArray(categoryIds) && categoryIds.length > 0) {
+        const values = categoryIds.map(id => [patientId, id]);
+        await pool.query(`INSERT INTO PatientCategories (patient_id, category_id) VALUES ?`, [values]);
+      }
+      return { success: true };
+    } catch (error) {
+      logger.error("Error assigning categories to patient:", error);
+      throw error;
+    }
+  },
+
+  // שליפת קטגוריות של מטופל
+  async findPatientCategories(patientId) {
+    try {
+      const [rows] = await pool.query(
+        `SELECT c.*
+         FROM Categories c
+         JOIN PatientCategories pc ON c.category_id = pc.category_id
+         WHERE pc.patient_id = ?`,
+        [patientId]
+      );
+      return rows;
+    } catch (error) {
+      logger.error("Error retrieving patient categories:", error);
+      throw error;
+    }
+  },
+
+  // שיוך קטגוריות למשתמש
+  async assignToUser(userId, categoryIds) {
+    try {
+      await pool.query(`DELETE FROM UserCategories WHERE user_id = ?`, [userId]);
+      if (!Array.isArray(categoryIds) && categoryIds) categoryIds = [categoryIds];
+      if (Array.isArray(categoryIds) && categoryIds.length > 0) {
+        const values = categoryIds.map(id => [userId, id]);
+        await pool.query(`INSERT INTO UserCategories (user_id, category_id) VALUES ?`, [values]);
+      }
+      return { success: true };
+    } catch (error) {
+      logger.error("Error assigning categories to user:", error);
+      throw error;
+    }
+  },
+
+  // שליפת קטגוריות של משתמש
+  async findUserCategories(userId) {
+    try {
+      const [rows] = await pool.query(
+        `SELECT c.*
+         FROM Categories c
+         JOIN UserCategories uc ON c.category_id = uc.category_id
+         WHERE uc.user_id = ?`,
+        [userId]
+      );
+      return rows;
+    } catch (error) {
+      logger.error("Error retrieving user categories:", error);
+      throw error;
+    }
+  },
+
+  // שליפת פרוספקטים לפי קטגוריה
+  async findProspectsByCategory(categoryId) {
+    try {
+      const [rows] = await pool.query(
+        `SELECT pr.*
+         FROM Prospects pr
+         JOIN ProspectCategories pc ON pr.prospect_id = pc.prospect_id
+         WHERE pc.category_id = ?`,
+        [categoryId]
+      );
+      return rows;
+    } catch (error) {
+      logger.error("Error retrieving prospects by category:", error);
+      throw error;
+    }
+  },
+
+  // שליפת משתמשים לפי קטגוריה כולל פרטי Person
+  async findUsersByCategory(categoryId) {
+    try {
+      const [rows] = await pool.query(
+        `SELECT u.user_id, u.email, u.role, u.person_id, p.first_name, p.last_name, p.phone, p.teudat_zehut, p.city, p.address, p.birth_date, p.gender
+         FROM Users u
+         JOIN UserCategories uc ON u.user_id = uc.user_id
+         LEFT JOIN Person p ON u.person_id = p.person_id
+         WHERE uc.category_id = ?`,
+        [categoryId]
+      );
+      return rows;
+    } catch (error) {
+      logger.error("Error retrieving users by category:", error);
+      throw error;
+    }
+  },
+
+  // שליפת מטופלים לפי קטגוריה כולל פרטי Person
+  async findPatientsByCategory(categoryId) {
+    try {
+      const [rows] = await pool.query(
+        `SELECT pat.patient_id, pat.user_id, pat.therapist_id, pat.status, pat.history_notes,
+                u.email, u.role, u.person_id, p.first_name, p.last_name, p.phone, p.teudat_zehut, p.city, p.address, p.birth_date, p.gender
+         FROM Patients pat
+         JOIN PatientCategories pc ON pat.patient_id = pc.patient_id
+         LEFT JOIN Users u ON pat.user_id = u.user_id
+         LEFT JOIN Person p ON u.person_id = p.person_id
+         WHERE pc.category_id = ?`,
+        [categoryId]
+      );
+      return rows;
+    } catch (error) {
+      logger.error("Error retrieving patients by category:", error);
       throw error;
     }
   }

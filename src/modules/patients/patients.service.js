@@ -1,7 +1,6 @@
 import { 
     create, 
     getPatientsByTherapist, 
-    getPatientDetails, 
     getPatientStats,
     deleteFromPatients,
     updateToPatients,
@@ -19,62 +18,79 @@ export const fetchPatientOnly = async (patientId) => {
 
 export async function createPatient(patientData) {
     try {
-        // מצפה ל-PatientCreationData: { user, patient, selectedDepartments }
-        const { user, patient, selectedDepartments } = patientData;
-        console.log('--- יצירת מטופל: נתונים שהתקבלו ל-service ---');
-        console.log(JSON.stringify(patientData, null, 2));
+        // מצפה ל-PatientCreationData: { person, patient, selectedDepartments }
+        const { person, patient, selectedDepartments } = patientData;
 
-        // וולידציה על תאריך לידה
-        if (user.birth_date) {
-            const birthDate = new Date(user.birth_date);
-            const today = new Date();
-            if (birthDate > today) {
-                throw new Error("Birth date cannot be in the future");
-            }
-        }
+        // יצירת פרסון
+        const personFields = {
+            first_name: person.first_name,
+            last_name: person.last_name,
+            teudat_zehut: person.teudat_zehut,
+            phone: person.phone,
+            city: person.city,
+            address: person.address,
+            birth_date: person.birth_date,
+            gender: person.gender
+        };
+        // assume createPerson returns { person_id, ...fields }
+        const newPerson = await pool.query(
+            `INSERT INTO Person (first_name, last_name, teudat_zehut, phone, city, address, birth_date, gender)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                personFields.first_name,
+                personFields.last_name,
+                personFields.teudat_zehut || null,
+                personFields.phone || null,
+                personFields.city || null,
+                personFields.address || null,
+                personFields.birth_date || null,
+                personFields.gender || 'other'
+            ]
+        );
+        const person_id = newPerson[0].insertId;
 
-        // יצירת משתמש חדש בטבלת Users
-        const newUser = await createUser(user);
-        console.log('--- משתמש חדש נוצר: newUser ---');
-        console.log(JSON.stringify(newUser, null, 2));
-
-    // המרת gender באנגלית לעברית לפי ערכי ה-ENUM במסד הנתונים
-    let patientGender = patient.gender;
-    if (patientGender === 'male') patientGender = 'זכר';
-    else if (patientGender === 'female') patientGender = 'נקבה';
-    else if (patientGender === 'other') patientGender = 'אחר';
-
-    // יצירת מטופל עם ה-user_id החדש
-    const patientInsertData = { ...patient, user_id: newUser.user_id, gender: patientGender };
-    const newPatient = await create(patientInsertData);
-    console.log('--- מטופל חדש נוצר: newPatient ---');
-    console.log(JSON.stringify(newPatient, null, 2));
+        // יצירת מטופל עם person_id
+        const patientInsertData = {
+            ...patient,
+            user_id: null, // לא נוצר יוזר
+            person_id
+        };
+        const patientSql = `INSERT INTO Patients (person_id, therapist_id, status, history_notes)
+            VALUES (?, ?, ?, ?)`;
+        const patientResult = await pool.query(
+            patientSql,
+            [
+                patientInsertData.person_id,
+                patientInsertData.therapist_id || null,
+                patientInsertData.status || 'פעיל',
+                patientInsertData.history_notes || null
+            ]
+        );
+        const newPatient = {
+            patient_id: patientResult[0].insertId,
+            ...patientInsertData
+        };
 
         // שיוך למחלקות וקבוצות
         if (Array.isArray(selectedDepartments)) {
             for (const dep of selectedDepartments) {
-                // שיוך למחלקה
-                const depSql = `INSERT INTO UserDepartments (user_id, department_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE department_id = VALUES(department_id)`;
-                await pool.query(depSql, [newUser.user_id, dep.department_id]);
-                // שיוך לקבוצות במחלקה
+                const depSql = `INSERT INTO UserDepartments (person_id, department_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE department_id = VALUES(department_id)`;
+                await pool.query(depSql, [person_id, dep.department_id]);
                 if (Array.isArray(dep.group_ids)) {
                     for (const groupId of dep.group_ids) {
-                        const groupSql = `INSERT INTO UserGroups (user_id, group_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE group_id = VALUES(group_id)`;
-                        await pool.query(groupSql, [newUser.user_id, groupId]);
+                        const groupSql = `INSERT INTO UserGroups (person_id, group_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE group_id = VALUES(group_id)`;
+                        await pool.query(groupSql, [person_id, groupId]);
                     }
                 }
             }
         }
 
-        // החזרת אובייקט מלא
         return {
-            user: {
-                ...newUser,
-                password: undefined // לא מחזירים סיסמה
+            person: {
+                person_id,
+                ...personFields
             },
-            patient: {
-                ...newPatient
-            },
+            patient: newPatient,
             selectedDepartments: selectedDepartments || []
         };
     } catch (error) {
@@ -111,7 +127,7 @@ export async function deletePatient(patientId) {
 export async function updatePatient(patientId, updateData) {
     try {
         // Check if patient exists
-    const patient = await getPatientOnly(patientId);
+        const patient = await getPatientOnly(patientId);
         if (!patient) {
             return false;
         }
@@ -123,45 +139,42 @@ export async function updatePatient(patientId, updateData) {
             if (birthDate > today) {
                 throw new Error("Birth date cannot be in the future");
             }
-            // Convert to YYYY-MM-DD for MySQL
             const yyyy = birthDate.getFullYear();
             const mm = String(birthDate.getMonth() + 1).padStart(2, '0');
             const dd = String(birthDate.getDate()).padStart(2, '0');
             updateData.birth_date = `${yyyy}-${mm}-${dd}`;
         }
 
-        // Separate fields for Users and Patients tables
-        const userFields = ['first_name', 'last_name', 'phone', 'email', 'address', 'teudat_zehut', 'city'];
-        const patientFields = ['birth_date', 'gender', 'status', 'history_notes', 'therapist_id'];
+        // Separate fields for Person and Patients tables
+        const personFields = ['first_name', 'last_name', 'phone', 'teudat_zehut', 'city', 'address', 'birth_date', 'gender'];
+        const patientFields = ['status', 'history_notes', 'therapist_id'];
 
-        const userUpdate = {};
+        const personUpdate = {};
         const patientUpdate = {};
         for (const key in updateData) {
-            if (userFields.includes(key)) userUpdate[key] = updateData[key];
+            if (personFields.includes(key)) personUpdate[key] = updateData[key];
             if (patientFields.includes(key)) patientUpdate[key] = updateData[key];
         }
 
-        // לוג נוסף לבדוק user_id
-        console.log('user_id from patient:', patient.user_id);
-        // Update Users table if needed
-        let userUpdateResult = null;
+        // כאן יש לעדכן את Person במקום Users
+        // לדוגמה: await updateToPerson(patient.person_id, personUpdate);
+        // כרגע, אם אין פונקציה כזו, יש להוסיף אותה בעתיד
+
+        let personUpdateResult = null;
         let patientUpdateResult = null;
-        if (Object.keys(userUpdate).length > 0) {
-            if (patient.user_id) {
-                console.log('Calling updateToUsers with:', patient.user_id, userUpdate);
-                userUpdateResult = await updateToUsers(patient.user_id, userUpdate);
-                console.log('Result from updateToUsers:', userUpdateResult);
+        // Update Person table if needed
+        if (Object.keys(personUpdate).length > 0) {
+            if (patient.person_id) {
+                // personUpdateResult = await updateToPerson(patient.person_id, personUpdate);
             } else {
-                console.log('No user_id found for patient, cannot update Users table');
+                console.log('No person_id found for patient, cannot update Person table');
             }
         }
         // Update Patients table
         if (Object.keys(patientUpdate).length > 0) {
-            console.log('Calling updateToPatients with:', patientId, patientUpdate);
             patientUpdateResult = await updateToPatients(patientId, patientUpdate);
-            console.log('Result from updateToPatients:', patientUpdateResult);
         }
-        return { userUpdateResult, patientUpdateResult };
+        return { personUpdateResult, patientUpdateResult };
     } catch (error) {
         throw error;
     }
