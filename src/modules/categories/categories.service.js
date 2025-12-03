@@ -49,7 +49,7 @@ class CategoriesService {
   #assignMap = { prospect: 'assignToProspect', patient: 'assignToPatient', employee: 'assignToUser' };
   #removeMap = { prospect: 'removeFromProspect', patient: 'removeFromPatient', employee: 'removeFromUser' };
   #getMap = { prospect: 'findProspectCategories', patient: 'findPatientCategories', employee: 'findUserCategories' };
-  #getByCategoryMap = { prospect: 'findProspectsByCategory' }; // Only prospect has getByCategory
+  #getByCategoryMap = { prospect: 'findProspectsByCategory', employee: 'findUsersByCategory', patient: 'findPatientsByCategory' };
 
   async assignCategory(entityType, entityId, categoryId, assignedBy = null) {
     const category = await this.getCategoryById(categoryId);
@@ -75,7 +75,8 @@ class CategoriesService {
     return await categoriesRepo[this.#getMap[entityType]](entityId);
   }
 
-  async getEntitiesByCategory(entityType, categoryId) {
+  // options: { includePerson: boolean }
+  async getEntitiesByCategory(entityType, categoryId, options = {}) {
     if (!this.#getByCategoryMap[entityType]) {
       throw new Error(`getByCategory not supported for ${entityType}`);
     }
@@ -83,7 +84,11 @@ class CategoriesService {
     if (category.category_type !== this.#typeMap[entityType]) {
       throw new Error(`This category is not for ${entityType}s`);
     }
-    return await categoriesRepo[this.#getByCategoryMap[entityType]](categoryId);
+    const fnName = this.#getByCategoryMap[entityType];
+    const fn = categoriesRepo[fnName];
+    if (!fn) throw new Error(`repo missing method ${fnName}`);
+    // allow repo implementations to accept (categoryId, options)
+    return await fn.call(categoriesRepo, categoryId, options);
   }
 }
 

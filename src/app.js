@@ -21,7 +21,7 @@ const allowedOrigins = [
   'http://localhost:4200' // לפיתוח מקומי
 ];
 
-// ✅ middleware של CORS
+// ✅ middleware של CORS גלובלי
 app.use(cors({
   origin: function(origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {

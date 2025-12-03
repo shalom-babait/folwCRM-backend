@@ -5,7 +5,7 @@ export async function fetchAppointmentsByGroupId(groupId) {
   return await getAppointmentsByGroupId(groupId);
 }
 
-export async function fetchAppointmentsByTherapist(therapistId) {
+export async function fetchAppointmentsByTherapist(therapistId) {  
 
   return await getAppointmentsByTherapist(therapistId);
 }
