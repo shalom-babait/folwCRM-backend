@@ -49,11 +49,18 @@ export async function getFollowUpById(req, res) {
 
 export async function updateFollowUp(req, res) {
     try {
+        console.log('Update FollowUp - params:', req.params);
+        console.log('Update FollowUp - body:', req.body);
         const { followup_id } = req.params;
         const updated = await followUpModel.updateFollowUp(followup_id, req.body);
-        if (!updated) return res.status(404).json({ error: 'Not found or no changes' });
+        if (!updated) {
+            console.log('Update FollowUp - not found or no changes');
+            return res.status(404).json({ error: 'Not found or no changes' });
+        }
+        console.log('Update FollowUp - success');
         res.json({ success: true });
     } catch (err) {
+        console.error('Update FollowUp - error:', err);
         res.status(500).json({ error: err.message });
     }
 }

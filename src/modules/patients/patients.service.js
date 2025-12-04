@@ -111,8 +111,11 @@ export async function fetchPatientsByTherapist(therapistId) {
 }
 
 export async function fetchAllPatients() {
-    const allPatients = await getAllPatients();    
-    return allPatients
+    const allPatients = await getAllPatients();
+    return allPatients.map(item => ({
+        ...item,
+        selectedDepartments: []
+    }));
 }
 
 export const fetchPatientDetails = async (patientId) => {

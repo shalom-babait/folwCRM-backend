@@ -291,13 +291,40 @@ export const getPatientStats = async (patientId) => {
 
 export const getAllPatients = async () => {
   const sql = `
-    SELECT *
-    FROM users u
-    JOIN patients p ON u.user_id = p.user_id
-    WHERE u.role = 'patient';
+    SELECT P.patient_id, P.user_id, P.therapist_id, P.status AS patient_status, P.history_notes,
+           P.person_id,
+           PR.first_name, PR.last_name, PR.teudat_zehut, PR.phone, PR.city, PR.address, PR.birth_date, PR.gender,
+           U.email, U.role, U.agree, U.created_at
+    FROM Patients P
+    LEFT JOIN Users U ON P.user_id = U.user_id
+    LEFT JOIN Person PR ON P.person_id = PR.person_id
+    WHERE U.role = 'patient'
   `;
   const [rows] = await pool.query(sql);
-  return rows; // מחזיר את כל המטופלים
+  if (!rows.length) return [];
+
+  return rows.map(row => {
+    return {
+      person: {
+        person_id: row.person_id,
+        first_name: row.first_name || '',
+        last_name: row.last_name || '',
+        teudat_zehut: row.teudat_zehut || '',
+        phone: row.phone || '',
+        city: row.city || '',
+        address: row.address || '',
+        birth_date: row.birth_date || '',
+        gender: row.gender || 'other'
+      },
+      patient: {
+        patient_id: row.patient_id,
+        user_id: row.user_id,
+        therapist_id: row.therapist_id,
+        status: row.patient_status,
+        history_notes: row.history_notes
+      }
+    };
+  });
 }
 
 
