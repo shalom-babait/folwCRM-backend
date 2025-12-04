@@ -415,3 +415,20 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 // ALTER TABLE UserGroups
 //   ADD UNIQUE KEY person_id_group_id (person_id, group_id);
 
+//הוספתי 2
+// CREATE TABLE IF NOT EXISTS FollowUps (
+//   followup_id INT AUTO_INCREMENT PRIMARY KEY,
+
+//   person_id INT NOT NULL,                  -- מי שהמעקב שייך לו
+//   created_by_person_id INT NOT NULL,       -- מי שהוסיף את המעקב
+
+//   follow_date DATE NOT NULL,               -- תאריך המעקב
+//   follow_time TIME NULL,                   -- שעה (לא חובה)
+//   remind BOOLEAN DEFAULT FALSE,            -- האם לתזכר
+//   notes VARCHAR(500),                      -- הערות
+
+//   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- תאריך יצירה
+
+//   FOREIGN KEY (person_id) REFERENCES Person(person_id) ON DELETE CASCADE,
+//   FOREIGN KEY (created_by_person_id) REFERENCES Person(person_id)
+// );
