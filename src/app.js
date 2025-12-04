@@ -12,6 +12,7 @@ import departmentsRoutes from './modules/departments/departments.routes.js';
 import groupsRoutes from './modules/groups/groups.routes.js';
 import prospectsRoutes from './modules/prospects/prospects.routes.js';
 import categoriesRoutes from './modules/categories/categories.routes.js';
+import followUpsRoutes from './modules/followUps/followUps.routes.js';
 
 const app = express();
 
@@ -35,6 +36,15 @@ app.use(cors({
   allowedHeaders: ['Content-Type','Authorization']
 }));
 
+// // ✅ טיפול בבקשות OPTIONS (preflight)
+// app.options('*', cors({
+//   origin: allowedOrigins,
+//   credentials: true,
+//   methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
+//   allowedHeaders: ['Content-Type','Authorization']
+// }));
+
+
 // ✅ Body parser
 app.use(express.json());
 
@@ -54,6 +64,8 @@ app.use('/api/login', loginRoutes);
 app.use('/api/groups', groupsRoutes);
 app.use('/api/prospects', prospectsRoutes);
 app.use('/api/categories', categoriesRoutes);
+app.use('/api/followups', followUpsRoutes);
+
 
 // ✅ Start server
 const PORT = process.env.PORT || 3000;

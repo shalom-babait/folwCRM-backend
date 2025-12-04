@@ -3,10 +3,9 @@ import { createUser, deleteUser, updateUser } from "./user.service.js";
 export async function createUserController(req, res) {
   try {
     const userData = req.body;
-    
-    // וולידציה בסיסית על שדות חובה
-  const requiredFields = ['first_name', 'last_name', 'phone', 'city', 'email', 'password', 'gender'];
-    
+
+    // וולידציה רק לשדות של Users
+    const requiredFields = ['email', 'password'];
     for (const field of requiredFields) {
       if (!userData[field] || userData[field].trim() === '') {
         return res.status(400).json({
@@ -34,29 +33,24 @@ export async function createUserController(req, res) {
     }
 
     // ניקוי רווחים מיותרים
-    userData.first_name = userData.first_name.trim();
-    userData.last_name = userData.last_name.trim();
-    userData.phone = userData.phone.trim();
-    userData.city = userData.city.trim();
     userData.email = userData.email.trim().toLowerCase();
     if (userData.address) userData.address = userData.address.trim();
     if (userData.teudat_zehut) userData.teudat_zehut = userData.teudat_zehut.trim();
 
+    // שדות אישיים עוברים ל־Person דרך ה־service/repo
     const newUser = await createUser(userData);
-    
+
     res.status(201).json({
       success: true,
       data: newUser
     });
   } catch (error) {
-    // בדיקה אם השגיאה היא duplicate entry
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({
         success: false,
         message: "User with this email already exists"
       });
     }
-
     res.status(500).json({
       success: false,
       message: error.message

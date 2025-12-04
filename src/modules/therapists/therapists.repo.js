@@ -45,42 +45,52 @@ export async function getTherapists() {
       SELECT 
         t.therapist_id,
         t.user_id,
-        u.first_name,
-        u.last_name,
-        u.teudat_zehut,
-        u.phone,
-        u.city,
-        u.address,
         u.email,
         u.role,
         u.agree,
-        u.created_at
+        u.created_at,
+        u.person_id,
+        p.first_name,
+        p.last_name,
+        p.teudat_zehut,
+        p.phone,
+        p.city,
+        p.address,
+        p.birth_date,
+        p.gender
       FROM Therapists t
       INNER JOIN Users u ON t.user_id = u.user_id
+      LEFT JOIN Person p ON u.person_id = p.person_id
       WHERE u.role = 'therapist'
-      ORDER BY u.first_name, u.last_name
+      ORDER BY p.first_name, p.last_name
     `;
     const [rows] = await pool.execute(query);
-    // החזרת מערך של TherapistCreationData עם שדות ריקים
     return rows.map(row => ({
       user: {
         user_id: row.user_id,
-        first_name: row.first_name,
-        last_name: row.last_name,
-        teudat_zehut: row.teudat_zehut,
-        phone: row.phone,
-        city: row.city,
-        address: row.address,
+        person_id: row.person_id,
         email: row.email,
         role: row.role,
         agree: row.agree,
         created_at: row.created_at
       },
+      person: {
+        person_id: row.person_id,
+        first_name: row.first_name || '',
+        last_name: row.last_name || '',
+        teudat_zehut: row.teudat_zehut || '',
+        phone: row.phone || '',
+        city: row.city || '',
+        address: row.address || '',
+        birth_date: row.birth_date || '',
+        gender: row.gender || 'other'
+      },
       therapist: {
         therapist_id: row.therapist_id,
         specialization: '',
         experience_years: null
-      }
+      },
+      selectedDepartments: []
     }));
   } catch (error) {
     throw new Error(`Database error: ${error.message}`);

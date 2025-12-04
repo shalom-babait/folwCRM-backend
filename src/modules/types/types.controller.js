@@ -1,8 +1,11 @@
 import { createType, deleteType, fetchTypes, updateType } from "./types.service.js";
-
 export async function getTypesController(req, res) {
     try {
-        const types = await fetchTypes();
+        const { patientId } = req.params;
+        if (!patientId || isNaN(patientId)) {
+            return res.status(400).json({ message: "Missing or invalid patientId" });
+        }
+        const types = await fetchTypes(Number(patientId));
         res.json(types);
     } catch (err) {
         console.error(err);
