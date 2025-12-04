@@ -407,9 +407,14 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 //   ADD CONSTRAINT fk_usergroups_person
 //     FOREIGN KEY (person_id) REFERENCES Person(person_id) ON DELETE CASCADE;
 
+
 // ALTER TABLE UserGroups
-//   DROP FOREIGN KEY UserGroups_user_fk,
-//   DROP INDEX user_id,
+//   DROP FOREIGN KEY UserGroups_ibfk_1;
+
+//   ALTER TABLE UserGroups
+//   DROP INDEX user_id;
+
+// ALTER TABLE UserGroups
 //   DROP COLUMN user_id;
 
 // ALTER TABLE UserGroups
