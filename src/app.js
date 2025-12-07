@@ -12,7 +12,7 @@ import departmentsRoutes from './modules/departments/departments.routes.js';
 import groupsRoutes from './modules/groups/groups.routes.js';
 import prospectsRoutes from './modules/prospects/prospects.routes.js';
 import categoriesRoutes from './modules/categories/categories.routes.js';
-
+import paymentsRoutes from './modules/payments/payments.routes.js';
 const app = express();
 
 // ✅ רשימת דומיינים מורשים
@@ -62,6 +62,7 @@ app.use('/api/login', loginRoutes);
 app.use('/api/groups', groupsRoutes);
 app.use('/api/prospects', prospectsRoutes);
 app.use('/api/categories', categoriesRoutes);
+app.use('/api/payments', paymentsRoutes);
 
 // ✅ Start server
 const PORT = process.env.PORT || 3000;

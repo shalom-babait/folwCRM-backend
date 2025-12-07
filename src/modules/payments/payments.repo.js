@@ -14,10 +14,24 @@ export async function getAllPayments() {
   return rows;
 }
 
-export async function getPaymentById(pay_id) {
+export async function getPaymentById(patient_id) {
   const [rows] = await pool.query(`SELECT * FROM Payments WHERE pay_id = ?`, [pay_id]);
   return rows[0];
 }
+
+export async function getPaymentByPatientId(patient_id) {
+  const [rows] = await pool.query(
+    `SELECT p.* 
+     FROM Payments p
+     JOIN Appointments a ON p.appointment_id = a.appointment_id
+     WHERE a.patient_id = ?`,
+    [patient_id]
+  );
+  console.log(rows);
+  
+  return rows;
+}
+
 
 export async function updatePayment(pay_id, paymentData) {
   const fields = Object.keys(paymentData).map(key => `${key} = ?`).join(', ');

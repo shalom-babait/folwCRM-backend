@@ -45,3 +45,15 @@ export async function deletePaymentController(req, res) {
     res.status(500).json({ error: err.message });
   }
 }
+
+
+export async function getAllPatientPaymentsController(req, res) {
+  try {
+    const payments = await paymentsService.getPaymentByPatientIdService(req.params.patient_id);
+
+    res.status(200).json(payments);
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}

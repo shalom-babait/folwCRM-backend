@@ -291,7 +291,7 @@ const paymentStatusHistoryTableSQL = `
 `;
 // createTable(refundsTableSQL);
 // createTable(invoicesTableSQL);
-// createTable(paymentStatusHistoryTableSQL);
+createTable(paymentStatusHistoryTableSQL);
 
 //בworkbench
 // ALTER TABLE Payments
