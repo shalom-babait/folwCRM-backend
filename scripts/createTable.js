@@ -420,7 +420,7 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 // ALTER TABLE UserGroups
 //   ADD UNIQUE KEY person_id_group_id (person_id, group_id);
 
-//הוספתי 2
+// הוספתי 2
 // CREATE TABLE IF NOT EXISTS FollowUps (
 //   followup_id INT AUTO_INCREMENT PRIMARY KEY,
 

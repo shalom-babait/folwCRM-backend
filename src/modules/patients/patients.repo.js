@@ -2,7 +2,7 @@ export async function getPatientFullData(patientId) {
   // שליפת נתוני משתמש ומטופל כולל JOIN ל-Person
   const userPatientSql = `
     SELECT U.user_id, U.email, U.role, U.agree, U.created_at, U.person_id,
-           P.patient_id, P.therapist_id, P.birth_date AS patient_birth_date, P.gender AS patient_gender, P.status AS patient_status, P.history_notes,
+           P.patient_id, P.therapist_id, PR.birth_date AS patient_birth_date, P.gender AS patient_gender, P.status AS patient_status, P.history_notes,
            PR.first_name, PR.last_name, PR.teudat_zehut, PR.phone, PR.city, PR.address, PR.birth_date, PR.gender
     FROM Users U
     JOIN Patients P ON U.user_id = P.user_id
@@ -17,7 +17,7 @@ export async function getPatientFullData(patientId) {
   const departmentsSql = `
     SELECT UD.department_id, GL.group_id
     FROM UserDepartments UD
-    LEFT JOIN UserGroups UG ON UD.user_id = UG.user_id
+    LEFT JOIN UserGroups UG ON UD.person_id = UG.person_id
     LEFT JOIN group_list GL ON UG.group_id = GL.group_id AND GL.department_id = UD.department_id
     WHERE UD.user_id = ?
   `;
@@ -120,7 +120,7 @@ export const getPatientOnly = async (patientId) => {
       P.therapist_id,
       PR.first_name,
       PR.last_name,
-      P.birth_date,
+      PR.birth_date,
       P.gender,
       P.status,
       P.history_notes,
@@ -235,9 +235,16 @@ export async function getPatientsByTherapist(therapistId) {
       status: row.patient_status,
       history_notes: row.history_notes
     };
+    const user = {
+      user_id: row.user_id,
+      email: row.email,
+      role: row.role,
+      agree: row.agree,
+      created_at: row.created_at
+    }
     const personDepMap = depMap.get(row.person_id) || new Map();
     const selectedDepartments = Array.from(personDepMap.entries()).map(([department_id, group_ids]) => ({ department_id, group_ids }));
-    return { person, patient, selectedDepartments };
+    return { person, patient, user, selectedDepartments };
   });
 }
 
@@ -256,9 +263,9 @@ export const getPatientDetails = async (patientId) => {
       TT.group_name AS group_name,
       R.room_name AS room,
       P.patient_id,
-      U.first_name AS patient_first_name,
-      U.last_name AS patient_last_name,
-      P.birth_date,
+      PR.first_name AS patient_first_name,
+      PR.last_name AS patient_last_name,
+      PR.birth_date,
       P.gender,
       P.status AS patient_status
     FROM Appointments AS A
@@ -266,6 +273,7 @@ export const getPatientDetails = async (patientId) => {
     JOIN Users AS U ON P.user_id = U.user_id
     JOIN group_list AS TT ON A.type_id = TT.group_id
     JOIN Rooms AS R ON A.room_id = R.room_id
+    join person AS PR ON U.person_id = PR.person_id
     WHERE A.patient_id = ? 
     ORDER BY A.appointment_date, A.start_time;
   `;
@@ -305,6 +313,13 @@ export const getAllPatients = async () => {
 
   return rows.map(row => {
     return {
+      user: {
+        user_id: row.user_id,
+        email: row.email,
+        role: row.role,
+        agree: row.agree,
+        created_at: row.created_at
+      },
       person: {
         person_id: row.person_id,
         first_name: row.first_name || '',
