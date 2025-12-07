@@ -12,6 +12,8 @@ import departmentsRoutes from './modules/departments/departments.routes.js';
 import groupsRoutes from './modules/groups/groups.routes.js';
 import prospectsRoutes from './modules/prospects/prospects.routes.js';
 import categoriesRoutes from './modules/categories/categories.routes.js';
+import paymentsRoutes from './modules/payments/payments.routes.js';
+import followUpsRoutes from './modules/followUps/followUps.routes.js';
 
 const app = express();
 
@@ -63,6 +65,9 @@ app.use('/api/login', loginRoutes);
 app.use('/api/groups', groupsRoutes);
 app.use('/api/prospects', prospectsRoutes);
 app.use('/api/categories', categoriesRoutes);
+app.use('/api/payments', paymentsRoutes);
+app.use('/api/followups', followUpsRoutes);
+
 
 // ✅ Start server
 const PORT = process.env.PORT || 3000;
