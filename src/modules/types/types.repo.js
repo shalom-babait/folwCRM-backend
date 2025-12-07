@@ -7,7 +7,7 @@ export async function getTypes(patientId) {
     const query = `
       SELECT gl.group_id, gl.group_name
       FROM UserGroups ug
-      JOIN Patients p ON ug.user_id = p.user_id
+      JOIN Patients p ON ug.person_id = p.person_id
       JOIN group_list gl ON ug.group_id = gl.group_id
       WHERE p.patient_id = ?;
     `;

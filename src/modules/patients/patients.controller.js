@@ -75,6 +75,8 @@ export async function getPatientsByTherapistController(req, res) {
 export async function getAllPatientsController(req, res) {
   try {
     const allPatients = await fetchAllPatients();
+    console.log(allPatients);
+    
     res.json({ success: true, data: allPatients });
   } catch (error) {
     console.error(error);
