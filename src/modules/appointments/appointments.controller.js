@@ -1,5 +1,17 @@
+import { createAppointment, fetchAppointments, deleteAppointment, updateAppointment, fetchAppointmentsByRoom, fetchAppointmentsByGroupId, fetchAppointmentsByTherapist } from "./appointments.service.js";
+
+export async function getAppointmentsByGroupId(req, res) {
+  
+  try {
+    const { groupId } = req.params;
+    const appointments = await fetchAppointmentsByGroupId(groupId);
+    res.json({ success: true, data: appointments });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error fetching appointments by groupId" });
+  }
+}
 // שליפת כל הפגישות של מטפל בלבד
-import { fetchAppointmentsByTherapist } from "./appointments.service.js";
 
 export async function getAppointmentsByTherapist(req, res) {
   try {
@@ -16,7 +28,6 @@ export async function getAppointmentsByTherapist(req, res) {
     res.status(500).json({ success: false, message: "Error fetching appointments by therapist" });
   }
 }
-import { createAppointment, fetchAppointments, deleteAppointment, updateAppointment, fetchAppointmentsByRoom } from "./appointments.service.js";
 export async function getAppointmentsByRoom(req, res) {
   try {
     const { roomId } = req.params;
@@ -31,13 +42,13 @@ export async function getAppointmentsByRoom(req, res) {
 export async function createAppointmentController(req, res) {
   try {
     const appointmentData = req.body;
-    
+
     // וולידציה בסיסית
     const requiredFields = [
-      'therapist_id', 'patient_id', 'type_id', 'room_id', 
+      'therapist_id', 'patient_id', 'type_id', 'room_id',
       'appointment_date', 'start_time', 'end_time'
     ];
-    
+
     for (const field of requiredFields) {
       if (!appointmentData[field]) {
         return res.status(400).json({
@@ -48,7 +59,7 @@ export async function createAppointmentController(req, res) {
     }
 
     // וולידציה על סטטוס
-    const validStatuses = ['מתוזמנת', 'הושלמה', 'בוטלה','נדחתה'];
+    const validStatuses = ['מתוזמנת', 'הושלמה', 'בוטלה', 'נדחתה'];
     if (appointmentData.status && !validStatuses.includes(appointmentData.status)) {
       return res.status(400).json({
         success: false,
@@ -75,7 +86,7 @@ export async function createAppointmentController(req, res) {
     }
 
     const newAppointment = await createAppointment(appointmentData);
-    
+
     res.status(201).json({
       success: true,
       data: newAppointment
@@ -102,7 +113,7 @@ export async function getAppointments(req, res) {
 export async function deleteAppointmentController(req, res) {
   try {
     const { appointmentId } = req.params;
-    
+
     // Validate appointmentId
     if (!appointmentId || isNaN(appointmentId)) {
       return res.status(400).json({
@@ -112,7 +123,7 @@ export async function deleteAppointmentController(req, res) {
     }
 
     const result = await deleteAppointment(appointmentId);
-    
+
     if (result) {
       res.json({
         success: true,
@@ -137,7 +148,7 @@ export async function updateAppointmentController(req, res) {
   try {
     const { appointmentId } = req.params;
     const updateData = req.body;
-    
+
     // Validate appointmentId
     if (!appointmentId || isNaN(appointmentId)) {
       return res.status(400).json({
@@ -182,7 +193,7 @@ export async function updateAppointmentController(req, res) {
 
     // Validate status if provided
     if (updateData.status) {
-      const validStatuses = ['מתוזמנת', 'הושלמה', 'בוטלה','נדחתה'];
+      const validStatuses = ['מתוזמנת', 'הושלמה', 'בוטלה', 'נדחתה'];
       if (!validStatuses.includes(updateData.status)) {
         return res.status(400).json({
           success: false,
@@ -192,7 +203,7 @@ export async function updateAppointmentController(req, res) {
     }
 
     const result = await updateAppointment(appointmentId, updateData);
-    
+
     if (result) {
       res.json({
         success: true,

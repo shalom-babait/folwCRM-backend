@@ -9,167 +9,244 @@ async function createTable(sql) {
   }
 }
 
-// --- טבלת משתמשים ---
+/* ============================
+   טבלת משתמשים
+============================ */
 const usersTableSQL = `
-  CREATE TABLE IF NOT EXISTS Users (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
-    first_name VARCHAR(15) NOT NULL,
-    last_name VARCHAR(20) NOT NULL,
-    teudat_zehut VARCHAR(10), 
-    phone VARCHAR(10) NOT NULL,
-    city VARCHAR(15) NOT NULL,
-    address VARCHAR(30),
-    email VARCHAR(30) NOT NULL UNIQUE,
-    password VARCHAR(100) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    agree TINYINT(1) DEFAULT 0,
-    role ENUM('secretary','manager','therapist','patient','other') NOT NULL DEFAULT 'patient',
-    gender ENUM('male','female','other') NOT NULL DEFAULT 'other',
-    birth_date DATE DEFAULT NULL
-  );
+CREATE TABLE IF NOT EXISTS Users (
+  user_id INT AUTO_INCREMENT PRIMARY KEY,
+  first_name VARCHAR(15) NOT NULL,
+  last_name VARCHAR(20) NOT NULL,
+  teudat_zehut VARCHAR(10),
+  phone VARCHAR(10) NOT NULL,
+  city VARCHAR(15) NOT NULL,
+  address VARCHAR(30),
+  email VARCHAR(30) NOT NULL UNIQUE,
+  password VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  agree TINYINT(1) DEFAULT 0,
+  role ENUM('secretary','manager','therapist','patient','other') NOT NULL DEFAULT 'patient',
+  gender ENUM('male','female','other') NOT NULL DEFAULT 'other',
+  birth_date DATE DEFAULT NULL
+);
 `;
 
-// --- סוגי טיפולים ---
+/* ============================
+   סוגי טיפולים
+============================ */
 const treatmentTypesTableSQL = `
-  CREATE TABLE IF NOT EXISTS TreatmentTypes (
-    type_id INT AUTO_INCREMENT PRIMARY KEY,
-    type_name VARCHAR(50) NOT NULL
-  );
+CREATE TABLE IF NOT EXISTS TreatmentTypes (
+  type_id INT AUTO_INCREMENT PRIMARY KEY,
+  type_name VARCHAR(50) NOT NULL
+);
 `;
 
-// --- חדרים ---
+/* ============================
+   חדרים
+============================ */
 const roomsTableSQL = `
-  CREATE TABLE IF NOT EXISTS Rooms (
-    room_id INT AUTO_INCREMENT PRIMARY KEY,
-    room_name VARCHAR(50) NOT NULL
-  );
+CREATE TABLE IF NOT EXISTS Rooms (
+  room_id INT AUTO_INCREMENT PRIMARY KEY,
+  room_name VARCHAR(50) NOT NULL
+);
 `;
 
-// --- מטפלים ---
+/* ============================
+   מטפלים
+============================ */
 const therapistsTableSQL = `
-  CREATE TABLE IF NOT EXISTS Therapists (
-    therapist_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNIQUE,
-    FOREIGN KEY (user_id) REFERENCES Users(user_id)
-  );
+CREATE TABLE IF NOT EXISTS Therapists (
+  therapist_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNIQUE,
+  FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+);
 `;
 
-// --- מטופלים ---
+/* ============================
+   מטופלים
+============================ */
 const patientsTableSQL = `
-  CREATE TABLE IF NOT EXISTS Patients (
-    patient_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    therapist_id INT,
-    birth_date DATE,
-    gender ENUM('זכר', 'נקבה', 'אחר'),
-    status ENUM('פעיל', 'לא פעיל', 'בהמתנה') NOT NULL DEFAULT 'פעיל',
-    history_notes VARCHAR(500),
-    FOREIGN KEY (user_id) REFERENCES Users(user_id),
-    FOREIGN KEY (therapist_id) REFERENCES Therapists(therapist_id)
-  );
+CREATE TABLE IF NOT EXISTS Patients (
+  patient_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT,
+  therapist_id INT,
+  birth_date DATE,
+  gender ENUM('male','female','other') NOT NULL DEFAULT 'female',
+  status ENUM('פעיל', 'לא פעיל', 'בהמתנה') NOT NULL DEFAULT 'פעיל',
+  history_notes VARCHAR(500),
+  FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+  FOREIGN KEY (therapist_id) REFERENCES Therapists(therapist_id)
+);
 `;
 
-// --- פגישות ---
+/* ============================
+   פגישות
+============================ */
 const appointmentsTableSQL = `
-  CREATE TABLE IF NOT EXISTS Appointments (
-    appointment_id INT AUTO_INCREMENT PRIMARY KEY,
-    therapist_id INT NOT NULL, 
-    patient_id INT NOT NULL,  
-    type_id INT NOT NULL, 
-    room_id INT NOT NULL, 
-    appointment_date DATE NOT NULL, 
-    start_time TIME NOT NULL, 
-    end_time TIME NOT NULL, 
-    total_minutes INT AS (TIMESTAMPDIFF(MINUTE, start_time, end_time)) STORED,
-    status ENUM('מתוזמנת', 'הושלמה', 'בוטלה','נדחתה') NOT NULL DEFAULT 'מתוזמנת',
-    FOREIGN KEY (therapist_id) REFERENCES Therapists(therapist_id),
-    FOREIGN KEY (patient_id) REFERENCES Patients(patient_id),
-    FOREIGN KEY (type_id) REFERENCES TreatmentTypes(type_id),
-    FOREIGN KEY (room_id) REFERENCES Rooms(room_id)
-  );
+CREATE TABLE IF NOT EXISTS Appointments (
+  appointment_id INT AUTO_INCREMENT PRIMARY KEY,
+  therapist_id INT NOT NULL,
+  patient_id INT NOT NULL,
+  type_id INT NOT NULL,
+  room_id INT NOT NULL,
+  appointment_date DATE NOT NULL,
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  total_minutes INT AS (TIMESTAMPDIFF(MINUTE, start_time, end_time)) STORED,
+  status ENUM('מתוזמנת', 'הושלמה', 'בוטלה','נדחתה') NOT NULL DEFAULT 'מתוזמנת',
+  FOREIGN KEY (therapist_id) REFERENCES Therapists(therapist_id),
+  FOREIGN KEY (patient_id) REFERENCES Patients(patient_id),
+  FOREIGN KEY (type_id) REFERENCES TreatmentTypes(type_id),
+  FOREIGN KEY (room_id) REFERENCES Rooms(room_id)
+);
 `;
 
-// --- תשלומים ---
+/* ============================
+   תשלומים
+============================ */
 const paymentsTableSQL = `
-  CREATE TABLE IF NOT EXISTS Payments (
-    pay_id INT AUTO_INCREMENT PRIMARY KEY,
-    appointment_id INT,
-    amount DECIMAL(10, 2) NOT NULL,
-    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    method ENUM('כרטיס אשראי', 'העברה בנקאית', 'מזומן') NOT NULL,
-    FOREIGN KEY (appointment_id) REFERENCES Appointments(appointment_id)
-  );
+CREATE TABLE IF NOT EXISTS Payments (
+  pay_id INT AUTO_INCREMENT PRIMARY KEY,
+  appointment_id INT,
+  amount DECIMAL(10, 2) NOT NULL,
+  payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  method ENUM('כרטיס אשראי', 'העברה בנקאית', 'מזומן') NOT NULL,
+  status ENUM('pending','paid','failed','refunded') DEFAULT 'pending',
+  FOREIGN KEY (appointment_id) REFERENCES Appointments(appointment_id)
+);
 `;
 
-// --- סרטונים למטפלים ---
+/* ============================
+   החזרים
+============================ */
+const refundsTableSQL = `
+CREATE TABLE IF NOT EXISTS Refunds (
+  refund_id INT AUTO_INCREMENT PRIMARY KEY,
+  pay_id INT NOT NULL,
+  refund_amount DECIMAL(10,2) NOT NULL,
+  refund_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  reason VARCHAR(200),
+  status ENUM('pending','completed','failed') DEFAULT 'completed',
+  FOREIGN KEY (pay_id) REFERENCES Payments(pay_id)
+);
+`;
+
+/* ============================
+   חשבוניות
+============================ */
+const invoicesTableSQL = `
+CREATE TABLE IF NOT EXISTS Invoices (
+  invoice_id INT AUTO_INCREMENT PRIMARY KEY,
+  pay_id INT NOT NULL,
+  invoice_number VARCHAR(50) UNIQUE NOT NULL,
+  issue_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  total DECIMAL(10,2) NOT NULL,
+  FOREIGN KEY (pay_id) REFERENCES Payments(pay_id)
+);
+`;
+
+/* ============================
+   היסטוריית סטטוס תשלומים
+============================ */
+const paymentStatusHistoryTableSQL = `
+CREATE TABLE IF NOT EXISTS PaymentStatusHistory (
+  history_id INT AUTO_INCREMENT PRIMARY KEY,
+  pay_id INT NOT NULL,
+  old_status VARCHAR(20),
+  new_status VARCHAR(20),
+  changed_by INT,
+  changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (pay_id) REFERENCES Payments(pay_id),
+  FOREIGN KEY (changed_by) REFERENCES Users(user_id)
+);
+`;
+
+/* ============================
+   סרטונים למטפלים
+============================ */
 const therapistToVideoTableSQL = `
-  CREATE TABLE IF NOT EXISTS TherapistToVideo (
-    therapistToVideo_id INT AUTO_INCREMENT PRIMARY KEY,
-    therapist_id INT,
-    video_url VARCHAR(255) NOT NULL,
-    year INT,
-    FOREIGN KEY (therapist_id) REFERENCES Therapists(therapist_id)
-  );
+CREATE TABLE IF NOT EXISTS TherapistToVideo (
+  therapistToVideo_id INT AUTO_INCREMENT PRIMARY KEY,
+  therapist_id INT,
+  video_url VARCHAR(255) NOT NULL,
+  year INT,
+  FOREIGN KEY (therapist_id) REFERENCES Therapists(therapist_id)
+);
 `;
 
-// --- מחלקות ---
+/* ============================
+   מחלקות
+============================ */
 const departmentsTableSQL = `
-  CREATE TABLE IF NOT EXISTS Departments (
-    department_id INT AUTO_INCREMENT PRIMARY KEY,
-    department_name VARCHAR(20) NOT NULL UNIQUE
-  );
+CREATE TABLE IF NOT EXISTS Departments (
+  department_id INT AUTO_INCREMENT PRIMARY KEY,
+  department_name VARCHAR(20) NOT NULL UNIQUE
+);
 `;
 
-// --- שיוך משתמשים למחלקות ---
+/* ============================
+   שיוך משתמשים למחלקות
+============================ */
 const userDepartmentsTableSQL = `
-  CREATE TABLE IF NOT EXISTS UserDepartments (
-    user_department_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    department_id INT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES Users(user_id),
-    FOREIGN KEY (department_id) REFERENCES Departments(department_id),
-    UNIQUE (user_id, department_id)
-  );
+CREATE TABLE IF NOT EXISTS UserDepartments (
+  user_department_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  department_id INT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+  FOREIGN KEY (department_id) REFERENCES Departments(department_id),
+  UNIQUE (user_id, department_id)
+);
 `;
+
+/* ============================
+   קבוצות
+============================ */
 const groupListTableSQL = `
 CREATE TABLE IF NOT EXISTS group_list (
-    group_id INT AUTO_INCREMENT PRIMARY KEY,
-    group_name VARCHAR(50) NOT NULL UNIQUE,
-    department_id INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (department_id) REFERENCES Departments(department_id)
-  );
+  group_id INT AUTO_INCREMENT PRIMARY KEY,
+  group_name VARCHAR(50) NOT NULL UNIQUE,
+  department_id INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (department_id) REFERENCES Departments(department_id)
+);
 `;
 
 const userGroupsTableSQL = `
 CREATE TABLE IF NOT EXISTS UserGroups (
-    user_group_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    group_id INT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES Users(user_id),
-    FOREIGN KEY (group_id) REFERENCES group_list(group_id),
-    UNIQUE (user_id, group_id) 
+  user_group_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  group_id INT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+  FOREIGN KEY (group_id) REFERENCES group_list(group_id),
+  UNIQUE (user_id, group_id)
 );
 `;
+
+/* ============================
+   מתעניינים
+============================ */
 const prospectsTableSQL = `
-  CREATE TABLE IF NOT EXISTS Prospects (
-    prospect_id INT AUTO_INCREMENT PRIMARY KEY,
-    first_name VARCHAR(15) NOT NULL,
-    last_name VARCHAR(20) NOT NULL,
-    phone VARCHAR(10) NOT NULL,
-    phone_alt VARCHAR(10),
-    email VARCHAR(30),
-    city VARCHAR(15),
-    referral_source VARCHAR(50),
-    reason_for_visit VARCHAR(200),
-    notes TEXT,
-    status ENUM('new', 'contacted', 'converted', 'not_relevant') DEFAULT 'new',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    converted_to_patient_id INT,
-    FOREIGN KEY (converted_to_patient_id) REFERENCES Patients(patient_id)
-  );
+CREATE TABLE IF NOT EXISTS Prospects (
+  prospect_id INT AUTO_INCREMENT PRIMARY KEY,
+  first_name VARCHAR(15) NOT NULL,
+  last_name VARCHAR(20) NOT NULL,
+  phone VARCHAR(10) NOT NULL,
+  phone_alt VARCHAR(10),
+  email VARCHAR(30),
+  city VARCHAR(15),
+  referral_source VARCHAR(50),
+  reason_for_visit VARCHAR(200),
+  notes TEXT,
+  status ENUM('new', 'contacted', 'converted', 'not_relevant') DEFAULT 'new',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  converted_to_patient_id INT,
+  FOREIGN KEY (converted_to_patient_id) REFERENCES Patients(patient_id)
+);
 `;
-// -- טבלה ראשית לקטגוריות
+
+/* ============================
+   קטגוריות
+============================ */
 const categoriesTableSQL = `
 CREATE TABLE IF NOT EXISTS Categories (
   category_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -186,144 +263,177 @@ CREATE TABLE IF NOT EXISTS Categories (
   UNIQUE KEY unique_category (category_type, category_name)
 );
 `;
-// --- שיוך קטגוריות למתעניינים ---
+
+/* ============================
+   שיוך קטגוריות למתעניינים
+============================ */
 const prospectCategoriesTableSQL = `
-  CREATE TABLE IF NOT EXISTS ProspectCategories (
-    prospect_category_id INT AUTO_INCREMENT PRIMARY KEY,
-    prospect_id INT NOT NULL,
-    category_id INT NOT NULL,
-    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    assigned_by INT,
-    FOREIGN KEY (prospect_id) REFERENCES Prospects(prospect_id) ON DELETE CASCADE,
-    FOREIGN KEY (category_id) REFERENCES Categories(category_id) ON DELETE CASCADE,
-    FOREIGN KEY (assigned_by) REFERENCES Users(user_id),
-    UNIQUE KEY unique_prospect_category (prospect_id, category_id)
-  );
+CREATE TABLE IF NOT EXISTS ProspectCategories (
+  prospect_category_id INT AUTO_INCREMENT PRIMARY KEY,
+  prospect_id INT NOT NULL,
+  category_id INT NOT NULL,
+  assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  assigned_by INT,
+  FOREIGN KEY (prospect_id) REFERENCES Prospects(prospect_id) ON DELETE CASCADE,
+  FOREIGN KEY (category_id) REFERENCES Categories(category_id) ON DELETE CASCADE,
+  FOREIGN KEY (assigned_by) REFERENCES Users(user_id),
+  UNIQUE KEY unique_prospect_category (prospect_id, category_id)
+);
 `;
-// --- שיוך קטגוריות למטופלים ---
+
+/* ============================
+   שיוך קטגוריות למטופלים
+============================ */
 const patientCategoriesTableSQL = `
-  CREATE TABLE IF NOT EXISTS PatientCategories (
-    patient_category_id INT AUTO_INCREMENT PRIMARY KEY,
-    patient_id INT NOT NULL,
-    category_id INT NOT NULL,
-    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    assigned_by INT,
-    FOREIGN KEY (patient_id) REFERENCES Patients(patient_id) ON DELETE CASCADE,
-    FOREIGN KEY (category_id) REFERENCES Categories(category_id) ON DELETE CASCADE,
-    FOREIGN KEY (assigned_by) REFERENCES Users(user_id),
-    UNIQUE KEY unique_patient_category (patient_id, category_id)
-  );
+CREATE TABLE IF NOT EXISTS PatientCategories (
+  patient_category_id INT AUTO_INCREMENT PRIMARY KEY,
+  patient_id INT NOT NULL,
+  category_id INT NOT NULL,
+  assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  assigned_by INT,
+  FOREIGN KEY (patient_id) REFERENCES Patients(patient_id) ON DELETE CASCADE,
+  FOREIGN KEY (category_id) REFERENCES Categories(category_id) ON DELETE CASCADE,
+  FOREIGN KEY (assigned_by) REFERENCES Users(user_id),
+  UNIQUE KEY unique_patient_category (patient_id, category_id)
+);
 `;
-// --- שיוך קטגוריות לעובדים (Users עם role מסוים) ---
+
+/* ============================
+   שיוך קטגוריות למשתמשים
+============================ */
 const userCategoriesTableSQL = `
-  CREATE TABLE IF NOT EXISTS UserCategories (
-    user_category_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    category_id INT NOT NULL,
-    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (category_id) REFERENCES Categories(category_id) ON DELETE CASCADE,
-    UNIQUE KEY unique_user_category (user_id, category_id)
-  );
-`;
-// --- הפעלה לפי הצורך ---
-// createTable(usersTableSQL);
-// createTable(treatmentTypesTableSQL);
-// createTable(roomsTableSQL);
-// createTable(therapistsTableSQL);
-// createTable(patientsTableSQL);
-// createTable(appointmentsTableSQL);
-// createTable(paymentsTableSQL);
-// createTable(therapistToVideoTableSQL);
-// createTable(departmentsTableSQL);
-// createTable(userDepartmentsTableSQL);
-// createTable(groupListTableSQL);
-// createTable(userGroupsTableSQL);
-//הוספתי
-// createTable(categoriesTableSQL);
-createTable(prospectCategoriesTableSQL);
-
-// createTable(prospectsTableSQL);
-// createTable(patientCategoriesTableSQL);
-// createTable(userCategoriesTableSQL);
-// createTable(userCategoriesTableSQL);
-//workbench
-// ALTER TABLE Categories
-// DROP COLUMN category_label;
-//הוספתי 2
-// --- החזרים על תשלומים ---
-const refundsTableSQL = `
-  CREATE TABLE IF NOT EXISTS Refunds (
-    refund_id INT AUTO_INCREMENT PRIMARY KEY,
-    pay_id INT NOT NULL,
-    refund_amount DECIMAL(10,2) NOT NULL,
-    refund_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    reason VARCHAR(200),
-    status ENUM('pending','completed','failed') DEFAULT 'completed',
-    FOREIGN KEY (pay_id) REFERENCES Payments(pay_id)
-  );
+CREATE TABLE IF NOT EXISTS UserCategories (
+  user_category_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  category_id INT NOT NULL,
+  assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+  FOREIGN KEY (category_id) REFERENCES Categories(category_id) ON DELETE CASCADE,
+  UNIQUE KEY unique_user_category (user_id, category_id)
+);
 `;
 
-// --- חשבוניות / קבלות ---
-const invoicesTableSQL = `
-  CREATE TABLE IF NOT EXISTS Invoices (
-    invoice_id INT AUTO_INCREMENT PRIMARY KEY,
-    pay_id INT NOT NULL,
-    invoice_number VARCHAR(50) UNIQUE NOT NULL,
-    issue_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    total DECIMAL(10,2) NOT NULL,
-    FOREIGN KEY (pay_id) REFERENCES Payments(pay_id)
-  );
-`;
+/* ============================
+   הרצה בפועל
+============================ */
+//  createTable(usersTableSQL);
+//  createTable(treatmentTypesTableSQL);
+//  createTable(roomsTableSQL);
+//  createTable(therapistsTableSQL);
+//  createTable(patientsTableSQL);
+//  createTable(appointmentsTableSQL);
+//  createTable(paymentsTableSQL);
+//  createTable(refundsTableSQL);
+//  createTable(invoicesTableSQL);
+//  createTable(paymentStatusHistoryTableSQL);
+//  createTable(therapistToVideoTableSQL);
+//  createTable(departmentsTableSQL);
+//  createTable(userDepartmentsTableSQL);
+//  createTable(groupListTableSQL);
+//  createTable(userGroupsTableSQL);
+//  createTable(prospectsTableSQL);
+//  createTable(categoriesTableSQL);
+//  createTable(prospectCategoriesTableSQL);
+//  createTable(patientCategoriesTableSQL);
+//  createTable(userCategoriesTableSQL);
+//שיניתי
+// ALTER TABLE Users
+//   DROP COLUMN first_name,
+//   DROP COLUMN last_name,
+//   DROP COLUMN teudat_zehut,
+//   DROP COLUMN phone,
+//   DROP COLUMN city,
+//   DROP COLUMN address,
+//   DROP COLUMN birth_date,
+//   DROP COLUMN gender;
 
-// --- היסטוריית סטטוס לתשלומים ---
-const paymentStatusHistoryTableSQL = `
-  CREATE TABLE IF NOT EXISTS PaymentStatusHistory (
-    history_id INT AUTO_INCREMENT PRIMARY KEY,
-    pay_id INT NOT NULL,
-    old_status VARCHAR(20),
-    new_status VARCHAR(20),
-    changed_by INT,
-    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (pay_id) REFERENCES Payments(pay_id),
-    FOREIGN KEY (changed_by) REFERENCES Users(user_id)
-  );
-`;
-// createTable(refundsTableSQL);
-// createTable(invoicesTableSQL);
-createTable(paymentStatusHistoryTableSQL);
+// SET SQL_SAFE_UPDATES = 1;
 
-//בworkbench
-// ALTER TABLE Payments
-// ADD COLUMN status ENUM('pending','paid','failed','refunded') DEFAULT 'pending';
+// UPDATE Users u
+// JOIN Person p
+//   ON u.first_name = p.first_name
+//  AND u.last_name  = p.last_name
+//  AND u.email      = u.email
+// SET u.person_id = p.person_id;
+
+// SET SQL_SAFE_UPDATES = 0;
+
+
+// INSERT INTO Person (first_name, last_name, teudat_zehut, phone, city, address, birth_date, gender)
+// SELECT first_name, last_name, teudat_zehut, phone, city, address, birth_date, gender
+// FROM Users;
+
+// ALTER TABLE Users
+//   ADD COLUMN person_id INT,
+//   ADD CONSTRAINT fk_user_person
+//     FOREIGN KEY (person_id) REFERENCES Person(person_id);
+
+// CREATE TABLE IF NOT EXISTS Person (
+//   person_id INT AUTO_INCREMENT PRIMARY KEY,
+//   first_name VARCHAR(15) NOT NULL,
+//   last_name VARCHAR(20) NOT NULL,
+//   teudat_zehut VARCHAR(10),
+//   phone VARCHAR(10),
+//   city VARCHAR(15),
+//   address VARCHAR(30),
+//   birth_date DATE,
+//   gender ENUM('male','female','other') DEFAULT 'other'
+// );
 
 // ALTER TABLE Patients
-// DROP COLUMN gender;
-
-// ALTER TABLE Patients
-// ADD COLUMN gender ENUM('male','female','other') NOT NULL DEFAULT 'female';
+//   ADD COLUMN person_id INT,
+//   ADD CONSTRAINT fk_patient_person
+//     FOREIGN KEY (person_id) REFERENCES Person(person_id);
 
 // ALTER TABLE UserDepartments
-// DROP FOREIGN KEY UserDepartments_ibfk_1,
-// ADD CONSTRAINT UserDepartments_user_fk
-//   FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE;
+//   ADD COLUMN person_id INT;
+
+// ALTER TABLE UserDepartments
+//   ADD CONSTRAINT fk_userdepartments_person
+//     FOREIGN KEY (person_id) REFERENCES Person(person_id) ON DELETE CASCADE;
+
+// ALTER TABLE UserDepartments
+//   DROP FOREIGN KEY UserDepartments_user_fk,
+//   DROP INDEX user_id,
+//   DROP COLUMN user_id;
+
+// ALTER TABLE UserDepartments
+//   ADD UNIQUE KEY person_id_department_id (person_id, department_id);
+
+// ALTER TABLE UserGroups
+//   ADD COLUMN person_id INT;
+
+// ALTER TABLE UserGroups
+//   ADD CONSTRAINT fk_usergroups_person
+//     FOREIGN KEY (person_id) REFERENCES Person(person_id) ON DELETE CASCADE;
+
+
+// ALTER TABLE UserGroups
+//   DROP FOREIGN KEY UserGroups_ibfk_1;
 
 //   ALTER TABLE UserGroups
-// DROP FOREIGN KEY UserGroups_ibfk_1,
-// ADD CONSTRAINT UserGroups_user_fk
-//   FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE;
+//   DROP INDEX user_id;
 
-//   ALTER TABLE ProspectCategories
-// DROP FOREIGN KEY ProspectCategories_ibfk_1,
-// ADD CONSTRAINT ProspectCategories_prospect_fk 
-//   FOREIGN KEY (prospect_id) REFERENCES Prospects(prospect_id) ON DELETE CASCADE;
+// ALTER TABLE UserGroups
+//   DROP COLUMN user_id;
 
-//   ALTER TABLE PatientCategories
-// DROP FOREIGN KEY PatientCategories_ibfk_1,
-// ADD CONSTRAINT PatientCategories_patient_fk
-//   FOREIGN KEY (patient_id) REFERENCES Patients(patient_id) ON DELETE CASCADE;
+// ALTER TABLE UserGroups
+//   ADD UNIQUE KEY person_id_group_id (person_id, group_id);
 
-//   ALTER TABLE UserCategories
-// DROP FOREIGN KEY UserCategories_ibfk_1,
-// ADD CONSTRAINT UserCategories_user_fk
-//   FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE;
+//הוספתי 2
+// CREATE TABLE IF NOT EXISTS FollowUps (
+//   followup_id INT AUTO_INCREMENT PRIMARY KEY,
+
+//   person_id INT NOT NULL,                  -- מי שהמעקב שייך לו
+//   created_by_person_id INT NOT NULL,       -- מי שהוסיף את המעקב
+
+//   follow_date DATE NOT NULL,               -- תאריך המעקב
+//   follow_time TIME NULL,                   -- שעה (לא חובה)
+//   remind BOOLEAN DEFAULT FALSE,            -- האם לתזכר
+//   notes VARCHAR(500),                      -- הערות
+
+//   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- תאריך יצירה
+
+//   FOREIGN KEY (person_id) REFERENCES Person(person_id) ON DELETE CASCADE,
+//   FOREIGN KEY (created_by_person_id) REFERENCES Person(person_id)
+// );

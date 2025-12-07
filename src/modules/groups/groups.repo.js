@@ -65,11 +65,12 @@ export async function deleteGroupIfNoUsers(group_id) {
 
 export async function getGroupUsers(group_id) {
   const sql = `
-    SELECT u.user_id, u.first_name, u.last_name, u.email, u.phone
+    SELECT u.user_id, u.email, p.first_name, p.last_name, p.phone, p.teudat_zehut, p.city, p.address, p.birth_date, p.gender
     FROM Users u 
     INNER JOIN UserGroups ug ON u.user_id = ug.user_id
+    LEFT JOIN Person p ON u.person_id = p.person_id
     WHERE ug.group_id = ? AND u.role = 'patient'
-    ORDER BY u.last_name, u.first_name;
+    ORDER BY p.last_name, p.first_name;
   `;
   const [rows] = await pool.query(sql, [group_id]);  
   return rows;
@@ -77,11 +78,12 @@ export async function getGroupUsers(group_id) {
 
 export async function getTherapistsByGroup(group_id) {
   const sql = `
-    SELECT u.user_id, u.first_name, u.last_name, u.email, u.phone
+    SELECT u.user_id, u.email, p.first_name, p.last_name, p.phone, p.teudat_zehut, p.city, p.address, p.birth_date, p.gender
     FROM Users u 
     INNER JOIN UserGroups ug ON u.user_id = ug.user_id
+    LEFT JOIN Person p ON u.person_id = p.person_id
     WHERE ug.group_id = ? AND u.role = 'therapist'
-    ORDER BY u.last_name, u.first_name;
+    ORDER BY p.last_name, p.first_name;
   `;
   const [rows] = await pool.query(sql, [group_id]);  
   return rows;

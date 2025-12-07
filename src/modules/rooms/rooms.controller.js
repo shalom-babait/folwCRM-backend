@@ -1,33 +1,40 @@
 import { createRoom, deleteRoom, fetchRooms, updateRoom } from "./rooms.service.js";
 
 export async function getRoomsController(req, res) {
-    try {
-        const rooms = await fetchRooms();
-        res.json(rooms);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Server error" });
-    }
+  try {
+    console.log('Request body for getRoomsController:', req.body);
+    const rooms = await fetchRooms();
+    res.json(rooms);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
 }
 
 export async function createRoomController(req, res) {
-    try {
-        const newRoom = await createRoom(req.body);
-
-        res.status(201).json({
-            success: true,
-            data: newRoom
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
+  try {
+    console.log('Request body for createRoomController:', req.body);
+    let roomData = req.body;
+    // אם נשלח { room: { ... } } קח את הפנימי
+    if (roomData.room && typeof roomData.room === 'object') {
+      roomData = roomData.room;
     }
+    const newRoom = await createRoom(roomData);
+    res.status(201).json({
+      success: true,
+      data: newRoom
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
 }
 
 export async function deleteRoomController(req, res) {
   try {
+    console.log('Request body for deleteRoomController:', req.body);
     const { id } = req.params;
     if (!id || isNaN(id)) {
       return res.status(400).json({
@@ -57,6 +64,7 @@ export async function deleteRoomController(req, res) {
 
 export async function updateRoomController(req, res) {
   try {
+    console.log('Request body for updateRoomController:', req.body);
     const { id } = req.params;
     const updateData = req.body;
     

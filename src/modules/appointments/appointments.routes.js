@@ -5,10 +5,13 @@ import {
   deleteAppointmentController,
   updateAppointmentController,
   getAppointmentsByRoom,
-  getAppointmentsByTherapist
+  getAppointmentsByTherapist,
+  getAppointmentsByGroupId
 } from "./appointments.controller.js";
-
 const router = express.Router();
+
+// שליפת כל הפגישות של קבוצה מסוימת
+router.get("/group/:groupId", getAppointmentsByGroupId);
 
 // POST /api/appointments - יצירת תור חדש
 router.post("/", createAppointmentController);

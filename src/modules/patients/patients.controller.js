@@ -26,22 +26,23 @@ export const getPatientOnlyController = async (req, res) => {
 export async function createPatientController(req, res) {
   try {
     const patientData = req.body;
-    // וולידציה בסיסית לשדות משתמש
-    if (!patientData.user.first_name || !patientData.user.last_name || !patientData.user.email) {
+    // וולידציה בסיסית לשדות פרסון
+    if (!patientData.person || !patientData.person.first_name || !patientData.person.last_name) {
+
       return res.status(400).json({
         success: false,
-        message: "first_name, last_name and email are required"
+        message: "first_name and last_name are required in person object"
       });
     }
 
-    // // וולידציה על status
-    // const validStatuses = ['פעיל', 'לא פעיל', 'בהמתנה'];
-    // if (patientData.status && !validStatuses.includes(patientData.status)) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "Invalid status value"
-    //   });
-    // }
+    // וולידציה על status
+    const validStatuses = ['פעיל', 'לא פעיל', 'בהמתנה'];
+    if (patientData.patient && patientData.patient.status && !validStatuses.includes(patientData.patient.status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status value"
+      });
+    }
 
     const newPatient = await createPatient(patientData);
 
@@ -50,6 +51,7 @@ export async function createPatientController(req, res) {
       data: newPatient
     });
   } catch (error) {
+    console.error('createPatientController error:', error);
     res.status(500).json({
       success: false,
       message: error.message
@@ -161,7 +163,7 @@ export async function updatePatientController(req, res) {
 
     // Validate gender if provided
     if (updateData.gender) {
-      const validGenders = ['זכר', 'נקבה', 'אחר'];
+      const validGenders = ['male', 'female', 'other'];
       if (!validGenders.includes(updateData.gender)) {
         return res.status(400).json({
           success: false,
@@ -169,7 +171,6 @@ export async function updatePatientController(req, res) {
         });
       }
     }
-
     const result = await updatePatient(patientId, updateData);
     if (result && (result.userUpdateResult || result.patientUpdateResult)) {
       res.json({
