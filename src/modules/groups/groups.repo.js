@@ -67,7 +67,7 @@ export async function getGroupUsers(group_id) {
   const sql = `
     SELECT u.user_id, u.email, p.first_name, p.last_name, p.phone, p.teudat_zehut, p.city, p.address, p.birth_date, p.gender
     FROM Users u 
-    INNER JOIN UserGroups ug ON u.user_id = ug.user_id
+    INNER JOIN UserGroups ug ON u.person_id = ug.person_id
     LEFT JOIN Person p ON u.person_id = p.person_id
     WHERE ug.group_id = ? AND u.role = 'patient'
     ORDER BY p.last_name, p.first_name;
@@ -80,7 +80,7 @@ export async function getTherapistsByGroup(group_id) {
   const sql = `
     SELECT u.user_id, u.email, p.first_name, p.last_name, p.phone, p.teudat_zehut, p.city, p.address, p.birth_date, p.gender
     FROM Users u 
-    INNER JOIN UserGroups ug ON u.user_id = ug.user_id
+    INNER JOIN UserGroups ug ON u.person_id = ug.person_id
     LEFT JOIN Person p ON u.person_id = p.person_id
     WHERE ug.group_id = ? AND u.role = 'therapist'
     ORDER BY p.last_name, p.first_name;

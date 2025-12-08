@@ -16,9 +16,9 @@ export async function getAppointmentsByGroupId(req, res) {
 export async function getAppointmentsByTherapist(req, res) {
   try {
     const { therapistId } = req.params;
-    console.log('getAppointmentsByTherapist - therapistId:', therapistId, typeof therapistId);
+    // console.log('getAppointmentsByTherapist - therapistId:', therapistId, typeof therapistId);
     const appointments = await fetchAppointmentsByTherapist(therapistId);
-    console.log('getAppointmentsByTherapist - appointments:', appointments);
+    // console.log('getAppointmentsByTherapist - appointments:', appointments);
     if (!appointments || appointments.length === 0) {
       console.warn('No appointments found for therapistId:', therapistId);
     }

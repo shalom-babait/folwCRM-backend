@@ -5,9 +5,11 @@ export async function createPaymentController(req, res) {
     const payment = await paymentsService.createPaymentService(req.body);
     res.status(201).json(payment);
   } catch (err) {
+    console.error(" SERVER ERROR:", err);   
     res.status(500).json({ error: err.message });
   }
 }
+
 
 export async function getAllPaymentsController(req, res) {
   try {

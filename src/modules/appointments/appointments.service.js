@@ -15,7 +15,7 @@ export async function fetchAppointmentsByRoom(roomId) {
 }
 
 export async function createAppointment(appointmentData) {
-  console.log({ appointmentData });
+  // console.log({ appointmentData });
 
   try {
     // בדיקה שהמטפל קיים
@@ -35,7 +35,7 @@ export async function createAppointment(appointmentData) {
     if (patient.length === 0) {
       throw new Error("Patient not found");
     }
-    console.log(appointmentData.type_id);
+    // console.log(appointmentData.type_id);
 
     // בדיקה שקבוצת הטיפול קיימת (ולא בודקים ב-TreatmentTypes)
     const [group] = await pool.execute(

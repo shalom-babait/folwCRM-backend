@@ -1,10 +1,10 @@
 import pool from '../../services/database.js';
 
 export async function createPayment(paymentData) {
-  const { appointment_id, amount, method, status } = paymentData;
+  const { appointment_id, amount,payment_date, method, status,transaction_type } = paymentData;
   const [result] = await pool.query(
-    `INSERT INTO Payments (appointment_id, amount, method, status) VALUES (?, ?, ?, ?)`,
-    [appointment_id, amount, method, status || 'pending']
+    `INSERT INTO Payments (appointment_id, amount,payment_date, method, status,transaction_type) VALUES (?,?, ?, ?, ?,?)`,
+    [appointment_id, amount,payment_date, method, status || 'pending',transaction_type]
   );
   return { pay_id: result.insertId, ...paymentData };
 }
@@ -27,7 +27,7 @@ export async function getPaymentByPatientId(patient_id) {
      WHERE a.patient_id = ?`,
     [patient_id]
   );
-  console.log(rows);
+  // console.log(rows);
   
   return rows;
 }

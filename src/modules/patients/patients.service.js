@@ -107,6 +107,7 @@ export async function createPatient(patientData) {
 export async function fetchPatientsByTherapist(therapistId) {
     // אפשר להוסיף לוגיקה נוספת, למשל פורמט תאריכים
     const patients = await getPatientsByTherapist(therapistId);
+    
     return patients;
 }
 
