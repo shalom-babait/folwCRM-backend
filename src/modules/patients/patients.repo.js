@@ -260,6 +260,7 @@ export const getPatientDetails = async (patientId) => {
       A.end_time,
       A.total_minutes,
       A.status,
+      A.notes,
       TT.group_name AS group_name,
       R.room_name AS room,
       P.patient_id,
