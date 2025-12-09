@@ -1,3 +1,5 @@
+import Joi from "joi";
+const { not } = Joi;
 import pool, { deleteFromTable, updateTable } from "../../services/database.js";
 
 // שליפת כל הפגישות של קבוצה מסוימת
@@ -10,6 +12,7 @@ export async function getAppointmentsByGroupId(groupId) {
   A.end_time,
   A.total_minutes,
   A.status,
+  A.notes,
   GL.group_name AS group_name,
   R.room_name AS room,
   A.patient_id,
@@ -63,6 +66,7 @@ export async function getAppointmentsByTherapist(therapistId) {
       A.end_time,
       A.total_minutes,
       A.status,
+      A.notes,
       GL.group_name AS group_name,
       R.room_name AS room,
       A.patient_id
@@ -96,23 +100,25 @@ export async function getAppointmentsByRoom(roomId) {
 }
 
 export async function create(appointmentData) {
-  const { 
-    therapist_id, 
-    patient_id, 
-    type_id, 
-    room_id, 
-    appointment_date, 
-    start_time, 
-    end_time, 
-    status 
+  const {
+    therapist_id,
+    patient_id,
+    type_id,
+    room_id,
+    appointment_date,
+    start_time,
+    end_time,
+    status,
+    notes
   } = appointmentData;
-  
+
   const query = `
     INSERT INTO appointments 
     (therapist_id, patient_id, type_id, room_id, appointment_date, start_time, end_time, status)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+
   `;
-  
+
   try {
     const [result] = await pool.execute(query, [
       therapist_id,
@@ -122,9 +128,10 @@ export async function create(appointmentData) {
       appointment_date,
       start_time,
       end_time,
-      status || 'מתוזמנת'
+      status || 'מתוזמנת',
+      notes || null
     ]);
-    
+
     return {
       appointment_id: result.insertId,
       therapist_id,
@@ -135,6 +142,7 @@ export async function create(appointmentData) {
       start_time,
       end_time,
       status: status || 'מתוזמנת',
+      notes: notes || null,
       message: "Appointment created successfully"
     };
   } catch (error) {
@@ -154,7 +162,7 @@ export async function checkTimeConflict(therapist_id, room_id, appointment_date,
         (start_time >= ? AND end_time <= ?)
       )
   `;
-  
+
   try {
     const [rows] = await pool.execute(query, [
       therapist_id, room_id, appointment_date,
@@ -178,6 +186,7 @@ export async function getAppointmentsByPatientAndTherapist(patientId, therapistI
       A.end_time,
       A.total_minutes,
       A.status,
+      A.notes,
       GL.group_name AS group_name,
       R.room_name AS room
     FROM
