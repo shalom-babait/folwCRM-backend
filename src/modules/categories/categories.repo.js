@@ -15,7 +15,7 @@ const CategoriesRepository = {
       } = categoryData;
 
       const [result] = await pool.query(
-        `INSERT INTO Categories
+        `INSERT INTO categories
          (category_type, category_name, description, color, icon, display_order)
          VALUES (?, ?, ?, ?, ?, ?)`,
         [
@@ -40,7 +40,7 @@ const CategoriesRepository = {
   async findAll() {
     try {
       const [rows] = await pool.query(
-        `SELECT * FROM Categories ORDER BY display_order ASC`
+        `SELECT * FROM categories ORDER BY display_order ASC`
       );
       return rows;
     } catch (error) {
@@ -53,7 +53,7 @@ const CategoriesRepository = {
   async findByType(type) {
     try {
       const [rows] = await pool.query(
-        `SELECT * FROM Categories WHERE category_type = ? AND (is_active IS NULL OR is_active = 1) ORDER BY display_order ASC`,
+        `SELECT * FROM categories WHERE category_type = ? AND (is_active IS NULL OR is_active = 1) ORDER BY display_order ASC`,
         [type]
       );
       return rows;
@@ -67,7 +67,7 @@ const CategoriesRepository = {
   async findById(id) {
     try {
       const [rows] = await pool.query(
-        `SELECT * FROM Categories WHERE category_id = ?`,
+        `SELECT * FROM categories WHERE category_id = ?`,
         [id]
       );
       return rows[0] || null;
@@ -89,7 +89,7 @@ const CategoriesRepository = {
       } = categoryData;
 
       await pool.query(
-        `UPDATE Categories 
+        `UPDATE categories 
          SET description = ?, color = ?, icon = ?, display_order = ?, is_active = ?
          WHERE category_id = ?`,
         [
@@ -113,7 +113,7 @@ const CategoriesRepository = {
   async softDelete(id) {
     try {
       await pool.query(
-        `UPDATE Categories SET is_active = 0 WHERE category_id = ?`,
+        `UPDATE categories SET is_active = 0 WHERE category_id = ?`,
         [id]
       );
       return { success: true };
@@ -127,7 +127,7 @@ const CategoriesRepository = {
   async delete(id) {
     try {
       await pool.query(
-        `DELETE FROM Categories WHERE category_id = ?`,
+        `DELETE FROM categories WHERE category_id = ?`,
         [id]
       );
 
@@ -141,11 +141,11 @@ const CategoriesRepository = {
   // שיוך קטגוריות לפרוספקט
   async assignToProspect(prospectId, categoryIds) {
     try {
-      await pool.query(`DELETE FROM ProspectCategories WHERE prospect_id = ?`, [prospectId]);
+      await pool.query(`DELETE FROM prospectcategories WHERE prospect_id = ?`, [prospectId]);
       if (!Array.isArray(categoryIds) && categoryIds) categoryIds = [categoryIds];
       if (Array.isArray(categoryIds) && categoryIds.length > 0) {
         const values = categoryIds.map(id => [prospectId, id]);
-        await pool.query(`INSERT INTO ProspectCategories (prospect_id, category_id) VALUES ?`, [values]);
+        await pool.query(`INSERT INTO prospectcategories (prospect_id, category_id) VALUES ?`, [values]);
       }
       return { success: true };
     } catch (error) {
@@ -159,8 +159,8 @@ const CategoriesRepository = {
     try {
       const [rows] = await pool.query(
         `SELECT c.*
-         FROM Categories c
-         JOIN ProspectCategories pc ON c.category_id = pc.category_id
+         FROM categories c
+         JOIN prospectcategories pc ON c.category_id = pc.category_id
          WHERE pc.prospect_id = ?`,
         [prospectId]
       );
@@ -174,11 +174,11 @@ const CategoriesRepository = {
   // שיוך קטגוריות למטופל
   async assignToPatient(patientId, categoryIds) {
     try {
-      await pool.query(`DELETE FROM PatientCategories WHERE patient_id = ?`, [patientId]);
+      await pool.query(`DELETE FROM patientcategories WHERE patient_id = ?`, [patientId]);
       if (!Array.isArray(categoryIds) && categoryIds) categoryIds = [categoryIds];
       if (Array.isArray(categoryIds) && categoryIds.length > 0) {
         const values = categoryIds.map(id => [patientId, id]);
-        await pool.query(`INSERT INTO PatientCategories (patient_id, category_id) VALUES ?`, [values]);
+        await pool.query(`INSERT INTO patientcategories (patient_id, category_id) VALUES ?`, [values]);
       }
       return { success: true };
     } catch (error) {
@@ -192,8 +192,8 @@ const CategoriesRepository = {
     try {
       const [rows] = await pool.query(
         `SELECT c.*
-         FROM Categories c
-         JOIN PatientCategories pc ON c.category_id = pc.category_id
+         FROM categories c
+         JOIN patientcategories pc ON c.category_id = pc.category_id
          WHERE pc.patient_id = ?`,
         [patientId]
       );

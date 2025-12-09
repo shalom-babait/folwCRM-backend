@@ -20,7 +20,7 @@ router.get("/only/:patientId", getPatientOnlyController);
 router.get("/getAllPatients", getAllPatientsController);
 
 // POST /api/patients - יצירת מטופל חדש
-router.post("/", createPatientController);
+router.post("/create", createPatientController);
 // GET /patients/byTherapist/:therapistId
 router.get("/byTherapist/:therapistId", getPatientsByTherapistController);
 

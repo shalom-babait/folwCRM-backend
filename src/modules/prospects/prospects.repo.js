@@ -16,20 +16,20 @@ export async function updateProspectWithCategories(prospectId, updateData) {
   }
   if (fields.length) {
     values.push(prospectId);
-    const sql = `UPDATE Prospects SET ${fields.join(', ')} WHERE prospect_id = ?`;
+    const sql = `UPDATE prospects SET ${fields.join(', ')} WHERE prospect_id = ?`;
     await pool.query(sql, values);
   }
 
   // 2. עדכון קטגוריות (אם נשלח categories)
   if (Array.isArray(updateData.categories)) {
     // מחיקת כל השיוכים הקיימים
-    await pool.query(`DELETE FROM ProspectCategories WHERE prospect_id = ?`, [prospectId]);
+    await pool.query(`DELETE FROM prospect_categories WHERE prospect_id = ?`, [prospectId]);
     // הוספת כל הקטגוריות החדשות
     const categoryIds = updateData.categories.map(c => typeof c === 'object' ? c.category_id : c).filter(Boolean);
     if (categoryIds.length > 0) {
       const catValues = categoryIds.map(cid => [prospectId, cid]);
       await pool.query(
-        `INSERT INTO ProspectCategories (prospect_id, category_id) VALUES ?`,
+        `INSERT INTO prospect_categories (prospect_id, category_id) VALUES ?`,
         [catValues]
       );
     }
@@ -54,7 +54,7 @@ export async function updateProspect(prospectId, updateData) {
   }
   if (!fields.length) return { affectedRows: 0 };
   values.push(prospectId);
-  const sql = `UPDATE Prospects SET ${fields.join(', ')} WHERE prospect_id = ?`;
+  const sql = `UPDATE prospects SET ${fields.join(', ')} WHERE prospect_id = ?`;
   const [result] = await pool.query(sql, values);
   return result;
 }
@@ -65,15 +65,15 @@ import pool from "../../services/database.js";
  */
 export async function getAllProspects() {
   // שלב 1: שליפת כל המתעניינים
-  const [prospects] = await pool.query("SELECT * FROM Prospects ORDER BY created_at DESC");
+  const [prospects] = await pool.query("SELECT * FROM prospects ORDER BY created_at DESC");
   if (!prospects.length) return [];
 
   // שלב 2: שליפת כל השיוכים prospect_id -> קטגוריות
   const prospectIds = prospects.map(p => p.prospect_id);
   const [catRows] = await pool.query(`
     SELECT pc.prospect_id, c.*
-    FROM ProspectCategories pc
-    JOIN Categories c ON pc.category_id = c.category_id
+    FROM prospect_categories pc
+    JOIN categories c ON pc.category_id = c.category_id
     WHERE pc.prospect_id IN (?)
   `, [prospectIds]);
 
@@ -122,7 +122,7 @@ export async function createProspect(prospectData) {
     category_ids // מערך של מזהי קטגוריות (או undefined)
   } = prospectData;
   const sql = `
-    INSERT INTO Prospects (
+    INSERT INTO prospects (
       first_name, last_name, phone, phone_alt, email, city, referral_source, reason_for_visit, notes, status, converted_to_patient_id
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
@@ -147,7 +147,7 @@ export async function createProspect(prospectData) {
     if (Array.isArray(category_ids) && category_ids.length > 0) {
       const catValues = category_ids.map(cid => [prospect_id, cid]);
       await pool.query(
-        `INSERT INTO ProspectCategories (prospect_id, category_id) VALUES ?`,
+        `INSERT INTO prospect_categories (prospect_id, category_id) VALUES ?`,
         [catValues]
       );
     }
