@@ -1,12 +1,88 @@
+/**
+ * יצירת מטופל חדש: קודם פרסון, אחר כך פציינט, אחר כך שיוך מחלקות וקבוצות
+ * מקבל אובייקט: { person, patient, selectedDepartments }
+ */
+export async function createPatient({ person, patient, selectedDepartments }) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // 1. יצירת Person
+    const personFields = [
+      person.first_name,
+      person.last_name,
+      person.teudat_zehut || null,
+      person.phone || null,
+      person.city || null,
+      person.address || null,
+      person.birth_date || null,
+      person.gender || 'other'
+    ];
+    const [personResult] = await connection.execute(
+      `INSERT INTO person (first_name, last_name, teudat_zehut, phone, city, address, birth_date, gender)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      personFields
+    );
+    const person_id = personResult.insertId;
+
+    // 2. יצירת פציינט
+    const patientFields = [
+      patient.user_id || null,
+      patient.therapist_id || null,
+      patient.status || 'פעיל',
+      patient.history_notes || null,
+      person_id
+    ];
+    const [patientResult] = await connection.execute(
+      `INSERT INTO patients (user_id, therapist_id, status, history_notes, person_id)
+       VALUES (?, ?, ?, ?, ?)`,
+      patientFields
+    );
+    const patient_id = patientResult.insertId;
+
+    // 3. שיוך מחלקות וקבוצות
+    if (Array.isArray(selectedDepartments)) {
+      for (const dep of selectedDepartments) {
+        await connection.execute(
+          `INSERT INTO userdepartments (person_id, department_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE department_id = VALUES(department_id)`,
+          [person_id, dep.department_id]
+        );
+        if (Array.isArray(dep.group_ids)) {
+          for (const groupId of dep.group_ids) {
+            await connection.execute(
+              `INSERT INTO user_groups (person_id, group_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE group_id = VALUES(group_id)`,
+              [person_id, groupId]
+            );
+          }
+        }
+      }
+    }
+
+    await connection.commit();
+    return {
+      patient_id,
+      person_id,
+      ...person,
+      ...patient,
+      selectedDepartments: selectedDepartments || [],
+      message: "Patient created successfully"
+    };
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
 export async function getPatientFullData(patientId) {
   // שליפת נתוני משתמש ומטופל כולל JOIN ל-Person
   const userPatientSql = `
     SELECT U.user_id, U.email, U.role, U.agree, U.created_at, U.person_id,
            P.patient_id, P.therapist_id, PR.birth_date AS patient_birth_date, P.gender AS patient_gender, P.status AS patient_status, P.history_notes,
            PR.first_name, PR.last_name, PR.teudat_zehut, PR.phone, PR.city, PR.address, PR.birth_date, PR.gender
-    FROM Users U
-    JOIN Patients P ON U.user_id = P.user_id
-    LEFT JOIN Person PR ON U.person_id = PR.person_id
+    FROM users U
+    JOIN patients P ON U.user_id = P.user_id
+    LEFT JOIN person PR ON U.person_id = PR.person_id
     WHERE P.patient_id = ?
   `;
   const [fullRows] = await pool.query(userPatientSql, [patientId]);
@@ -16,8 +92,8 @@ export async function getPatientFullData(patientId) {
   // שליפת שיוך למחלקות וקבוצות
   const departmentsSql = `
     SELECT UD.department_id, GL.group_id
-    FROM UserDepartments UD
-    LEFT JOIN UserGroups UG ON UD.person_id = UG.person_id
+    FROM userdepartments UD
+    LEFT JOIN user_groups UG ON UD.person_id = UG.person_id
     LEFT JOIN group_list GL ON UG.group_id = GL.group_id AND GL.department_id = UD.department_id
     WHERE UD.user_id = ?
   `;
@@ -38,9 +114,9 @@ export async function getPatientFullData(patientId) {
            P.person_id,
            PR.first_name, PR.last_name, PR.teudat_zehut, PR.phone, PR.city, PR.address, PR.birth_date, PR.gender,
            U.email, U.role, U.agree, U.created_at
-    FROM Patients P
-    LEFT JOIN Users U ON P.user_id = U.user_id
-    LEFT JOIN Person PR ON P.person_id = PR.person_id
+    FROM patients P
+    LEFT JOIN users U ON P.user_id = U.user_id
+    LEFT JOIN person PR ON P.person_id = PR.person_id
     WHERE P.therapist_id = ?
   `;
   const [userRows] = await pool.query(sql, [therapistId]);
@@ -58,136 +134,71 @@ export async function getPatientFullData(patientId) {
     birth_date: userRow.birth_date || '',
     gender: userRow.gender || 'other'
   };
+  // בניית patient לפי המודל בפרונט
   const patient = {
     patient_id: userRow.patient_id,
     user_id: userRow.user_id,
-    therapist_id: userRow.therapist_id,
-    birth_date: userRow.patient_birth_date,
-    gender: userRow.patient_gender,
-    status: userRow.patient_status,
-    history_notes: userRow.history_notes
+    therapist_id: userRow.therapist_id ?? null,
+    status: userRow.patient_status ?? '',
+    history_notes: userRow.history_notes ?? '',
+    person: person // פרטי המטופל האישיים
   };
-  return { person, patient, selectedDepartments };
-}
-/**
- * יצירת משתמש חדש בטבלת Users
- */
-export async function createUser(userData) {
-  const { first_name, last_name, teudat_zehut, phone, city, address, email, password } = userData;
-  // אם לא נשלח password, נשתמש בערך ברירת מחדל
-  const userPassword = password || 'temp1234';
-  const query = `
-    INSERT INTO Users (first_name, last_name, teudat_zehut, phone, city, address, email, password)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-  try {
-    const [result] = await pool.execute(query, [
-      first_name,
-      last_name,
-      teudat_zehut || null,
-      phone || null,
-      city || null,
-      address || null,
-      email,
-      userPassword
-    ]);
-    return {
-      user_id: result.insertId,
-      first_name,
-      last_name,
-      teudat_zehut,
-      phone,
-      city,
-      address,
-      email,
-      password: userPassword
-    };
-  } catch (error) {
-    throw error;
-  }
+  // החזרת אובייקט במבנה PatientCreationData
+  return {
+    person,
+    patient,
+    selectedDepartments: selectedDepartments || []
+  };
 }
 
 import pool, { deleteFromTable, updateTable } from "../../services/database.js";
 
 /**
- * שליפת נתוני מטופל בלבד לפי מזהה
- */
-export const getPatientOnly = async (patientId) => {
-  const sql = `
-    SELECT 
-      P.patient_id,
-      P.user_id,
-      P.therapist_id,
-      PR.first_name,
-      PR.last_name,
-      PR.birth_date,
-      P.gender,
-      P.status,
-      P.history_notes,
-      PR.address,
-      PR.city,
-      PR.phone,
-      U.email,
-      PR.teudat_zehut
-    FROM Patients AS P
-    JOIN Users AS U ON P.user_id = U.user_id
-    LEFT JOIN Person PR ON U.person_id = PR.person_id
-    WHERE P.user_id = ?
-  `;
-  const [rows] = await pool.query(sql, [patientId]);
-  return rows[0] || null;
-};
-
-/**
- * יצירת מטופל חדש בטבלת Patients
- */
-export async function create(patientData) {
-  const { user_id, therapist_id, birth_date, gender, status, history_notes } = patientData;
-
-  const query = `
-    INSERT INTO Patients (user_id, therapist_id, birth_date, gender, status, history_notes)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `;
-
-  try {
-    const [result] = await pool.execute(query, [
-      user_id,
-      therapist_id,
-      birth_date,
-      gender,
-      status || 'פעיל',
-      history_notes || null
-    ]);
-
-    return {
-      patient_id: result.insertId,
-      user_id,
-      therapist_id,
-      birth_date,
-      gender,
-      status: status || 'פעיל',
-      history_notes,
-      message: "Patient created successfully"
-    };
-  } catch (error) {
-    throw error;
-  }
-}
-
-
-/**
- * שליפת כל המטופלים של מטפל
- */
-export async function getPatientsByTherapist(therapistId) {
-  // שליפת כל המטופלים של המטפל כולל JOIN ל-Person
+  // שליפת נתוני מטופל ופרטי person בלבד
   const sql = `
     SELECT P.patient_id, P.user_id, P.therapist_id, P.status AS patient_status, P.history_notes,
            P.person_id,
+           PR.first_name, PR.last_name, PR.teudat_zehut, PR.phone, PR.city, PR.address, PR.birth_date, PR.gender
+    FROM patients P
+    LEFT JOIN person PR ON P.person_id = PR.person_id
+    WHERE P.patient_id = ?
+  `;
+  const [rows] = await pool.query(sql, [patientId]);
+  if (!rows.length) return null;
+  const row = rows[0];
+  // בניית person
+  const person = {
+    person_id: row.person_id,
+    first_name: row.first_name || '',
+    last_name: row.last_name || '',
+    teudat_zehut: row.teudat_zehut || '',
+    phone: row.phone || '',
+    city: row.city || '',
+    address: row.address || '',
+    birth_date: row.birth_date || '',
+    gender: row.gender || 'other'
+  };
+  // בניית patient לפי המודל בפרונט
+  const patient = {
+    patient_id: row.patient_id,
+    user_id: row.user_id,
+    therapist_id: row.therapist_id ?? null,
+    status: row.patient_status ?? '',
+    history_notes: row.history_notes ?? '',
+    person: person // פרטי המטופל האישיים
+  };
+  // החזרת אובייקט במבנה PatientCreationData
+  return {
+    person,
+    patient,
+    selectedDepartments: []
+  };
+           P.person_id,
            PR.first_name, PR.last_name, PR.teudat_zehut, PR.phone, PR.city, PR.address, PR.birth_date, PR.gender,
            U.email, U.role, U.agree, U.created_at
-    FROM Patients P
-    LEFT JOIN Users U ON P.user_id = U.user_id
-    LEFT JOIN Person PR ON P.person_id = PR.person_id
+    FROM patients P
+    LEFT JOIN users U ON P.user_id = U.user_id
+    LEFT JOIN person PR ON P.person_id = PR.person_id
     WHERE P.therapist_id = ?
   `;
   const [therapistRows] = await pool.query(sql, [therapistId]);
@@ -198,8 +209,8 @@ export async function getPatientsByTherapist(therapistId) {
   if (personIds.length === 0) return [];
   const departmentsSql = `
     SELECT UD.person_id, UD.department_id, GL.group_id
-    FROM UserDepartments UD
-    LEFT JOIN UserGroups UG ON UD.person_id = UG.person_id
+    FROM userdepartments UD
+    LEFT JOIN user_groups UG ON UD.person_id = UG.person_id
     LEFT JOIN group_list GL ON UG.group_id = GL.group_id AND GL.department_id = UD.department_id
     WHERE UD.person_id IN (${personIds.map(() => '?').join(',')})
   `;
@@ -249,6 +260,53 @@ export async function getPatientsByTherapist(therapistId) {
 }
 
 /**
+ * שליפת כל המטופלים לפי מזהה מטפל
+ */
+export const getPatientsByTherapist = async (therapistId) => {
+  const sql = `
+    SELECT P.patient_id, P.user_id, P.therapist_id, P.status AS patient_status, P.history_notes,
+           P.person_id,
+           PR.first_name, PR.last_name, PR.teudat_zehut, PR.phone, PR.city, PR.address, PR.birth_date, PR.gender,
+           U.email, U.role, U.agree, U.created_at
+    FROM patients P
+    LEFT JOIN users U ON P.user_id = U.user_id
+    LEFT JOIN person PR ON P.person_id = PR.person_id
+    WHERE P.therapist_id = ?
+  `;
+  const [rows] = await pool.query(sql, [therapistId]);
+  if (!rows.length) return [];
+  return rows.map(row => {
+    return {
+      user: {
+        user_id: row.user_id,
+        email: row.email,
+        role: row.role,
+        agree: row.agree,
+        created_at: row.created_at
+      },
+      person: {
+        person_id: row.person_id,
+        first_name: row.first_name || '',
+        last_name: row.last_name || '',
+        teudat_zehut: row.teudat_zehut || '',
+        phone: row.phone || '',
+        city: row.city || '',
+        address: row.address || '',
+        birth_date: row.birth_date || '',
+        gender: row.gender || 'other'
+      },
+      patient: {
+        patient_id: row.patient_id,
+        user_id: row.user_id,
+        therapist_id: row.therapist_id,
+        status: row.patient_status,
+        history_notes: row.history_notes
+      }
+    };
+  });
+}
+
+/**
  * שליפת כל הפגישות של מטופל
  */
 export const getPatientDetails = async (patientId) => {
@@ -268,11 +326,11 @@ export const getPatientDetails = async (patientId) => {
       PR.birth_date,
       P.gender,
       P.status AS patient_status
-    FROM Appointments AS A
-    JOIN Patients AS P ON A.patient_id = P.patient_id
-    JOIN Users AS U ON P.user_id = U.user_id
+    FROM appointments AS A
+    JOIN patients AS P ON A.patient_id = P.patient_id
+    JOIN users AS U ON P.user_id = U.user_id
     JOIN group_list AS TT ON A.type_id = TT.group_id
-    JOIN Rooms AS R ON A.room_id = R.room_id
+    JOIN rooms AS R ON A.room_id = R.room_id
     join person AS PR ON U.person_id = PR.person_id
     WHERE A.patient_id = ? 
     ORDER BY A.appointment_date, A.start_time;
@@ -289,7 +347,7 @@ export const getPatientStats = async (patientId) => {
     SELECT
       COUNT(appointment_id) AS total_appointments,
       SUM(total_minutes) AS total_treatment_minutes
-    FROM Appointments
+    FROM appointments
     WHERE patient_id = ?
   `;
   const [rows] = await pool.query(sql, [patientId]);
@@ -303,9 +361,9 @@ export const getAllPatients = async () => {
            P.person_id,
            PR.first_name, PR.last_name, PR.teudat_zehut, PR.phone, PR.city, PR.address, PR.birth_date, PR.gender,
            U.email, U.role, U.agree, U.created_at
-    FROM Patients P
-    LEFT JOIN Users U ON P.user_id = U.user_id
-    LEFT JOIN Person PR ON P.person_id = PR.person_id
+    FROM patients P
+    LEFT JOIN users U ON P.user_id = U.user_id
+    LEFT JOIN person PR ON P.person_id = PR.person_id
     WHERE U.role = 'patient'
   `;
   const [rows] = await pool.query(sql);
@@ -347,19 +405,57 @@ export const getAllPatients = async () => {
  * מחיקת מטופל לפי מזהה
  */
 export async function deleteFromPatients(patientId) {
-  return deleteFromTable('Patients', { patient_id: patientId });
+  return deleteFromTable('patients', { patient_id: patientId });
 }
 
 /**
  * עדכון נתוני מטופל לפי מזהה
  */
 export async function updateToPatients(patientId, updateData) {
-  return updateTable('Patients', updateData, { patient_id: patientId });
+  return updateTable('patients', updateData, { patient_id: patientId });
 }
 
-/**
- * עדכון נתוני משתמש לפי מזהה
- */
-export async function updateToUsers(userId, updateData) {
-  return updateTable('Users', updateData, { user_id: userId });
-}
+  /**
+   * שליפת נתוני מטופל בלבד (ללא שיוך למחלקות/קבוצות)
+   */
+  export async function getPatientOnly(patientId) {
+    const sql = `
+      SELECT P.patient_id, P.user_id, P.therapist_id, P.status AS patient_status, P.history_notes,
+             P.person_id,
+             PR.first_name, PR.last_name, PR.teudat_zehut, PR.phone, PR.city, PR.address, PR.birth_date, PR.gender
+      FROM patients P
+      LEFT JOIN person PR ON P.person_id = PR.person_id
+      WHERE P.patient_id = ?
+    `;
+    const [rows] = await pool.query(sql, [patientId]);
+    if (!rows.length) return null;
+    const row = rows[0];
+    // בניית person
+    const person = {
+      person_id: row.person_id,
+      first_name: row.first_name || '',
+      last_name: row.last_name || '',
+      teudat_zehut: row.teudat_zehut || '',
+      phone: row.phone || '',
+      city: row.city || '',
+      address: row.address || '',
+      birth_date: row.birth_date || '',
+      gender: row.gender || 'other'
+    };
+    // בניית patient לפי המודל בפרונט
+    const patient = {
+      patient_id: row.patient_id,
+      user_id: row.user_id,
+      therapist_id: row.therapist_id ?? null,
+      status: row.patient_status ?? '',
+      history_notes: row.history_notes ?? '',
+      person: person // פרטי המטופל האישיים
+    };
+    // החזרת אובייקט במבנה PatientCreationData
+    return {
+      person,
+      patient,
+      selectedDepartments: []
+    };
+  }
+

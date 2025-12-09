@@ -4,10 +4,21 @@ export async function createUserController(req, res) {
   try {
     const userData = req.body;
 
-    // וולידציה רק לשדות של Users
-    const requiredFields = ['email', 'password'];
-    for (const field of requiredFields) {
-      if (!userData[field] || userData[field].trim() === '') {
+    // וולידציה לשדות חובה של משתמש
+    const requiredUserFields = ['email', 'password'];
+    for (const field of requiredUserFields) {
+      if (!userData[field] || typeof userData[field] !== 'string' || userData[field].trim() === '') {
+        return res.status(400).json({
+          success: false,
+          message: `${field} is required`
+        });
+      }
+    }
+
+    // וולידציה לשדות חובה של פרטים אישיים (אם נדרשים)
+    const requiredPersonFields = ['first_name', 'last_name', 'phone'];
+    for (const field of requiredPersonFields) {
+      if (!userData[field] || typeof userData[field] !== 'string' || userData[field].trim() === '') {
         return res.status(400).json({
           success: false,
           message: `${field} is required`
@@ -36,8 +47,11 @@ export async function createUserController(req, res) {
     userData.email = userData.email.trim().toLowerCase();
     if (userData.address) userData.address = userData.address.trim();
     if (userData.teudat_zehut) userData.teudat_zehut = userData.teudat_zehut.trim();
+    if (userData.first_name) userData.first_name = userData.first_name.trim();
+    if (userData.last_name) userData.last_name = userData.last_name.trim();
+    if (userData.phone) userData.phone = userData.phone.trim();
 
-    // שדות אישיים עוברים ל־Person דרך ה־service/repo
+    // יצירת משתמש חדש
     const newUser = await createUser(userData);
 
     res.status(201).json({
@@ -130,28 +144,3 @@ export async function updateUserController(req, res) {
 
 
 
-// import { addUser } from './user.service.js';
-
-// export async function createUser(req, res) {
-//   try {
-//     const user = await addUser(req.body);
-//     res.status(201).json(user);
-//   } catch (err) {
-//     res.status(400).json({ message: err.message });
-//   }
-// }
-
-// const service = require('./user.service');
-
-// const create = async (req, res) => {
-//   const user = await service.create(req.body);
-//   res.status(201).json(user);
-// };
-
-// const getById = async (req, res) => {
-//   const user = await service.getById(req.params.id);
-//   if (!user) return res.status(404).json({ message: 'User not found' });
-//   res.json(user);
-// };
-
-// module.exports = { create, getById };

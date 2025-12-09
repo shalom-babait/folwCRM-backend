@@ -1,6 +1,9 @@
+import pool, { deleteFromTable, updateTable } from "../../services/database.js";
+import { create as createUser } from "../users/user.repo.js";
+
 // מחזיר therapist_id לפי user_id
 export async function getTherapistIdByUserId(user_id) {
-  const query = `SELECT therapist_id FROM Therapists WHERE user_id = ? LIMIT 1`;
+  const query = `SELECT therapist_id FROM therapists WHERE user_id = ? LIMIT 1`;
   const [rows] = await pool.execute(query, [user_id]);
   if (rows.length > 0) {
     return rows[0].therapist_id;
@@ -8,8 +11,6 @@ export async function getTherapistIdByUserId(user_id) {
   return null;
 }
 
-import pool, { deleteFromTable, updateTable } from "../../services/database.js";
-import { create as createUser } from "../users/user.repo.js";
 
 // therapistData: { user: { ...userData }, therapist: { ...otherTherapistData } }
 export async function create(TherapistCreationData) {
@@ -23,7 +24,7 @@ export async function create(TherapistCreationData) {
 
     // יצירת מטפל עם user_id שנוצר
     const query = `
-      INSERT INTO Therapists (user_id)
+      INSERT INTO therapists (user_id)
       VALUES (?)
     `;
     const [result] = await pool.execute(query, [user_id]);
@@ -58,9 +59,9 @@ export async function getTherapists() {
         p.address,
         p.birth_date,
         p.gender
-      FROM Therapists t
-      INNER JOIN Users u ON t.user_id = u.user_id
-      LEFT JOIN Person p ON u.person_id = p.person_id
+      FROM therapists t
+      INNER JOIN users u ON t.user_id = u.user_id
+      LEFT JOIN person p ON u.person_id = p.person_id
       WHERE u.role = 'therapist'
       ORDER BY p.first_name, p.last_name
     `;
@@ -98,9 +99,9 @@ export async function getTherapists() {
 } 
 
 export async function deleteFromTherapists(therapistId) {
-  return deleteFromTable('Therapists', { therapist_id: therapistId });
+  return deleteFromTable('therapists', { therapist_id: therapistId });
 }
 
 export async function updateToTherapists(therapistId, updateData) {
-  return updateTable('Therapists', updateData, { therapist_id: therapistId });
+  return updateTable('therapists', updateData, { therapist_id: therapistId });
 }
