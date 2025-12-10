@@ -437,3 +437,10 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 //   FOREIGN KEY (person_id) REFERENCES Person(person_id) ON DELETE CASCADE,
 //   FOREIGN KEY (created_by_person_id) REFERENCES Person(person_id)
 // );
+
+
+//הוספתי ע"מ לדעת לאיזה מטופל לשייך את העיסקה
+// ALTER TABLE Payments
+// ADD COLUMN person_id INT NULL,
+// ADD CONSTRAINT fk_payment_person
+//   FOREIGN KEY (person_id) REFERENCES Person(person_id);
