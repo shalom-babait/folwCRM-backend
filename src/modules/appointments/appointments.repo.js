@@ -57,7 +57,6 @@ ORDER BY
 //       A.appointment_date, A.start_time;
 // שליפת כל הפגישות של מטפל בלבד
 export async function getAppointmentsByTherapist(therapistId) {
-  console.log('getAppointmentsByTherapist - repo - therapistId:', therapistId, typeof therapistId);
   const sql = `
     SELECT
       A.appointment_id,
@@ -209,3 +208,29 @@ export async function deleteFromAppointments(appointmentId) {
 export async function updateToAppointments(appointmentId, updateData) {
   return updateTable('appointments', updateData, { appointment_id: appointmentId });
 }
+
+export async function getAppointmentsByPatientId(patient_id) {
+  const sql = `
+    SELECT
+      A.appointment_id,
+      DATE_FORMAT(A.appointment_date, '%Y-%m-%d') AS appointment_date,
+      A.start_time,
+      CONCAT(P.first_name, ' ', P.last_name) AS therapist_name,
+      P.first_name AS therapist_first_name,
+      P.last_name AS therapist_last_name,
+      TT.type_name
+    FROM Appointments AS A
+    LEFT JOIN treatmenttypes AS TT ON A.type_id = TT.type_id
+    LEFT JOIN Therapists AS T ON A.therapist_id = T.therapist_id
+    LEFT JOIN Users AS U ON T.user_id = U.user_id
+    LEFT JOIN person AS P ON U.person_id = P.person_id
+    WHERE A.patient_id = ?
+    ORDER BY A.appointment_date DESC, A.start_time DESC;
+  `;
+
+  const [rows] = await pool.query(sql, [patient_id]);
+  return rows;
+}
+
+
+
