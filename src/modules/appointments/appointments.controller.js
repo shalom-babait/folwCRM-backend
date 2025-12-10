@@ -1,7 +1,7 @@
-import { createAppointment, fetchAppointments, deleteAppointment, updateAppointment, fetchAppointmentsByRoom, fetchAppointmentsByGroupId, fetchAppointmentsByTherapist } from "./appointments.service.js";
+import { createAppointment, fetchAppointments, deleteAppointment, updateAppointment, fetchAppointmentsByRoom, fetchAppointmentsByGroupId, fetchAppointmentsByTherapist, getAppointmentsByPatientIdService } from "./appointments.service.js";
 
 export async function getAppointmentsByGroupId(req, res) {
-  
+
   try {
     const { groupId } = req.params;
     const appointments = await fetchAppointmentsByGroupId(groupId);
@@ -16,9 +16,7 @@ export async function getAppointmentsByGroupId(req, res) {
 export async function getAppointmentsByTherapist(req, res) {
   try {
     const { therapistId } = req.params;
-    // console.log('getAppointmentsByTherapist - therapistId:', therapistId, typeof therapistId);
     const appointments = await fetchAppointmentsByTherapist(therapistId);
-    // console.log('getAppointmentsByTherapist - appointments:', appointments);
     if (!appointments || appointments.length === 0) {
       console.warn('No appointments found for therapistId:', therapistId);
     }
@@ -223,3 +221,14 @@ export async function updateAppointmentController(req, res) {
     });
   }
 }
+
+
+export async function getAppointmentsByPatientIdController(req, res) {
+  try {
+    const rows = await getAppointmentsByPatientIdService(req.params.patientId);   
+    res.status(200).json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+

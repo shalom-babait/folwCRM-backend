@@ -1,16 +1,17 @@
 import * as paymentsService from './payments.service.js';
 
+// --- יצירת תשלום ---
 export async function createPaymentController(req, res) {
   try {
     const payment = await paymentsService.createPaymentService(req.body);
     res.status(201).json(payment);
   } catch (err) {
-    console.error(" SERVER ERROR:", err);   
+    console.error("SERVER ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 }
 
-
+// --- שליפה של כל התשלומים ---
 export async function getAllPaymentsController(req, res) {
   try {
     const payments = await paymentsService.getAllPaymentsService();
@@ -20,6 +21,7 @@ export async function getAllPaymentsController(req, res) {
   }
 }
 
+// --- שליפה לפי תשלום ID ---
 export async function getPaymentByIdController(req, res) {
   try {
     const payment = await paymentsService.getPaymentByIdService(req.params.pay_id);
@@ -30,6 +32,7 @@ export async function getPaymentByIdController(req, res) {
   }
 }
 
+// --- עדכון תשלום ---
 export async function updatePaymentController(req, res) {
   try {
     const updated = await paymentsService.updatePaymentService(req.params.pay_id, req.body);
@@ -39,6 +42,7 @@ export async function updatePaymentController(req, res) {
   }
 }
 
+// --- מחיקת תשלום ---
 export async function deletePaymentController(req, res) {
   try {
     await paymentsService.deletePaymentService(req.params.pay_id);
@@ -48,13 +52,11 @@ export async function deletePaymentController(req, res) {
   }
 }
 
-
+// --- שליפה לפי patient_id ---
 export async function getAllPatientPaymentsController(req, res) {
   try {
     const payments = await paymentsService.getPaymentByPatientIdService(req.params.patient_id);
-
     res.status(200).json(payments);
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

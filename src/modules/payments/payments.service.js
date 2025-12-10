@@ -16,7 +16,6 @@ export async function getPaymentByPatientIdService(patient_id) {
   return await paymentsRepo.getPaymentByPatientId(patient_id);
 }
 
-
 export async function updatePaymentService(pay_id, paymentData) {
   return await paymentsRepo.updatePayment(pay_id, paymentData);
 }

@@ -1,4 +1,4 @@
-import { getAppointmentsByGroupId, getAppointmentsByTherapist, create, checkTimeConflict, getAppointmentsByPatientAndTherapist, deleteFromAppointments, updateToAppointments, getAppointmentsByRoom } from "./appointments.repo.js";
+import { getAppointmentsByGroupId, getAppointmentsByTherapist, create, checkTimeConflict, getAppointmentsByPatientAndTherapist, deleteFromAppointments, updateToAppointments, getAppointmentsByRoom ,getAppointmentsByPatientId} from "./appointments.repo.js";
 import pool from "../../services/database.js";
 
 export async function fetchAppointmentsByGroupId(groupId) {
@@ -15,7 +15,6 @@ export async function fetchAppointmentsByRoom(roomId) {
 }
 
 export async function createAppointment(appointmentData) {
-  // console.log({ appointmentData });
 
   try {
     // בדיקה שהמטפל קיים
@@ -35,7 +34,6 @@ export async function createAppointment(appointmentData) {
     if (patient.length === 0) {
       throw new Error("Patient not found");
     }
-    // console.log(appointmentData.type_id);
 
     // בדיקה שקבוצת הטיפול קיימת (ולא בודקים ב-TreatmentTypes)
     const [group] = await pool.execute(
@@ -141,4 +139,8 @@ export async function updateAppointment(appointmentId, updateData) {
   } catch (error) {
     throw error;
   }
+}
+
+export async function getAppointmentsByPatientIdService(patient_id) {
+  return await getAppointmentsByPatientId(patient_id);
 }
