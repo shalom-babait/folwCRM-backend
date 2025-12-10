@@ -9,7 +9,7 @@ const pool = mysql.createPool({
   host: process.env.MYSQLHOST,            // Host מסד הנתונים
   user: process.env.MYSQLUSER,            // שם המשתמש
   password: process.env.MYSQLPASSWORD,    // הסיסמה
-  database: process.env.MYSQLDATABASE,   // שם המסד
+  database: process.env.MYSQL_DATABASE,   // שם המסד
   port: process.env.MYSQLPORT || 3306,    // פורט, ברירת מחדל 3306
   waitForConnections: true,
   connectionLimit: 10,

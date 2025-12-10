@@ -1,3 +1,5 @@
+import Joi from "joi";
+const { not } = Joi;
 import pool, { deleteFromTable, updateTable } from "../../services/database.js";
 
 // שליפת כל הפגישות של קבוצה מסוימת
@@ -10,17 +12,18 @@ export async function getAppointmentsByGroupId(groupId) {
   A.end_time,
   A.total_minutes,
   A.status,
+  A.notes,
   GL.group_name AS group_name,
   R.room_name AS room,
   A.patient_id,
   A.therapist_id,
   CONCAT(P.first_name, ' ', P.last_name) AS therapist_name
 FROM
-  Appointments AS A
+  appointments AS A
 LEFT JOIN group_list AS GL ON A.type_id = GL.group_id
-LEFT JOIN Rooms AS R ON A.room_id = R.room_id
-LEFT JOIN Therapists AS T ON A.therapist_id = T.therapist_id
-LEFT JOIN Users AS U ON T.user_id = U.user_id
+LEFT JOIN rooms AS R ON A.room_id = R.room_id
+LEFT JOIN therapists AS T ON A.therapist_id = T.therapist_id
+LEFT JOIN users AS U ON T.user_id = U.user_id
 LEFT JOIN person AS P ON U.person_id = P.person_id
 WHERE
   A.type_id = ?
@@ -62,14 +65,15 @@ export async function getAppointmentsByTherapist(therapistId) {
       A.end_time,
       A.total_minutes,
       A.status,
+      A.notes,
       GL.group_name AS group_name,
       R.room_name AS room,
       A.patient_id
     FROM
-      Appointments AS A
-   -- LEFT JOIN TreatmentTypes AS TT ON A.type_id = TT.type_id
+      appointments AS A
+   -- LEFT JOIN treatmenttypes AS TT ON A.type_id = TT.type_id
     LEFT JOIN group_list AS GL ON A.type_id = GL.group_id
-    JOIN Rooms AS R ON A.room_id = R.room_id
+    JOIN rooms AS R ON A.room_id = R.room_id
     WHERE
       A.therapist_id = ?
     ORDER BY
@@ -83,9 +87,9 @@ export async function getAppointmentsByRoom(roomId) {
   const sql = `
     SELECT
       A.*, CONCAT(P.first_name, ' ', P.last_name) AS therapist_name
-    FROM Appointments AS A
-    JOIN Therapists AS T ON A.therapist_id = T.therapist_id
-    JOIN Users AS U ON T.user_id = U.user_id
+    FROM appointments AS A
+    JOIN therapists AS T ON A.therapist_id = T.therapist_id
+    JOIN users AS U ON T.user_id = U.user_id
     JOIN person AS P ON U.person_id = P.person_id
     WHERE A.room_id = ?
     ORDER BY A.appointment_date, A.start_time;
@@ -103,13 +107,15 @@ export async function create(appointmentData) {
     appointment_date,
     start_time,
     end_time,
-    status
+    status,
+    notes
   } = appointmentData;
 
   const query = `
-    INSERT INTO Appointments 
+    INSERT INTO appointments 
     (therapist_id, patient_id, type_id, room_id, appointment_date, start_time, end_time, status)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+
   `;
 
   try {
@@ -121,7 +127,8 @@ export async function create(appointmentData) {
       appointment_date,
       start_time,
       end_time,
-      status || 'מתוזמנת'
+      status || 'מתוזמנת',
+      notes || null
     ]);
 
     return {
@@ -134,6 +141,7 @@ export async function create(appointmentData) {
       start_time,
       end_time,
       status: status || 'מתוזמנת',
+      notes: notes || null,
       message: "Appointment created successfully"
     };
   } catch (error) {
@@ -143,7 +151,7 @@ export async function create(appointmentData) {
 
 export async function checkTimeConflict(therapist_id, room_id, appointment_date, start_time, end_time) {
   const query = `
-    SELECT appointment_id FROM Appointments 
+    SELECT appointment_id FROM appointments 
     WHERE (therapist_id = ? OR room_id = ?) 
       AND appointment_date = ? 
       AND status != 'בוטלה'
@@ -177,12 +185,13 @@ export async function getAppointmentsByPatientAndTherapist(patientId, therapistI
       A.end_time,
       A.total_minutes,
       A.status,
+      A.notes,
       GL.group_name AS group_name,
       R.room_name AS room
     FROM
-      Appointments AS A
+      appointments AS A
     LEFT JOIN group_list AS GL ON A.type_id = GL.group_id
-    JOIN Rooms AS R ON A.room_id = R.room_id
+    JOIN rooms AS R ON A.room_id = R.room_id
     WHERE
       A.patient_id = ? AND A.therapist_id = ?
     ORDER BY
@@ -193,11 +202,11 @@ export async function getAppointmentsByPatientAndTherapist(patientId, therapistI
 }
 
 export async function deleteFromAppointments(appointmentId) {
-  return deleteFromTable('Appointments', { appointment_id: appointmentId });
+  return deleteFromTable('appointments', { appointment_id: appointmentId });
 }
 
 export async function updateToAppointments(appointmentId, updateData) {
-  return updateTable('Appointments', updateData, { appointment_id: appointmentId });
+  return updateTable('appointments', updateData, { appointment_id: appointmentId });
 }
 
 export async function getAppointmentsByPatientId(patient_id) {
@@ -222,5 +231,6 @@ export async function getAppointmentsByPatientId(patient_id) {
   const [rows] = await pool.query(sql, [patient_id]);
   return rows;
 }
+
 
 

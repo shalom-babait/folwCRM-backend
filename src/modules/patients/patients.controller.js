@@ -1,5 +1,5 @@
 import {
-  createPatient,
+  addPatient,
   fetchPatientsByTherapist,
   fetchPatientDetails,
   fetchPatientStats,
@@ -36,7 +36,7 @@ export async function createPatientController(req, res) {
     }
 
     // וולידציה על status
-    const validStatuses = ['פעיל', 'לא פעיל', 'בהמתנה'];
+    // const validStatuses = ['פעיל', 'לא פעיל', 'בהמתנה'];
     if (patientData.patient && patientData.patient.status && !validStatuses.includes(patientData.patient.status)) {
       return res.status(400).json({
         success: false,
@@ -44,7 +44,7 @@ export async function createPatientController(req, res) {
       });
     }
 
-    const newPatient = await createPatient(patientData);
+  const newPatient = await addPatient(patientData);
 
     res.status(201).json({
       success: true,
@@ -52,9 +52,19 @@ export async function createPatientController(req, res) {
     });
   } catch (error) {
     console.error('createPatientController error:', error);
+    if (error && error.stack) {
+      console.log('STACK:', error.stack);
+    }
+    if (error && error.cause) {
+      console.log('CAUSE:', error.cause);
+    }
+    if (error && error.sql) {
+      console.log('SQL:', error.sql);
+    }
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
+      details: error
     });
   }
 }
