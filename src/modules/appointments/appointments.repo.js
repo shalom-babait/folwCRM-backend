@@ -220,7 +220,7 @@ export async function getAppointmentsByPatientId(patient_id) {
       P.last_name AS therapist_last_name,
       TT.type_name
     FROM Appointments AS A
-    LEFT JOIN treatmenttypes AS TT ON A.type_id = TT.type_id
+    LEFT JOIN treatment_types AS TT ON A.type_id = TT.type_id
     LEFT JOIN Therapists AS T ON A.therapist_id = T.therapist_id
     LEFT JOIN Users AS U ON T.user_id = U.user_id
     LEFT JOIN person AS P ON U.person_id = P.person_id
