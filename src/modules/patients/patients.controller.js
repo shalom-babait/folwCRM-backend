@@ -25,7 +25,8 @@ export const getPatientOnlyController = async (req, res) => {
 
 export async function createPatientController(req, res) {
   try {
-    const patientData = req.body;
+  const patientData = req.body;
+  console.log('Received patientData from frontend:', JSON.stringify(patientData, null, 2));
     // וולידציה בסיסית לשדות פרסון
     if (!patientData.person || !patientData.person.first_name || !patientData.person.last_name) {
 
@@ -36,7 +37,7 @@ export async function createPatientController(req, res) {
     }
 
     // וולידציה על status
-    // const validStatuses = ['פעיל', 'לא פעיל', 'בהמתנה'];
+    const validStatuses = ['פעיל', 'לא פעיל', 'בהמתנה'];
     if (patientData.patient && patientData.patient.status && !validStatuses.includes(patientData.patient.status)) {
       return res.status(400).json({
         success: false,

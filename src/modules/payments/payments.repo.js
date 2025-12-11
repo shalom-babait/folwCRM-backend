@@ -30,9 +30,9 @@ export async function createPayment(paymentData) {
 
   const person_id = personResult[0].person_id;
 
-  // 2. שמירת התשלום בטבלת Payments
+  // 2. שמירת התשלום בטבלת payments
   const sql = `
-    INSERT INTO Payments 
+    INSERT INTO payments 
       (appointment_id, amount, payment_date, method, status, transaction_type, person_id)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
@@ -67,8 +67,8 @@ export async function getPaymentById(pay_id) {
 export async function getPaymentByPatientId(patient_id) {
   const sql = `
     SELECT p.*
-    FROM Payments p
-    JOIN Patients pa ON p.person_id = pa.person_id
+    FROM payments p
+    JOIN patients pa ON p.person_id = pa.person_id
     WHERE pa.patient_id = ?
     ORDER BY p.payment_date DESC
   `;

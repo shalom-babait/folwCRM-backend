@@ -421,7 +421,7 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 //   ADD UNIQUE KEY person_id_group_id (person_id, group_id);
 
 // הוספתי 2
-// CREATE TABLE IF NOT EXISTS FollowUps (
+// CREATE TABLE IF NOT EXISTS followups (
 //   followup_id INT AUTO_INCREMENT PRIMARY KEY,
 
 //   person_id INT NOT NULL,                  -- מי שהמעקב שייך לו
@@ -434,8 +434,8 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 
 //   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- תאריך יצירה
 
-//   FOREIGN KEY (person_id) REFERENCES Person(person_id) ON DELETE CASCADE,
-//   FOREIGN KEY (created_by_person_id) REFERENCES Person(person_id)
+//   FOREIGN KEY (person_id) REFERENCES person(person_id) ON DELETE CASCADE,
+//   FOREIGN KEY (created_by_person_id) REFERENCES person(person_id)
 // );
 
 
@@ -444,3 +444,7 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 // ADD COLUMN person_id INT NULL,
 // ADD CONSTRAINT fk_payment_person
 //   FOREIGN KEY (person_id) REFERENCES Person(person_id);
+
+// הוספתי 3
+//ALTER TABLE Therapists ADD COLUMN status ENUM('פעיל', 'לא פעיל', 'בהמתנה') NOT NULL DEFAULT 'פעיל';
+//ALTER TABLE Therapists ADD COLUMN person_id INT, ADD CONSTRAINT fk_therapist_person FOREIGN KEY (person_id) REFERENCES Person(person_id);
