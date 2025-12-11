@@ -7,6 +7,8 @@ import pool, { deleteFromTable, updateTable } from "../../services/database.js";
 export async function createPatient({ person, patient, selectedDepartments }) {
   const connection = await pool.getConnection();
   try {
+    console.log('--- יצירת מטופל חדש ---');
+    console.log('קלט מהפרונט:', JSON.stringify({ person, patient, selectedDepartments }, null, 2));
     await connection.beginTransaction();
 
     // 1. יצירת Person
@@ -20,12 +22,14 @@ export async function createPatient({ person, patient, selectedDepartments }) {
       person.birth_date || null,
       person.gender || 'other'
     ];
+    console.log('personFields:', personFields);
     const [personResult] = await connection.execute(
       `INSERT INTO person (first_name, last_name, teudat_zehut, phone, city, address, birth_date, gender)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       personFields
     );
     const person_id = personResult.insertId;
+    console.log('נוצר person_id:', person_id);
 
     // 2. יצירת פציינט
     const patientFields = [
@@ -35,22 +39,26 @@ export async function createPatient({ person, patient, selectedDepartments }) {
       patient.history_notes || null,
       person_id
     ];
+    console.log('patientFields:', patientFields);
     const [patientResult] = await connection.execute(
       `INSERT INTO patients (user_id, therapist_id, status, history_notes, person_id)
        VALUES (?, ?, ?, ?, ?)`,
       patientFields
     );
     const patient_id = patientResult.insertId;
+    console.log('נוצר patient_id:', patient_id);
 
     // 3. שיוך מחלקות וקבוצות
     if (Array.isArray(selectedDepartments)) {
       for (const dep of selectedDepartments) {
+        console.log('שיוך למחלקה:', dep.department_id);
         await connection.execute(
           `INSERT INTO userdepartments (person_id, department_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE department_id = VALUES(department_id)`,
           [person_id, dep.department_id]
         );
         if (Array.isArray(dep.group_ids)) {
           for (const groupId of dep.group_ids) {
+            console.log('שיוך לקבוצה:', groupId, 'במחלקה', dep.department_id);
             await connection.execute(
               `INSERT INTO user_groups (person_id, group_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE group_id = VALUES(group_id)`,
               [person_id, groupId]
@@ -61,15 +69,33 @@ export async function createPatient({ person, patient, selectedDepartments }) {
     }
 
     await connection.commit();
+    console.log('הוספת מטופל הסתיימה בהצלחה');
+    // מבנה PatientCreationData
     return {
-      patient_id,
-      person_id,
-      ...person,
-      ...patient,
+      person: {
+        person_id,
+        first_name: person.first_name,
+        last_name: person.last_name,
+        phone: person.phone || null,
+        city: person.city || null,
+        address: person.address || null,
+        birth_date: person.birth_date || null,
+        gender: person.gender || 'other',
+        teudat_zehut: person.teudat_zehut || null
+      },
+      patient: {
+        patient_id,
+        user_id: patient.user_id || null,
+        therapist_id: patient.therapist_id || null,
+        status: patient.status || 'פעיל',
+        history_notes: patient.history_notes || null
+      },
       selectedDepartments: selectedDepartments || [],
+      user: patient.user_id ? { user_id: patient.user_id } : null,
       message: "Patient created successfully"
     };
   } catch (error) {
+    console.error('שגיאה בהוספת מטופל:', error);
     await connection.rollback();
     throw error;
   } finally {
@@ -360,7 +386,6 @@ export const getAllPatients = async () => {
     FROM patients P
     LEFT JOIN users U ON P.user_id = U.user_id
     LEFT JOIN person PR ON P.person_id = PR.person_id
-    WHERE U.role = 'patient'
   `;
   const [rows] = await pool.query(sql);
   if (!rows.length) return [];
