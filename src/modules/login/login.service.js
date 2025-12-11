@@ -19,7 +19,7 @@ export async function loginService(email, password) {
 
   let therapist_id = null, patient_id = null, secretary_id = null;
   if (user.role === 'therapist') {
-    const [rows] = await pool.query('SELECT therapist_id FROM Therapists WHERE user_id = ?', [user.user_id]);
+    const [rows] = await pool.query('SELECT therapist_id FROM therapists WHERE user_id = ?', [user.user_id]);
     therapist_id = rows[0]?.therapist_id || null;
     console.log('Therapist ID:', therapist_id);
   } else if (user.role === 'patient') {

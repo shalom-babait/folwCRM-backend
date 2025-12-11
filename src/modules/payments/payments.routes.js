@@ -4,7 +4,8 @@ import {
   getAllPaymentsController,
   getPaymentByIdController,
   updatePaymentController,
-  deletePaymentController
+  deletePaymentController,
+  getAllPatientPaymentsController
 } from './payments.controller.js';
 
 const router = express.Router();
@@ -14,5 +15,6 @@ router.get('/getAll', getAllPaymentsController);
 router.get('/:pay_id', getPaymentByIdController);
 router.put('/update/:pay_id', updatePaymentController);
 router.delete('/delete/:pay_id', deletePaymentController);
+router.get('/getAllPatientPayments/:patient_id', getAllPatientPaymentsController);
 
 export default router;

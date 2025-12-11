@@ -6,8 +6,8 @@ export async function getTypes(patientId) {
     }
     const query = `
       SELECT gl.group_id, gl.group_name
-      FROM UserGroups ug
-      JOIN Patients p ON ug.user_id = p.user_id
+      FROM user_groups ug
+      JOIN patients p ON ug.person_id = p.person_id
       JOIN group_list gl ON ug.group_id = gl.group_id
       WHERE p.patient_id = ?;
     `;
@@ -22,7 +22,7 @@ export async function create(typeData) {
   const { type_name } = typeData;
 
   const query = `
-    INSERT INTO TreatmentTypes (type_name)
+    INSERT INTO treatment_types (type_name)
     VALUES (?)
   `;
 
@@ -39,9 +39,9 @@ export async function create(typeData) {
 }
 
 export async function deleteFromTypes(typeId) {
-  return deleteFromTable('TreatmentTypes', { type_id: typeId });
+  return deleteFromTable('treatment_types', { type_id: typeId });
 }
 
 export async function updateToTypes(typeId, updateData) {
-  return updateTable('TreatmentTypes', updateData, { type_id: typeId });
+  return updateTable('treatment_types', updateData, { type_id: typeId });
 }

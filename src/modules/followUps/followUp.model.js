@@ -2,8 +2,8 @@
 export async function getUpcomingFollowUpsByCreator(created_by_person_id) {
         const sql = `
             SELECT f.*, p.*
-            FROM FollowUps f
-            JOIN Person p ON f.person_id = p.person_id
+            FROM followups f
+            JOIN person p ON f.person_id = p.person_id
             WHERE f.created_by_person_id = ?
               AND f.follow_date >= CURDATE()
             ORDER BY f.follow_date ASC, f.follow_time ASC
@@ -33,19 +33,19 @@ export async function getUpcomingFollowUpsByCreator(created_by_person_id) {
 import pool from '../../services/database.js';
 
 export async function createFollowUp({ person_id, follow_date, follow_time = null, remind = false, notes = '', created_by_person_id }) {
-    const sql = `INSERT INTO FollowUps (person_id, follow_date, follow_time, remind, notes, created_by_person_id) VALUES (?, ?, ?, ?, ?, ?)`;
+    const sql = `INSERT INTO followups (person_id, follow_date, follow_time, remind, notes, created_by_person_id) VALUES (?, ?, ?, ?, ?, ?)`;
     const [result] = await pool.query(sql, [person_id, follow_date, follow_time, remind, notes, created_by_person_id]);
     return { followup_id: result.insertId, person_id, follow_date, follow_time, remind, notes, created_by_person_id };
 }
 
 export async function getFollowUpsByPerson(person_id) {
-    const sql = `SELECT * FROM FollowUps WHERE person_id = ? ORDER BY follow_date DESC`;
+    const sql = `SELECT * FROM followups WHERE person_id = ? ORDER BY follow_date DESC`;
     const [rows] = await pool.query(sql, [person_id]);
     return rows;
 }
 
 export async function getFollowUpById(followup_id) {
-    const sql = `SELECT * FROM FollowUps WHERE followup_id = ?`;
+    const sql = `SELECT * FROM followups WHERE followup_id = ?`;
     const [rows] = await pool.query(sql, [followup_id]);
     return rows[0] || null;
 }
@@ -58,14 +58,14 @@ export async function updateFollowUp(followup_id, updateData) {
         values.push(updateData[key]);
     }
     if (fields.length === 0) return false;
-    const sql = `UPDATE FollowUps SET ${fields.join(', ')} WHERE followup_id = ?`;
+    const sql = `UPDATE followups SET ${fields.join(', ')} WHERE followup_id = ?`;
     values.push(followup_id);
     const [result] = await pool.query(sql, values);
     return result.affectedRows > 0;
 }
 
 export async function deleteFollowUp(followup_id) {
-    const sql = `DELETE FROM FollowUps WHERE followup_id = ?`;
+    const sql = `DELETE FROM followups WHERE followup_id = ?`;
     const [result] = await pool.query(sql, [followup_id]);
     return result.affectedRows > 0;
 }

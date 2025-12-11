@@ -1,4 +1,10 @@
 import pool, { deleteFromTable, updateTable } from "../../services/database.js";
+/**
+ * עדכון נתוני משתמש לפי מזהה
+ */
+export async function updateToUsers(userId, updateData) {
+  return updateTable('users', updateData, { user_id: userId });
+}
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -24,7 +30,7 @@ export async function create(userData) {
 
   // יצירת Person
   const [personResult] = await pool.execute(
-    `INSERT INTO Person (first_name, last_name, teudat_zehut, phone, city, address, birth_date, gender)
+    `INSERT INTO person (first_name, last_name, teudat_zehut, phone, city, address, birth_date, gender)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [first_name, last_name, teudat_zehut, phone, city, address, birth_date, gender || 'other']
   );
@@ -32,7 +38,7 @@ export async function create(userData) {
 
   // יצירת User עם person_id
   const [userResult] = await pool.execute(
-    `INSERT INTO Users (person_id, email, password, role, agree)
+    `INSERT INTO users (person_id, email, password, role, agree)
      VALUES (?, ?, ?, ?, ?)`,
     [person_id, email, hashedPassword, role || 'patient', agree || 0]
   );
@@ -60,8 +66,8 @@ export async function create(userData) {
 export async function findByEmail(email) {
   const query = `
     SELECT u.*, p.*
-    FROM Users u
-    LEFT JOIN Person p ON u.person_id = p.person_id
+    FROM users u
+    LEFT JOIN person p ON u.person_id = p.person_id
     WHERE u.email = ?
   `;
   try {
@@ -75,8 +81,8 @@ export async function findByEmail(email) {
 export async function findByTeudatZehut(teudat_zehut) {
   const query = `
     SELECT u.*, p.*
-    FROM Users u
-    LEFT JOIN Person p ON u.person_id = p.person_id
+    FROM users u
+    LEFT JOIN person p ON u.person_id = p.person_id
     WHERE p.teudat_zehut = ?
   `;
   try {
@@ -90,8 +96,8 @@ export async function findByTeudatZehut(teudat_zehut) {
 export async function findByPhone(phone) {
   const query = `
     SELECT u.*, p.*
-    FROM Users u
-    LEFT JOIN Person p ON u.person_id = p.person_id
+    FROM users u
+    LEFT JOIN person p ON u.person_id = p.person_id
     WHERE p.phone = ?
   `;
   try {
@@ -102,4 +108,3 @@ export async function findByPhone(phone) {
   }
 }
 
-// ...existing code...

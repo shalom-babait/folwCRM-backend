@@ -1,5 +1,5 @@
 import {
-  createPatient,
+  addPatient,
   fetchPatientsByTherapist,
   fetchPatientDetails,
   fetchPatientStats,
@@ -25,7 +25,8 @@ export const getPatientOnlyController = async (req, res) => {
 
 export async function createPatientController(req, res) {
   try {
-    const patientData = req.body;
+  const patientData = req.body;
+  console.log('Received patientData from frontend:', JSON.stringify(patientData, null, 2));
     // וולידציה בסיסית לשדות פרסון
     if (!patientData.person || !patientData.person.first_name || !patientData.person.last_name) {
 
@@ -44,7 +45,7 @@ export async function createPatientController(req, res) {
       });
     }
 
-    const newPatient = await createPatient(patientData);
+  const newPatient = await addPatient(patientData);
 
     res.status(201).json({
       success: true,
@@ -52,9 +53,19 @@ export async function createPatientController(req, res) {
     });
   } catch (error) {
     console.error('createPatientController error:', error);
+    if (error && error.stack) {
+      console.log('STACK:', error.stack);
+    }
+    if (error && error.cause) {
+      console.log('CAUSE:', error.cause);
+    }
+    if (error && error.sql) {
+      console.log('SQL:', error.sql);
+    }
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
+      details: error
     });
   }
 }
@@ -75,6 +86,8 @@ export async function getPatientsByTherapistController(req, res) {
 export async function getAllPatientsController(req, res) {
   try {
     const allPatients = await fetchAllPatients();
+    // console.log(allPatients);
+    
     res.json({ success: true, data: allPatients });
   } catch (error) {
     console.error(error);
@@ -140,7 +153,7 @@ export async function deletePatientController(req, res) {
 }
 
 export async function updatePatientController(req, res) {
-  console.log('Update patientId:', req.params.patientId, 'Update data:', req.body);
+  // console.log('Update patientId:', req.params.patientId, 'Update data:', req.body);
   try {
     const { patientId } = req.params;
     const updateData = req.body;

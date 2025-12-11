@@ -12,6 +12,7 @@ import departmentsRoutes from './modules/departments/departments.routes.js';
 import groupsRoutes from './modules/groups/groups.routes.js';
 import prospectsRoutes from './modules/prospects/prospects.routes.js';
 import categoriesRoutes from './modules/categories/categories.routes.js';
+import paymentsRoutes from './modules/payments/payments.routes.js';
 import followUpsRoutes from './modules/followUps/followUps.routes.js';
 
 const app = express();
@@ -23,19 +24,36 @@ const allowedOrigins = [
 ];
 
 // ✅ middleware של CORS גלובלי
+// app.use(cors({
+//   origin: function(origin, callback) {
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   credentials: true,
+//   methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
+//   allowedHeaders: ['Content-Type','Authorization']
+// }));
 app.use(cors({
   origin: function(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    // אפשרי ללא origin (למשל curl, Postman)
+    if (!origin) return callback(null, true);
+
+    // אפשרי כל localhost בפיתוח
+    if (origin.startsWith('http://localhost')) return callback(null, true);
+
+    // אפשרי דומיינים מורשים
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+
+    // חסום כל השאר
+    return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization']
 }));
-
 // // ✅ טיפול בבקשות OPTIONS (preflight)
 // app.options('*', cors({
 //   origin: allowedOrigins,
@@ -64,6 +82,7 @@ app.use('/api/login', loginRoutes);
 app.use('/api/groups', groupsRoutes);
 app.use('/api/prospects', prospectsRoutes);
 app.use('/api/categories', categoriesRoutes);
+app.use('/api/payments', paymentsRoutes);
 app.use('/api/followups', followUpsRoutes);
 
 

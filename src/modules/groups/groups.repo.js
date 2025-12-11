@@ -4,7 +4,7 @@ export async function getAllGroupsWithDepartment() {
   const sql = `
     SELECT g.group_id, g.group_name, d.department_name
     FROM group_list g
-    LEFT JOIN Departments d ON g.department_id = d.department_id
+    LEFT JOIN departments d ON g.department_id = d.department_id
     ORDER BY g.group_id;
   `;
   const [rows] = await pool.query(sql);
@@ -49,7 +49,7 @@ export async function editGroup(group_id, { group_name, department_id }) {
 
 export async function deleteGroupIfNoUsers(group_id) {
   // בדוק אם יש משתמשים משויכים לקבוצה
-  const checkSql = `SELECT COUNT(*) AS userCount FROM UserGroups WHERE group_id = ?`;
+  const checkSql = `SELECT COUNT(*) AS userCount FROM user_groups WHERE group_id = ?`;
   const [checkRows] = await pool.query(checkSql, [group_id]);
   if (checkRows[0].userCount > 0) {
     throw new Error('Cannot delete group: There are users linked to this group');
@@ -66,9 +66,9 @@ export async function deleteGroupIfNoUsers(group_id) {
 export async function getGroupUsers(group_id) {
   const sql = `
     SELECT u.user_id, u.email, p.first_name, p.last_name, p.phone, p.teudat_zehut, p.city, p.address, p.birth_date, p.gender
-    FROM Users u 
-    INNER JOIN UserGroups ug ON u.user_id = ug.user_id
-    LEFT JOIN Person p ON u.person_id = p.person_id
+    FROM users u 
+    INNER JOIN user_groups ug ON u.person_id = ug.person_id
+    LEFT JOIN person p ON u.person_id = p.person_id
     WHERE ug.group_id = ? AND u.role = 'patient'
     ORDER BY p.last_name, p.first_name;
   `;
@@ -79,9 +79,9 @@ export async function getGroupUsers(group_id) {
 export async function getTherapistsByGroup(group_id) {
   const sql = `
     SELECT u.user_id, u.email, p.first_name, p.last_name, p.phone, p.teudat_zehut, p.city, p.address, p.birth_date, p.gender
-    FROM Users u 
-    INNER JOIN UserGroups ug ON u.user_id = ug.user_id
-    LEFT JOIN Person p ON u.person_id = p.person_id
+    FROM users u 
+    INNER JOIN user_groups ug ON u.person_id = ug.person_id
+    LEFT JOIN person p ON u.person_id = p.person_id
     WHERE ug.group_id = ? AND u.role = 'therapist'
     ORDER BY p.last_name, p.first_name;
   `;
