@@ -448,3 +448,5 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 // הוספתי 3
 //ALTER TABLE Therapists ADD COLUMN status ENUM('פעיל', 'לא פעיל', 'בהמתנה') NOT NULL DEFAULT 'פעיל';
 //ALTER TABLE Therapists ADD COLUMN person_id INT, ADD CONSTRAINT fk_therapist_person FOREIGN KEY (person_id) REFERENCES Person(person_id);
+// ALTER TABLE users MODIFY COLUMN password VARCHAR(512);
+// ALTER TABLE appointments MODIFY COLUMN type_id INT NULL;

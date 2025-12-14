@@ -1,5 +1,9 @@
 import pool, { deleteFromTable, updateTable } from "../../services/database.js";
 import { create as createUser } from "../users/user.repo.js";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import dotenv from "dotenv";
+dotenv.config();
 
 // מחזיר therapist_id לפי user_id
 export async function getTherapistIdByUserId(user_id) {
@@ -108,9 +112,10 @@ export async function createTherapist({ user, person, therapist, selectedDepartm
     await connection.beginTransaction();
 
     // 1. יצירת User
+    const token = jwt.sign({ email: user.email, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
     const userFields = [
       user.email,
-      user.password,
+      token,
       user.role || 'therapist',
       user.agree || 0
     ];
