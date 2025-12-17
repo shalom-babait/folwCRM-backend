@@ -1,11 +1,11 @@
 import pool from '../../services/database.js';
 
 export async function createPerson(personData) {
-  const { first_name, last_name, teudat_zehut, phone, city, address, birth_date, gender } = personData;
+  const { first_name, last_name, teudat_zehut, phone, city, address, birth_date, gender, email } = personData;
   try {
     const [result] = await pool.query(
-      `INSERT INTO person (first_name, last_name, teudat_zehut, phone, city, address, birth_date, gender) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [first_name, last_name, teudat_zehut, phone, city, address, birth_date, gender || 'other']
+      `INSERT INTO person (first_name, last_name, teudat_zehut, phone, city, address, birth_date, gender, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [first_name, last_name, teudat_zehut, phone, city, address, birth_date, gender || 'other', email || null]
     );
     return { person_id: result.insertId, ...personData };
   } catch (error) {

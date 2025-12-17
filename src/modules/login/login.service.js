@@ -1,10 +1,13 @@
-import { findByEmail } from '../users/user.repo.js';
+
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pool from '../../services/database.js'; // ודאי שיש ייבוא כזה
 
-export async function loginService(email, password) {
-  const user = await findByEmail(email);
+// ודא שיש לך פונקציה כזו ב-user.repo.js
+import { findByUserName } from '../users/user.repo.js';
+
+export async function loginService(user_name, password) {
+  const user = await findByUserName(user_name);
   if (!user) throw new Error('User not found');
   const isPasswordValid = await bcrypt.compare(password, user.password);
   if (!isPasswordValid) throw new Error('Invalid password');
@@ -31,13 +34,13 @@ export async function loginService(email, password) {
     console.log('Secretary ID:', secretary_id);
   }
 
-return {
-  success: true,
-  token,
-  user: userWithoutPassword,
-  therapist_id,
-  patient_id,
-  secretary_id,
-  message: 'Login successful'
-};
+  return {
+    success: true,
+    token,
+    user: userWithoutPassword,
+    therapist_id,
+    patient_id,
+    secretary_id,
+    message: 'Login successful'
+  };
 }

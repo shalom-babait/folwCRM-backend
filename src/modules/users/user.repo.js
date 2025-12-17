@@ -62,16 +62,16 @@ export async function create(userData) {
   };
 }
 
-// מחזיר את כל פרטי המשתמש כולל פרטי person
-export async function findByEmail(email) {
+// מחזיר את כל פרטי המשתמש לפי user_name כולל פרטי person
+export async function findByUserName(user_name) {
   const query = `
     SELECT u.*, p.*
     FROM users u
     LEFT JOIN person p ON u.person_id = p.person_id
-    WHERE u.email = ?
+    WHERE u.user_name = ?
   `;
   try {
-    const [rows] = await pool.execute(query, [email]);
+    const [rows] = await pool.execute(query, [user_name]);
     return rows[0] || null;
   } catch (error) {
     throw error;
