@@ -49,7 +49,7 @@ export const fetchTherapists = async () => {
 export async function updateTherapist(id, updateData) {
   try {
     const [existing] = await pool.execute(
-      "SELECT * FROM Therapists WHERE therapist_id = ?",
+      "SELECT * FROM therapists WHERE therapist_id = ?",
       [id]
     );
     if (existing.length === 0) {

@@ -19,7 +19,7 @@ export async function createAppointment(appointmentData) {
   try {
     // בדיקה שהמטפל קיים
     const [therapist] = await pool.execute(
-      "SELECT * FROM Therapists WHERE therapist_id = ?",
+      "SELECT * FROM therapists WHERE therapist_id = ?",
       [appointmentData.therapist_id]
     );
     if (therapist.length === 0) {
@@ -48,7 +48,7 @@ export async function createAppointment(appointmentData) {
 
     // בדיקה שהחדר קיים
     const [room] = await pool.execute(
-      "SELECT * FROM Rooms WHERE room_id = ?",
+      "SELECT * FROM rooms WHERE room_id = ?",
       [appointmentData.room_id]
     );
     if (room.length === 0) {
@@ -98,7 +98,7 @@ export async function deleteAppointment(appointmentId) {
   try {
     // Check if appointment exists before deleting
     const [appointment] = await pool.execute(
-      "SELECT * FROM Appointments WHERE appointment_id = ?",
+      "SELECT * FROM appointments WHERE appointment_id = ?",
       [appointmentId]
     );
     if (appointment.length === 0) {
@@ -115,7 +115,7 @@ export async function updateAppointment(appointmentId, updateData) {
   try {
     // Check if appointment exists
     const [appointment] = await pool.execute(
-      "SELECT * FROM Appointments WHERE appointment_id = ?",
+      "SELECT * FROM appointments WHERE appointment_id = ?",
       [appointmentId]
     );
     if (appointment.length === 0) {

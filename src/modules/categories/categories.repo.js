@@ -259,9 +259,9 @@ const CategoriesRepository = {
     try {
       const [rows] = await pool.query(
         `SELECT u.user_id, u.email, u.role, u.person_id, p.first_name, p.last_name, p.phone, p.teudat_zehut, p.city, p.address, p.birth_date, p.gender
-         FROM Users u
+         FROM users u
          JOIN UserCategories uc ON u.user_id = uc.user_id
-         LEFT JOIN Person p ON u.person_id = p.person_id
+         LEFT JOIN person p ON u.person_id = p.person_id
          WHERE uc.category_id = ?`,
         [categoryId]
       );
@@ -280,8 +280,8 @@ const CategoriesRepository = {
                 u.email, u.role, u.person_id, p.first_name, p.last_name, p.phone, p.teudat_zehut, p.city, p.address, p.birth_date, p.gender
          FROM Patients pat
          JOIN PatientCategories pc ON pat.patient_id = pc.patient_id
-         LEFT JOIN Users u ON pat.user_id = u.user_id
-         LEFT JOIN Person p ON u.person_id = p.person_id
+         LEFT JOIN users u ON pat.user_id = u.user_id
+         LEFT JOIN person p ON u.person_id = p.person_id
          WHERE pc.category_id = ?`,
         [categoryId]
       );
