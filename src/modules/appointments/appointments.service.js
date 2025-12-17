@@ -35,11 +35,11 @@ export async function createAppointment(appointmentData) {
       throw new Error("Patient not found");
     }
 
-    // בדיקה שקבוצת הטיפול קיימת (רק אם type_id לא ריק)
-    if (appointmentData.type_id) {
+    // בדיקה שקבוצת הטיפול קיימת (רק אם treatment_type_id לא ריק)
+    if (appointmentData.treatment_type_id) {
       const [group] = await pool.execute(
         "SELECT * FROM group_list WHERE group_id = ?",
-        [appointmentData.type_id]
+        [appointmentData.treatment_type_id]
       );
       if (group.length === 0) {
         throw new Error("Group not found");
