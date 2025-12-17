@@ -28,7 +28,7 @@ export async function createAppointment(appointmentData) {
 
     // בדיקה שהמטופל קיים
     const [patient] = await pool.execute(
-      "SELECT * FROM Patients WHERE patient_id = ?",
+      "SELECT * FROM patients WHERE patient_id = ?",
       [appointmentData.patient_id]
     );
     if (patient.length === 0) {
