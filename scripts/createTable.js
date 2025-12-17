@@ -35,8 +35,8 @@ CREATE TABLE IF NOT EXISTS users (
    סוגי טיפולים
 ============================ */
 const treatmentTypesTableSQL = `
-CREATE TABLE IF NOT EXISTS TreatmentTypes (
-  type_id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS treatment_types (
+  treatment_type_id INT AUTO_INCREMENT PRIMARY KEY,
   type_name VARCHAR(50) NOT NULL
 );
 `;
@@ -226,7 +226,7 @@ CREATE TABLE IF NOT EXISTS Prospects (
   status ENUM('new', 'contacted', 'converted', 'not_relevant') DEFAULT 'new',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   converted_to_patient_id INT,
-  FOREIGN KEY (converted_to_patient_id) REFERENCES Patients(patient_id)
+  FOREIGN KEY (converted_to_patient_id) REFERENCES patients(patient_id)
 );
 `;
 
@@ -276,8 +276,8 @@ CREATE TABLE IF NOT EXISTS PatientCategories (
   category_id INT NOT NULL,
   assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   assigned_by INT,
-  FOREIGN KEY (patient_id) REFERENCES Patients(patient_id) ON DELETE CASCADE,
-  FOREIGN KEY (category_id) REFERENCES Categories(category_id) ON DELETE CASCADE,
+  FOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE,
+  FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE CASCADE,
   FOREIGN KEY (assigned_by) REFERENCES users(user_id),
   UNIQUE KEY unique_patient_category (patient_id, category_id)
 );
@@ -365,7 +365,7 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 //   gender ENUM('male','female','other') DEFAULT 'other'
 // );
 
-// ALTER TABLE Patients
+// ALTER TABLE patients
 //   ADD COLUMN person_id INT,
 //   ADD CONSTRAINT fk_patient_person
 //     FOREIGN KEY (person_id) REFERENCES person(person_id);
@@ -446,3 +446,4 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 // ALTER TABLE users CHANGE COLUMN email user_name VARCHAR(30);
 // ALTER TABLE appointments MODIFY room_id INT NULL;
 // ALTER TABLE appointments ADD COLUMN meeting_type ENUM('frontal','phone') NOT NULL;
+// ALTER TABLE treatment_types CHANGE COLUMN type_id treatment_type_id INT AUTO_INCREMENT;
