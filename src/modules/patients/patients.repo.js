@@ -1,34 +1,24 @@
 import pool, { deleteFromTable, updateTable } from "../../services/database.js";
+import { createPerson } from "../person/person.repo.js";
 
 /**
  * יצירת מטופל חדש: קודם פרסון, אחר כך פציינט, אחר כך שיוך מחלקות וקבוצות
  * מקבל אובייקט: { person, patient, selectedDepartments }
  */
 export async function createPatient({ person, patient, selectedDepartments }) {
+
   const connection = await pool.getConnection();
   try {
     console.log('--- יצירת מטופל חדש ---');
     console.log('קלט מהפרונט:', JSON.stringify({ person, patient, selectedDepartments }, null, 2));
     await connection.beginTransaction();
 
-    // 1. יצירת Person
-    const personFields = [
-      person.first_name,
-      person.last_name,
-      person.teudat_zehut || null,
-      person.phone || null,
-      person.city || null,
-      person.address || null,
-      person.birth_date || null,
-      person.gender || 'other'
-    ];
-    console.log('personFields:', personFields);
-    const [personResult] = await connection.execute(
-      `INSERT INTO person (first_name, last_name, teudat_zehut, phone, city, address, birth_date, gender)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      personFields
-    );
-    const person_id = personResult.insertId;
+    // 1. יצירת Person דרך הפונקציה הכללית (כולל טרנזקציה)
+    const personResult = await createPerson(person, connection);
+    // תומך גם במקרה ש-createPerson מחזיר אובייקט וגם מספר
+    const person_id = typeof personResult === 'object' && personResult !== null && 'person_id' in personResult
+      ? personResult.person_id
+      : personResult;
     console.log('נוצר person_id:', person_id);
 
     // 2. יצירת פציינט
@@ -81,7 +71,8 @@ export async function createPatient({ person, patient, selectedDepartments }) {
         address: person.address || null,
         birth_date: person.birth_date || null,
         gender: person.gender || 'other',
-        teudat_zehut: person.teudat_zehut || null
+        teudat_zehut: person.teudat_zehut || null,
+        email: person.email || null
       },
       patient: {
         patient_id,
@@ -108,7 +99,7 @@ export async function getPatientFullData(patientId) {
     SELECT P.patient_id, P.user_id, P.therapist_id, P.status AS patient_status, P.history_notes,
            P.person_id,
            PR.first_name, PR.last_name, PR.teudat_zehut, PR.phone, PR.city, PR.address, PR.birth_date, PR.gender,
-           U.email, U.role, U.agree, U.created_at
+           U.user_name, U.role, U.agree, U.created_at
     FROM patients P
     LEFT JOIN users U ON P.user_id = U.user_id
     LEFT JOIN person PR ON P.person_id = PR.person_id
@@ -216,7 +207,7 @@ export async function getPatientFullData(patientId) {
   };
            P.person_id,
            PR.first_name, PR.last_name, PR.teudat_zehut, PR.phone, PR.city, PR.address, PR.birth_date, PR.gender,
-           U.email, U.role, U.agree, U.created_at
+           U.user_name, U.role, U.agree, U.created_at
     FROM patients P
     LEFT JOIN users U ON P.user_id = U.user_id
     LEFT JOIN person PR ON P.person_id = PR.person_id
@@ -288,7 +279,7 @@ export const getPatientsByTherapist = async (therapistId) => {
     SELECT P.patient_id, P.user_id, P.therapist_id, P.status AS patient_status, P.history_notes,
            P.person_id,
            PR.first_name, PR.last_name, PR.teudat_zehut, PR.phone, PR.city, PR.address, PR.birth_date, PR.gender,
-           U.email, U.role, U.agree, U.created_at
+           U.user_name, U.role, U.agree, U.created_at
     FROM patients P
     LEFT JOIN users U ON P.user_id = U.user_id
     LEFT JOIN person PR ON P.person_id = PR.person_id
@@ -382,7 +373,7 @@ export const getAllPatients = async () => {
     SELECT P.patient_id, P.user_id, P.therapist_id, P.status AS patient_status, P.history_notes,
            P.person_id,
            PR.first_name, PR.last_name, PR.teudat_zehut, PR.phone, PR.city, PR.address, PR.birth_date, PR.gender,
-           U.email, U.role, U.agree, U.created_at
+           U.user_name, U.role, U.agree, U.created_at
     FROM patients P
     LEFT JOIN users U ON P.user_id = U.user_id
     LEFT JOIN person PR ON P.person_id = PR.person_id

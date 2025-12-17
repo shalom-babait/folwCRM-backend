@@ -2,8 +2,9 @@ import { loginService } from './login.service.js';
 
 export async function loginController(req, res) {
   try {
-    const { email, password } = req.body;
-    const result = await loginService(email, password);
+  // קבלה של user_name בלבד
+  const { user_name, password } = req.body;
+  const result = await loginService(user_name, password);
     // מחזירים רק מזהה רלוונטי לפי role
     const userRole = result.user?.role;
     const response = {
