@@ -83,21 +83,21 @@ CREATE TABLE IF NOT EXISTS Patients (
    פגישות
 ============================ */
 const appointmentsTableSQL = `
-CREATE TABLE IF NOT EXISTS Appointments (
+CREATE TABLE appointments (
   appointment_id INT AUTO_INCREMENT PRIMARY KEY,
   therapist_id INT NOT NULL,
   patient_id INT NOT NULL,
-  type_id INT NOT NULL,
+  type_id INT,
   room_id INT NOT NULL,
   appointment_date DATE NOT NULL,
   start_time TIME NOT NULL,
   end_time TIME NOT NULL,
   total_minutes INT AS (TIMESTAMPDIFF(MINUTE, start_time, end_time)) STORED,
-  status ENUM('מתוזמנת', 'הושלמה', 'בוטלה','נדחתה') NOT NULL DEFAULT 'מתוזמנת',
-  FOREIGN KEY (therapist_id) REFERENCES Therapists(therapist_id),
-  FOREIGN KEY (patient_id) REFERENCES Patients(patient_id),
-  FOREIGN KEY (type_id) REFERENCES TreatmentTypes(type_id),
-  FOREIGN KEY (room_id) REFERENCES Rooms(room_id)
+  status ENUM('מתוזמנת', 'הושלמה', 'בוטלה', 'נדחתה') NOT NULL DEFAULT 'מתוזמנת',
+  FOREIGN KEY (therapist_id) REFERENCES therapists(therapist_id),
+  FOREIGN KEY (patient_id) REFERENCES patients(patient_id),
+  FOREIGN KEY (type_id) REFERENCES treatment_types(treatment_type_id),
+  FOREIGN KEY (room_id) REFERENCES rooms(room_id)
 );
 `;
 
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS Appointments (
 ============================ */
 const paymentsTableSQL = `
 CREATE TABLE IF NOT EXISTS Payments (
-  pay_id INT AUTO_INCREMENT PRIMARY KEY,
+  payment_id INT AUTO_INCREMENT PRIMARY KEY,
   appointment_id INT,
   amount DECIMAL(10, 2) NOT NULL,
   payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -116,20 +116,6 @@ CREATE TABLE IF NOT EXISTS Payments (
 );
 `;
 
-/* ============================
-   החזרים
-============================ */
-const refundsTableSQL = `
-CREATE TABLE IF NOT EXISTS Refunds (
-  refund_id INT AUTO_INCREMENT PRIMARY KEY,
-  pay_id INT NOT NULL,
-  refund_amount DECIMAL(10,2) NOT NULL,
-  refund_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  reason VARCHAR(200),
-  status ENUM('pending','completed','failed') DEFAULT 'completed',
-  FOREIGN KEY (pay_id) REFERENCES Payments(pay_id)
-);
-`;
 
 /* ============================
    חשבוניות
@@ -137,11 +123,11 @@ CREATE TABLE IF NOT EXISTS Refunds (
 const invoicesTableSQL = `
 CREATE TABLE IF NOT EXISTS Invoices (
   invoice_id INT AUTO_INCREMENT PRIMARY KEY,
-  pay_id INT NOT NULL,
+  payment_id INT NOT NULL,
   invoice_number VARCHAR(50) UNIQUE NOT NULL,
   issue_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   total DECIMAL(10,2) NOT NULL,
-  FOREIGN KEY (pay_id) REFERENCES Payments(pay_id)
+  FOREIGN KEY (payment_id) REFERENCES Payments(payment_id)
 );
 `;
 
@@ -151,12 +137,12 @@ CREATE TABLE IF NOT EXISTS Invoices (
 const paymentStatusHistoryTableSQL = `
 CREATE TABLE IF NOT EXISTS PaymentStatusHistory (
   history_id INT AUTO_INCREMENT PRIMARY KEY,
-  pay_id INT NOT NULL,
+  payment_id INT NOT NULL,
   old_status VARCHAR(20),
   new_status VARCHAR(20),
   changed_by INT,
   changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (pay_id) REFERENCES Payments(pay_id),
+  FOREIGN KEY (payment_id) REFERENCES Payments(payment_id),
   FOREIGN KEY (changed_by) REFERENCES Users(user_id)
 );
 `;
@@ -252,7 +238,6 @@ CREATE TABLE IF NOT EXISTS Categories (
   category_id INT AUTO_INCREMENT PRIMARY KEY,
   category_type ENUM('prospect', 'patient', 'employee', 'treatment') NOT NULL,
   category_name VARCHAR(50) NOT NULL,
-  category_label VARCHAR(50) NOT NULL,
   description TEXT,
   color VARCHAR(20) DEFAULT '#2196F3',
   icon VARCHAR(30),
@@ -450,3 +435,14 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 //ALTER TABLE Therapists ADD COLUMN person_id INT, ADD CONSTRAINT fk_therapist_person FOREIGN KEY (person_id) REFERENCES Person(person_id);
 // ALTER TABLE users MODIFY COLUMN password VARCHAR(512);
 // ALTER TABLE appointments MODIFY COLUMN type_id INT NULL;
+//ALTER TABLE users MODIFY role ENUM(
+// 'company_manager',
+//   'admin',
+//   'therapist',
+//   'patient',
+//   'secretary'
+// );
+// ALTER TABLE person ADD COLUMN email VARCHAR(100);
+// ALTER TABLE users CHANGE COLUMN email user_name VARCHAR(30);
+// ALTER TABLE appointments MODIFY room_id INT NULL;
+// ALTER TABLE appointments ADD COLUMN meeting_type ENUM('frontal','phone') NOT NULL;

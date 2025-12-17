@@ -49,7 +49,7 @@ export async function createPayment(paymentData) {
 
   const [result] = await pool.query(sql, params);
 
-  return { pay_id: result.insertId, ...paymentData };
+  return { payment_id: result.insertId, ...paymentData };
 }
 
 // --- שליפות CRUD ---
@@ -59,8 +59,8 @@ export async function getAllPayments() {
   return rows;
 }
 
-export async function getPaymentById(pay_id) {
-  const [rows] = await pool.query(`SELECT * FROM payments WHERE pay_id = ?`, [pay_id]);
+export async function getPaymentById(payment_id) {
+  const [rows] = await pool.query(`SELECT * FROM payments WHERE payment_id = ?`, [payment_id]);
   return rows[0];
 }
 
@@ -77,16 +77,16 @@ export async function getPaymentByPatientId(patient_id) {
   return rows;
 }
 
-export async function updatePayment(pay_id, paymentData) {
+export async function updatePayment(payment_id, paymentData) {
   const fields = Object.keys(paymentData)
     .map(key => `${key} = ?`)
     .join(', ');
 
   const values = Object.values(paymentData);
-  await pool.query(`UPDATE payments SET ${fields} WHERE pay_id = ?`, [...values, pay_id]);
-  return getPaymentById(pay_id);
+  await pool.query(`UPDATE payments SET ${fields} WHERE payment_id = ?`, [...values, payment_id]);
+  return getPaymentById(payment_id);
 }
 
-export async function deletePayment(pay_id) {
-  await pool.query(`DELETE FROM payments WHERE pay_id = ?`, [pay_id]);
+export async function deletePayment(payment_id) {
+  await pool.query(`DELETE FROM payments WHERE payment_id = ?`, [payment_id]);
 }

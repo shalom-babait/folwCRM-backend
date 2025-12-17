@@ -24,7 +24,7 @@ export async function getAllPaymentsController(req, res) {
 // --- שליפה לפי תשלום ID ---
 export async function getPaymentByIdController(req, res) {
   try {
-    const payment = await paymentsService.getPaymentByIdService(req.params.pay_id);
+    const payment = await paymentsService.getPaymentByIdService(req.params.payment_id);
     if (!payment) return res.status(404).json({ error: 'Payment not found' });
     res.json(payment);
   } catch (err) {
@@ -35,7 +35,7 @@ export async function getPaymentByIdController(req, res) {
 // --- עדכון תשלום ---
 export async function updatePaymentController(req, res) {
   try {
-    const updated = await paymentsService.updatePaymentService(req.params.pay_id, req.body);
+    const updated = await paymentsService.updatePaymentService(req.params.payment_id, req.body);
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -45,7 +45,7 @@ export async function updatePaymentController(req, res) {
 // --- מחיקת תשלום ---
 export async function deletePaymentController(req, res) {
   try {
-    await paymentsService.deletePaymentService(req.params.pay_id);
+    await paymentsService.deletePaymentService(req.params.payment_id);
     res.status(204).end();
   } catch (err) {
     res.status(500).json({ error: err.message });
