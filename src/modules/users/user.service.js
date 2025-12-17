@@ -71,7 +71,7 @@ export async function loginUser(email, password) {
 export async function deleteUser(id) {
   try {
     const [existing] = await pool.execute(
-      "SELECT * FROM Users WHERE user_id = ?",
+      "SELECT * FROM users WHERE user_id = ?",
       [id]
     );
     if (existing.length === 0) {
@@ -86,7 +86,7 @@ export async function deleteUser(id) {
 export async function updateUser(id, updateData) {
   try {
     const [existing] = await pool.execute(
-      "SELECT * FROM Users WHERE user_id = ?",
+      "SELECT * FROM users WHERE user_id = ?",
       [id]
     );
     if (existing.length === 0) {

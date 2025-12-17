@@ -91,10 +91,6 @@ export async function updatePatient(patientId, updateData) {
             if (patientFields.includes(key)) patientUpdate[key] = updateData[key];
         }
 
-        // כאן יש לעדכן את Person במקום Users
-        // לדוגמה: await updateToPerson(patient.person_id, personUpdate);
-        // כרגע, אם אין פונקציה כזו, יש להוסיף אותה בעתיד
-
         let personUpdateResult = null;
         let patientUpdateResult = null;
         // Update Person table if needed
@@ -102,7 +98,7 @@ export async function updatePatient(patientId, updateData) {
             if (patient.person_id) {
                 // personUpdateResult = await updateToPerson(patient.person_id, personUpdate);
             } else {
-                console.log('No person_id found for patient, cannot update Person table');
+                console.log('No person_id found for patient, cannot update person table');
             }
         }
         // Update Patients table

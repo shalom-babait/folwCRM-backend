@@ -13,7 +13,7 @@ async function createTable(sql) {
    טבלת משתמשים
 ============================ */
 const usersTableSQL = `
-CREATE TABLE IF NOT EXISTS Users (
+CREATE TABLE IF NOT EXISTS users (
   user_id INT AUTO_INCREMENT PRIMARY KEY,
   first_name VARCHAR(15) NOT NULL,
   last_name VARCHAR(20) NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS TreatmentTypes (
    חדרים
 ============================ */
 const roomsTableSQL = `
-CREATE TABLE IF NOT EXISTS Rooms (
+CREATE TABLE IF NOT EXISTS rooms (
   room_id INT AUTO_INCREMENT PRIMARY KEY,
   room_name VARCHAR(50) NOT NULL
 );
@@ -55,10 +55,10 @@ CREATE TABLE IF NOT EXISTS Rooms (
    מטפלים
 ============================ */
 const therapistsTableSQL = `
-CREATE TABLE IF NOT EXISTS Therapists (
+CREATE TABLE IF NOT EXISTS therapists (
   therapist_id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT UNIQUE,
-  FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 `;
 
@@ -74,8 +74,8 @@ CREATE TABLE IF NOT EXISTS Patients (
   gender ENUM('male','female','other') NOT NULL DEFAULT 'female',
   status ENUM('פעיל', 'לא פעיל', 'בהמתנה') NOT NULL DEFAULT 'פעיל',
   history_notes VARCHAR(500),
-  FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
-  FOREIGN KEY (therapist_id) REFERENCES Therapists(therapist_id)
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+  FOREIGN KEY (therapist_id) REFERENCES therapists(therapist_id)
 );
 `;
 
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS Payments (
   payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   method ENUM('כרטיס אשראי', 'העברה בנקאית', 'מזומן') NOT NULL,
   status ENUM('pending','paid','failed','refunded') DEFAULT 'pending',
-  FOREIGN KEY (appointment_id) REFERENCES Appointments(appointment_id)
+  FOREIGN KEY (appointment_id) REFERENCES appointments(appointment_id)
 );
 `;
 
@@ -143,7 +143,7 @@ CREATE TABLE IF NOT EXISTS PaymentStatusHistory (
   changed_by INT,
   changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (payment_id) REFERENCES Payments(payment_id),
-  FOREIGN KEY (changed_by) REFERENCES Users(user_id)
+  FOREIGN KEY (changed_by) REFERENCES users(user_id)
 );
 `;
 
@@ -156,7 +156,7 @@ CREATE TABLE IF NOT EXISTS TherapistToVideo (
   therapist_id INT,
   video_url VARCHAR(255) NOT NULL,
   year INT,
-  FOREIGN KEY (therapist_id) REFERENCES Therapists(therapist_id)
+  FOREIGN KEY (therapist_id) REFERENCES therapists(therapist_id)
 );
 `;
 
@@ -178,7 +178,7 @@ CREATE TABLE IF NOT EXISTS UserDepartments (
   user_department_id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   department_id INT NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
   FOREIGN KEY (department_id) REFERENCES Departments(department_id),
   UNIQUE (user_id, department_id)
 );
@@ -202,7 +202,7 @@ CREATE TABLE IF NOT EXISTS UserGroups (
   user_group_id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   group_id INT NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
   FOREIGN KEY (group_id) REFERENCES group_list(group_id),
   UNIQUE (user_id, group_id)
 );
@@ -261,7 +261,7 @@ CREATE TABLE IF NOT EXISTS ProspectCategories (
   assigned_by INT,
   FOREIGN KEY (prospect_id) REFERENCES Prospects(prospect_id) ON DELETE CASCADE,
   FOREIGN KEY (category_id) REFERENCES Categories(category_id) ON DELETE CASCADE,
-  FOREIGN KEY (assigned_by) REFERENCES Users(user_id),
+  FOREIGN KEY (assigned_by) REFERENCES users(user_id),
   UNIQUE KEY unique_prospect_category (prospect_id, category_id)
 );
 `;
@@ -278,7 +278,7 @@ CREATE TABLE IF NOT EXISTS PatientCategories (
   assigned_by INT,
   FOREIGN KEY (patient_id) REFERENCES Patients(patient_id) ON DELETE CASCADE,
   FOREIGN KEY (category_id) REFERENCES Categories(category_id) ON DELETE CASCADE,
-  FOREIGN KEY (assigned_by) REFERENCES Users(user_id),
+  FOREIGN KEY (assigned_by) REFERENCES users(user_id),
   UNIQUE KEY unique_patient_category (patient_id, category_id)
 );
 `;
@@ -292,7 +292,7 @@ CREATE TABLE IF NOT EXISTS UserCategories (
   user_id INT NOT NULL,
   category_id INT NOT NULL,
   assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
   FOREIGN KEY (category_id) REFERENCES Categories(category_id) ON DELETE CASCADE,
   UNIQUE KEY unique_user_category (user_id, category_id)
 );
@@ -322,7 +322,7 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 //  createTable(patientCategoriesTableSQL);
 //  createTable(userCategoriesTableSQL);
 //שיניתי
-// ALTER TABLE Users
+// ALTER TABLE users
 //   DROP COLUMN first_name,
 //   DROP COLUMN last_name,
 //   DROP COLUMN teudat_zehut,
@@ -334,7 +334,7 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 
 // SET SQL_SAFE_UPDATES = 1;
 
-// UPDATE Users u
+// UPDATE users u
 // JOIN Person p
 //   ON u.first_name = p.first_name
 //  AND u.last_name  = p.last_name
@@ -346,12 +346,12 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 
 // INSERT INTO Person (first_name, last_name, teudat_zehut, phone, city, address, birth_date, gender)
 // SELECT first_name, last_name, teudat_zehut, phone, city, address, birth_date, gender
-// FROM Users;
+// FROM users;
 
-// ALTER TABLE Users
+// ALTER TABLE users
 //   ADD COLUMN person_id INT,
 //   ADD CONSTRAINT fk_user_person
-//     FOREIGN KEY (person_id) REFERENCES Person(person_id);
+//     FOREIGN KEY (person_id) REFERENCES person(person_id);
 
 // CREATE TABLE IF NOT EXISTS Person (
 //   person_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -368,14 +368,14 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 // ALTER TABLE Patients
 //   ADD COLUMN person_id INT,
 //   ADD CONSTRAINT fk_patient_person
-//     FOREIGN KEY (person_id) REFERENCES Person(person_id);
+//     FOREIGN KEY (person_id) REFERENCES person(person_id);
 
 // ALTER TABLE UserDepartments
 //   ADD COLUMN person_id INT;
 
 // ALTER TABLE UserDepartments
 //   ADD CONSTRAINT fk_userdepartments_person
-//     FOREIGN KEY (person_id) REFERENCES Person(person_id) ON DELETE CASCADE;
+//     FOREIGN KEY (person_id) REFERENCES person(person_id) ON DELETE CASCADE;
 
 // ALTER TABLE UserDepartments
 //   DROP FOREIGN KEY UserDepartments_user_fk,
@@ -390,7 +390,7 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 
 // ALTER TABLE UserGroups
 //   ADD CONSTRAINT fk_usergroups_person
-//     FOREIGN KEY (person_id) REFERENCES Person(person_id) ON DELETE CASCADE;
+//     FOREIGN KEY (person_id) REFERENCES person(person_id) ON DELETE CASCADE;
 
 
 // ALTER TABLE UserGroups
@@ -428,11 +428,11 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 // ALTER TABLE Payments
 // ADD COLUMN person_id INT NULL,
 // ADD CONSTRAINT fk_payment_person
-//   FOREIGN KEY (person_id) REFERENCES Person(person_id);
+//   FOREIGN KEY (person_id) REFERENCES person(person_id);
 
 // הוספתי 3
 //ALTER TABLE Therapists ADD COLUMN status ENUM('פעיל', 'לא פעיל', 'בהמתנה') NOT NULL DEFAULT 'פעיל';
-//ALTER TABLE Therapists ADD COLUMN person_id INT, ADD CONSTRAINT fk_therapist_person FOREIGN KEY (person_id) REFERENCES Person(person_id);
+//ALTER TABLE Therapists ADD COLUMN person_id INT, ADD CONSTRAINT fk_therapist_person FOREIGN KEY (person_id) REFERENCES person(person_id);
 // ALTER TABLE users MODIFY COLUMN password VARCHAR(512);
 // ALTER TABLE appointments MODIFY COLUMN type_id INT NULL;
 //ALTER TABLE users MODIFY role ENUM(

@@ -46,11 +46,11 @@ ORDER BY
 //       A.therapist_id,
 //       CONCAT(U.first_name, ' ', U.last_name) AS therapist_name
 //     FROM
-//       Appointments AS A
+//       appointments AS A
 //     LEFT JOIN group_list AS GL ON A.type_id = GL.group_id
-//     JOIN Rooms AS R ON A.room_id = R.room_id
-//     JOIN Therapists AS T ON A.therapist_id = T.therapist_id
-//     JOIN Users AS U ON T.user_id = U.user_id
+//     JOIN rooms AS R ON A.room_id = R.room_id
+//     JOIN therapists AS T ON A.therapist_id = T.therapist_id
+//     JOIN users AS U ON T.user_id = U.user_id
 //     WHERE
 //       A.type_id = ?
 //     ORDER BY
@@ -227,12 +227,12 @@ export async function getAppointmentsByPatientId(patient_id) {
       P.first_name AS therapist_first_name,
       P.last_name AS therapist_last_name,
       TT.type_name
-    FROM Appointments AS A
+    FROM appointments AS A
     LEFT JOIN treatment_types AS TT ON A.type_id = TT.type_id
     LEFT JOIN group_list AS GL ON A.type_id = GL.group_id
-    LEFT JOIN Rooms AS R ON A.room_id = R.room_id
-    LEFT JOIN Therapists AS T ON A.therapist_id = T.therapist_id
-    LEFT JOIN Users AS U ON T.user_id = U.user_id
+    LEFT JOIN rooms AS R ON A.room_id = R.room_id
+    LEFT JOIN therapists AS T ON A.therapist_id = T.therapist_id
+    LEFT JOIN users AS U ON T.user_id = U.user_id
     LEFT JOIN person AS P ON U.person_id = P.person_id
     WHERE A.patient_id = ?
     ORDER BY A.appointment_date DESC, A.start_time DESC;
