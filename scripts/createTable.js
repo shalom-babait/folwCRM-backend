@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS therapists (
    מטופלים
 ============================ */
 const patientsTableSQL = `
-CREATE TABLE IF NOT EXISTS Patients (
+CREATE TABLE IF NOT EXISTS patients (
   patient_id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT,
   therapist_id INT,
@@ -234,7 +234,7 @@ CREATE TABLE IF NOT EXISTS Prospects (
    קטגוריות
 ============================ */
 const categoriesTableSQL = `
-CREATE TABLE IF NOT EXISTS Categories (
+CREATE TABLE IF NOT EXISTS categories (
   category_id INT AUTO_INCREMENT PRIMARY KEY,
   category_type ENUM('prospect', 'patient', 'employee', 'treatment') NOT NULL,
   category_name VARCHAR(50) NOT NULL,
