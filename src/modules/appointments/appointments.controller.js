@@ -49,13 +49,14 @@ export async function createAppointmentController(req, res) {
     const appointmentData = req.body;
 
     // וולידציה בסיסית
+    // room_id לא חובה, אפשר 0/null
     const requiredFields = [
-      'therapist_id', 'patient_id', 'room_id',
+      'therapist_id', 'patient_id',
       'appointment_date', 'start_time', 'end_time'
     ];
 
     for (const field of requiredFields) {
-      if (!appointmentData[field]) {
+      if (!appointmentData[field] && appointmentData[field] !== 0) {
         console.warn(`[createAppointmentController] Missing required field: ${field}`);
         return res.status(400).json({
           success: false,
