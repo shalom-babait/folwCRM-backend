@@ -25,7 +25,7 @@ export async function createType(typeData) {
 export async function deleteType(id) {
   try {
     const [existing] = await pool.execute(
-      "SELECT * FROM TreatmentTypes WHERE type_id = ?",
+      "SELECT * FROM treatment_types WHERE treatment_type_id = ?",
       [id]
     );
     if (existing.length === 0) {
@@ -40,7 +40,7 @@ export async function deleteType(id) {
 export async function updateType(id, updateData) {
   try {
     const [existing] = await pool.execute(
-      "SELECT * FROM TreatmentTypes WHERE type_id = ?",
+      "SELECT * FROM treatment_types WHERE treatment_type_id = ?",
       [id]
     );
     if (existing.length === 0) {

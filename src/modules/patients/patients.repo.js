@@ -342,7 +342,7 @@ export const getPatientDetails = async (patientId) => {
     FROM appointments AS A
     JOIN patients AS P ON A.patient_id = P.patient_id
     JOIN users AS U ON P.user_id = U.user_id
-    JOIN group_list AS TT ON A.type_id = TT.group_id
+    JOIN group_list AS TT ON A.treatment_type_id = TT.group_id
     JOIN rooms AS R ON A.room_id = R.room_id
     join person AS PR ON U.person_id = PR.person_id
     WHERE A.patient_id = ? 

@@ -29,7 +29,7 @@ export async function create(typeData) {
   try {
     const [result] = await pool.execute(query, [type_name]);
     return {
-      type_id: result.insertId,
+      treatment_type_id: result.insertId,
       type_name,
       message: "type created successfully"
     };
@@ -39,9 +39,9 @@ export async function create(typeData) {
 }
 
 export async function deleteFromTypes(typeId) {
-  return deleteFromTable('treatment_types', { type_id: typeId });
+  return deleteFromTable('treatment_types', { treatment_type_id: typeId });
 }
 
 export async function updateToTypes(typeId, updateData) {
-  return updateTable('treatment_types', updateData, { type_id: typeId });
+  return updateTable('treatment_types', updateData, { treatment_type_id: typeId });
 }
