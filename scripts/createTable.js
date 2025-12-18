@@ -87,7 +87,7 @@ CREATE TABLE appointments (
   appointment_id INT AUTO_INCREMENT PRIMARY KEY,
   therapist_id INT NOT NULL,
   patient_id INT NOT NULL,
-  type_id INT,
+  treatment_type_id INT,
   room_id INT NOT NULL,
   appointment_date DATE NOT NULL,
   start_time TIME NOT NULL,
@@ -434,7 +434,7 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 //ALTER TABLE Therapists ADD COLUMN status ENUM('פעיל', 'לא פעיל', 'בהמתנה') NOT NULL DEFAULT 'פעיל';
 //ALTER TABLE Therapists ADD COLUMN person_id INT, ADD CONSTRAINT fk_therapist_person FOREIGN KEY (person_id) REFERENCES person(person_id);
 // ALTER TABLE users MODIFY COLUMN password VARCHAR(512);
-// ALTER TABLE appointments MODIFY COLUMN type_id INT NULL;
+// ALTER TABLE appointments MODIFY COLUMN treatment_type_id INT NULL;
 //ALTER TABLE users MODIFY role ENUM(
 // 'company_manager',
 //   'admin',
@@ -446,4 +446,5 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 // ALTER TABLE users CHANGE COLUMN email user_name VARCHAR(30);
 // ALTER TABLE appointments MODIFY room_id INT NULL;
 // ALTER TABLE appointments ADD COLUMN meeting_type ENUM('frontal','phone') NOT NULL;
-// ALTER TABLE treatment_types CHANGE COLUMN type_id treatment_type_id INT AUTO_INCREMENT;
+// ALTER TABLE treatment_types CHANGE COLUMN treatment_type_id treatment_type_id INT AUTO_INCREMENT;
+// ALTER TABLE appointments CHANGE COLUMN treatment_type_id treatment_type_id INT;

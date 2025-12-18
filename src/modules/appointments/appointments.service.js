@@ -47,12 +47,15 @@ export async function createAppointment(appointmentData) {
     }
 
     // בדיקה שהחדר קיים
-    const [room] = await pool.execute(
-      "SELECT * FROM rooms WHERE room_id = ?",
-      [appointmentData.room_id]
-    );
-    if (room.length === 0) {
-      throw new Error("Room not found");
+    // בדיקה שהחדר קיים - רק אם נשלח room_id תקין (לא null/0)
+    if (appointmentData.room_id && appointmentData.room_id !== 0) {
+      const [room] = await pool.execute(
+        "SELECT * FROM rooms WHERE room_id = ?",
+        [appointmentData.room_id]
+      );
+      if (room.length === 0) {
+        throw new Error("Room not found");
+      }
     }
 
     // וולידציה על תאריכים וזמנים
