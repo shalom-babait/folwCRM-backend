@@ -46,7 +46,11 @@ export async function getAppointmentsByRoom(req, res) {
 export async function createAppointmentController(req, res) {
   try {
     console.log('[createAppointmentController] req.body:', req.body);
-    const appointmentData = req.body;
+    const appointmentData = {
+      ...req.body,
+      room_id: req.body.room_id === undefined || req.body.room_id === 0 ? null : req.body.room_id,
+      treatment_type_id: req.body.treatment_type_id === undefined || req.body.treatment_type_id === 0 ? null : req.body.treatment_type_id
+    };
 
     // וולידציה בסיסית
     // room_id לא חובה, אפשר 0/null
