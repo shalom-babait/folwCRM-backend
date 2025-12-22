@@ -20,13 +20,13 @@ export async function getAppointmentsByGroupId(groupId) {
   CONCAT(P.first_name, ' ', P.last_name) AS therapist_name
 FROM
   appointments AS A
-LEFT JOIN group_list AS GL ON A.type_id = GL.group_id
+LEFT JOIN group_list AS GL ON A.treatment_type_id = GL.group_id
 LEFT JOIN rooms AS R ON A.room_id = R.room_id
 LEFT JOIN therapists AS T ON A.therapist_id = T.therapist_id
 LEFT JOIN users AS U ON T.user_id = U.user_id
 LEFT JOIN person AS P ON U.person_id = P.person_id
 WHERE
-  A.type_id = ?
+  A.treatment_type_id = ?
 ORDER BY
   A.appointment_date, A.start_time;
   `;
@@ -46,13 +46,13 @@ ORDER BY
 //       A.therapist_id,
 //       CONCAT(U.first_name, ' ', U.last_name) AS therapist_name
 //     FROM
-//       Appointments AS A
-//     LEFT JOIN group_list AS GL ON A.type_id = GL.group_id
-//     JOIN Rooms AS R ON A.room_id = R.room_id
-//     JOIN Therapists AS T ON A.therapist_id = T.therapist_id
-//     JOIN Users AS U ON T.user_id = U.user_id
+//       appointments AS A
+//     LEFT JOIN group_list AS GL ON A.treatment_type_id = GL.group_id
+//     JOIN rooms AS R ON A.room_id = R.room_id
+//     JOIN therapists AS T ON A.therapist_id = T.therapist_id
+//     JOIN users AS U ON T.user_id = U.user_id
 //     WHERE
-//       A.type_id = ?
+//       A.treatment_type_id = ?
 //     ORDER BY
 //       A.appointment_date, A.start_time;
 // שליפת כל הפגישות של מטפל בלבד
@@ -71,8 +71,8 @@ export async function getAppointmentsByTherapist(therapistId) {
       A.patient_id
     FROM
       appointments AS A
-   -- LEFT JOIN treatmenttypes AS TT ON A.type_id = TT.type_id
-    LEFT JOIN group_list AS GL ON A.type_id = GL.group_id
+   -- LEFT JOIN treatmenttypes AS TT ON A.treatment_type_id = TT.treatment_type_id
+    LEFT JOIN group_list AS GL ON A.treatment_type_id = GL.group_id
     JOIN rooms AS R ON A.room_id = R.room_id
     WHERE
       A.therapist_id = ?
@@ -102,7 +102,6 @@ export async function create(appointmentData) {
   const {
     therapist_id,
     patient_id,
-    type_id,
     room_id,
     appointment_date,
     start_time,
@@ -110,19 +109,20 @@ export async function create(appointmentData) {
     status,
     notes
   } = appointmentData;
+  // אם treatment_type_id ריק או לא קיים, נכניס null
+  const treatment_type_id = appointmentData.treatment_type_id ? appointmentData.treatment_type_id : null;
 
   const query = `
     INSERT INTO appointments 
-    (therapist_id, patient_id, type_id, room_id, appointment_date, start_time, end_time, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-
+    (therapist_id, patient_id, treatment_type_id, room_id, appointment_date, start_time, end_time, status, notes)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   try {
     const [result] = await pool.execute(query, [
       therapist_id,
       patient_id,
-      type_id,
+      treatment_type_id,
       room_id,
       appointment_date,
       start_time,
@@ -135,7 +135,7 @@ export async function create(appointmentData) {
       appointment_id: result.insertId,
       therapist_id,
       patient_id,
-      type_id,
+      treatment_type_id,
       room_id,
       appointment_date,
       start_time,
@@ -190,7 +190,7 @@ export async function getAppointmentsByPatientAndTherapist(patientId, therapistI
       R.room_name AS room
     FROM
       appointments AS A
-    LEFT JOIN group_list AS GL ON A.type_id = GL.group_id
+    LEFT JOIN group_list AS GL ON A.treatment_type_id = GL.group_id
     JOIN rooms AS R ON A.room_id = R.room_id
     WHERE
       A.patient_id = ? AND A.therapist_id = ?
@@ -215,14 +215,24 @@ export async function getAppointmentsByPatientId(patient_id) {
       A.appointment_id,
       DATE_FORMAT(A.appointment_date, '%Y-%m-%d') AS appointment_date,
       A.start_time,
+      A.end_time,
+      A.total_minutes,
+      A.status,
+      A.notes,
+      GL.group_name AS group_name,
+      R.room_name AS room,
+      A.patient_id,
+      A.therapist_id,
       CONCAT(P.first_name, ' ', P.last_name) AS therapist_name,
       P.first_name AS therapist_first_name,
       P.last_name AS therapist_last_name,
       TT.type_name
-    FROM Appointments AS A
-    LEFT JOIN treatment_types AS TT ON A.type_id = TT.type_id
-    LEFT JOIN Therapists AS T ON A.therapist_id = T.therapist_id
-    LEFT JOIN Users AS U ON T.user_id = U.user_id
+    FROM appointments AS A
+    LEFT JOIN treatment_types AS TT ON A.treatment_type_id = TT.treatment_type_id
+    LEFT JOIN group_list AS GL ON A.treatment_type_id = GL.group_id
+    LEFT JOIN rooms AS R ON A.room_id = R.room_id
+    LEFT JOIN therapists AS T ON A.therapist_id = T.therapist_id
+    LEFT JOIN users AS U ON T.user_id = U.user_id
     LEFT JOIN person AS P ON U.person_id = P.person_id
     WHERE A.patient_id = ?
     ORDER BY A.appointment_date DESC, A.start_time DESC;

@@ -23,7 +23,7 @@ export async function createRoom(roomData) {
 export async function deleteRoom(id) {
   try {
     const [existing] = await pool.execute(
-      "SELECT * FROM Rooms WHERE room_id = ?",
+      "SELECT * FROM rooms WHERE room_id = ?",
       [id]
     );
     if (existing.length === 0) {
@@ -38,7 +38,7 @@ export async function deleteRoom(id) {
 export async function updateRoom(id, updateData) {
   try {
     const [existing] = await pool.execute(
-      "SELECT * FROM Rooms WHERE room_id = ?",
+      "SELECT * FROM rooms WHERE room_id = ?",
       [id]
     );
     if (existing.length === 0) {

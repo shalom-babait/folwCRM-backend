@@ -1,5 +1,10 @@
 import pool, { deleteFromTable, updateTable } from "../../services/database.js";
 import { create as createUser } from "../users/user.repo.js";
+import { createPerson } from "../person/person.repo.js";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import dotenv from "dotenv";
+dotenv.config();
 
 // מחזיר therapist_id לפי user_id
 export async function getTherapistIdByUserId(user_id) {
@@ -43,7 +48,7 @@ export async function getTherapists() {
     SELECT 
       t.therapist_id,
       t.user_id,
-      u.email,
+      u.user_name,
       u.role,
       u.agree,
       u.created_at,
@@ -55,7 +60,8 @@ export async function getTherapists() {
       p.city,
       p.address,
       p.birth_date,
-      p.gender
+      p.gender,
+      p.email
     FROM therapists t
     INNER JOIN users u ON t.user_id = u.user_id
     LEFT JOIN person p ON u.person_id = p.person_id
@@ -67,7 +73,7 @@ export async function getTherapists() {
     user: {
       user_id: row.user_id,
       person_id: row.person_id,
-      email: row.email,
+      user_name: row.user_name,
       role: row.role,
       agree: row.agree,
       created_at: row.created_at
@@ -81,7 +87,8 @@ export async function getTherapists() {
       city: row.city || '',
       address: row.address || '',
       birth_date: row.birth_date || '',
-      gender: row.gender || 'other'
+      gender: row.gender || 'other',
+      email: row.email || ''
     },
     therapist: {
       therapist_id: row.therapist_id,
@@ -101,6 +108,10 @@ export async function updateToTherapists(therapistId, updateData) {
 }
 
 export async function createTherapist({ user, person, therapist, selectedDepartments }) {
+    // Normalize birth_date: if empty string, set to null
+    if (!person.birth_date || person.birth_date.trim() === "") {
+      person.birth_date = null;
+    }
   const connection = await pool.getConnection();
   try {
     console.log('--- יצירת מטפל חדש ---');
@@ -108,38 +119,27 @@ export async function createTherapist({ user, person, therapist, selectedDepartm
     await connection.beginTransaction();
 
     // 1. יצירת User
+    // שימוש בשם המשתמש מהפרונט (user_name)
+    const token = jwt.sign({ user_name: user.user_name, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
     const userFields = [
-      user.email,
-      user.password,
+      user.user_name, // שם משתמש עם קו תחתון
+      token,
       user.role || 'therapist',
       user.agree || 0
     ];
     console.log('userFields:', userFields);
     const [userResult] = await connection.execute(
-      `INSERT INTO users (email, password, role, agree) VALUES (?, ?, ?, ?)`,
+      `INSERT INTO users (user_name, password, role, agree) VALUES (?, ?, ?, ?)`,
       userFields
     );
     const user_id = userResult.insertId;
     console.log('נוצר user_id:', user_id);
 
-    // 2. יצירת Person
-    const personFields = [
-      person.first_name,
-      person.last_name,
-      person.teudat_zehut || null,
-      person.phone || null,
-      person.city || null,
-      person.address || null,
-      person.birth_date || null,
-      person.gender || 'other'
-    ];
-    console.log('personFields:', personFields);
-    const [personResult] = await connection.execute(
-      `INSERT INTO person (first_name, last_name, teudat_zehut, phone, city, address, birth_date, gender)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      personFields
-    );
-    const person_id = personResult.insertId;
+    // 2. יצירת Person דרך הפונקציה הכללית (כולל טרנזקציה)
+    const personResult = await createPerson(person, connection);
+    const person_id = typeof personResult === 'object' && personResult !== null && 'person_id' in personResult
+      ? personResult.person_id
+      : personResult;
     console.log('נוצר person_id:', person_id);
 
     // 3. עדכון user עם person_id
@@ -187,7 +187,6 @@ export async function createTherapist({ user, person, therapist, selectedDepartm
     return {
       user: {
         user_id,
-        email: user.email,
         role: user.role || 'therapist',
         agree: user.agree || 0
       },
@@ -200,7 +199,8 @@ export async function createTherapist({ user, person, therapist, selectedDepartm
         address: person.address || null,
         birth_date: person.birth_date || null,
         gender: person.gender || 'other',
-        teudat_zehut: person.teudat_zehut || null
+        teudat_zehut: person.teudat_zehut || null,
+        email: person.email || null
       },
       therapist: {
         therapist_id,

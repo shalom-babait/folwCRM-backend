@@ -19,7 +19,7 @@ export async function createAppointment(appointmentData) {
   try {
     // בדיקה שהמטפל קיים
     const [therapist] = await pool.execute(
-      "SELECT * FROM Therapists WHERE therapist_id = ?",
+      "SELECT * FROM therapists WHERE therapist_id = ?",
       [appointmentData.therapist_id]
     );
     if (therapist.length === 0) {
@@ -28,29 +28,34 @@ export async function createAppointment(appointmentData) {
 
     // בדיקה שהמטופל קיים
     const [patient] = await pool.execute(
-      "SELECT * FROM Patients WHERE patient_id = ?",
+      "SELECT * FROM patients WHERE patient_id = ?",
       [appointmentData.patient_id]
     );
     if (patient.length === 0) {
       throw new Error("Patient not found");
     }
 
-    // בדיקה שקבוצת הטיפול קיימת (ולא בודקים ב-TreatmentTypes)
-    const [group] = await pool.execute(
-      "SELECT * FROM group_list WHERE group_id = ?",
-      [appointmentData.type_id]
-    );
-    if (group.length === 0) {
-      throw new Error("Group not found");
+    // בדיקה שקבוצת הטיפול קיימת (רק אם treatment_type_id לא ריק)
+    if (appointmentData.treatment_type_id) {
+      const [group] = await pool.execute(
+        "SELECT * FROM group_list WHERE group_id = ?",
+        [appointmentData.treatment_type_id]
+      );
+      if (group.length === 0) {
+        throw new Error("Group not found");
+      }
     }
 
     // בדיקה שהחדר קיים
-    const [room] = await pool.execute(
-      "SELECT * FROM Rooms WHERE room_id = ?",
-      [appointmentData.room_id]
-    );
-    if (room.length === 0) {
-      throw new Error("Room not found");
+    // בדיקה שהחדר קיים - רק אם נשלח room_id תקין (לא null/0)
+    if (appointmentData.room_id && appointmentData.room_id !== 0) {
+      const [room] = await pool.execute(
+        "SELECT * FROM rooms WHERE room_id = ?",
+        [appointmentData.room_id]
+      );
+      if (room.length === 0) {
+        throw new Error("Room not found");
+      }
     }
 
     // וולידציה על תאריכים וזמנים
@@ -96,7 +101,7 @@ export async function deleteAppointment(appointmentId) {
   try {
     // Check if appointment exists before deleting
     const [appointment] = await pool.execute(
-      "SELECT * FROM Appointments WHERE appointment_id = ?",
+      "SELECT * FROM appointments WHERE appointment_id = ?",
       [appointmentId]
     );
     if (appointment.length === 0) {
@@ -113,7 +118,7 @@ export async function updateAppointment(appointmentId, updateData) {
   try {
     // Check if appointment exists
     const [appointment] = await pool.execute(
-      "SELECT * FROM Appointments WHERE appointment_id = ?",
+      "SELECT * FROM appointments WHERE appointment_id = ?",
       [appointmentId]
     );
     if (appointment.length === 0) {

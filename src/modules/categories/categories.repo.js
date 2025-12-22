@@ -141,11 +141,11 @@ const CategoriesRepository = {
   // שיוך קטגוריות לפרוספקט
   async assignToProspect(prospectId, categoryIds) {
     try {
-      await pool.query(`DELETE FROM prospectcategories WHERE prospect_id = ?`, [prospectId]);
+      await pool.query(`DELETE FROM prospect_categories WHERE prospect_id = ?`, [prospectId]);
       if (!Array.isArray(categoryIds) && categoryIds) categoryIds = [categoryIds];
       if (Array.isArray(categoryIds) && categoryIds.length > 0) {
         const values = categoryIds.map(id => [prospectId, id]);
-        await pool.query(`INSERT INTO prospectcategories (prospect_id, category_id) VALUES ?`, [values]);
+        await pool.query(`INSERT INTO prospect_categories (prospect_id, category_id) VALUES ?`, [values]);
       }
       return { success: true };
     } catch (error) {
@@ -160,7 +160,7 @@ const CategoriesRepository = {
       const [rows] = await pool.query(
         `SELECT c.*
          FROM categories c
-         JOIN prospectcategories pc ON c.category_id = pc.category_id
+         JOIN prospect_categories pc ON c.category_id = pc.category_id
          WHERE pc.prospect_id = ?`,
         [prospectId]
       );
@@ -225,7 +225,7 @@ const CategoriesRepository = {
     try {
       const [rows] = await pool.query(
         `SELECT c.*
-         FROM Categories c
+         FROM categories c
          JOIN UserCategories uc ON c.category_id = uc.category_id
          WHERE uc.user_id = ?`,
         [userId]
@@ -259,9 +259,9 @@ const CategoriesRepository = {
     try {
       const [rows] = await pool.query(
         `SELECT u.user_id, u.email, u.role, u.person_id, p.first_name, p.last_name, p.phone, p.teudat_zehut, p.city, p.address, p.birth_date, p.gender
-         FROM Users u
+         FROM users u
          JOIN UserCategories uc ON u.user_id = uc.user_id
-         LEFT JOIN Person p ON u.person_id = p.person_id
+         LEFT JOIN person p ON u.person_id = p.person_id
          WHERE uc.category_id = ?`,
         [categoryId]
       );
@@ -278,10 +278,10 @@ const CategoriesRepository = {
       const [rows] = await pool.query(
         `SELECT pat.patient_id, pat.user_id, pat.therapist_id, pat.status, pat.history_notes,
                 u.email, u.role, u.person_id, p.first_name, p.last_name, p.phone, p.teudat_zehut, p.city, p.address, p.birth_date, p.gender
-         FROM Patients pat
+         FROM patients pat
          JOIN PatientCategories pc ON pat.patient_id = pc.patient_id
-         LEFT JOIN Users u ON pat.user_id = u.user_id
-         LEFT JOIN Person p ON u.person_id = p.person_id
+         LEFT JOIN users u ON pat.user_id = u.user_id
+         LEFT JOIN person p ON u.person_id = p.person_id
          WHERE pc.category_id = ?`,
         [categoryId]
       );
