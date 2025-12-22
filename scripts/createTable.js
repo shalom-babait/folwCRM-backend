@@ -448,3 +448,5 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 // ALTER TABLE appointments ADD COLUMN meeting_type ENUM('frontal','phone') NOT NULL;
 // ALTER TABLE treatment_types CHANGE COLUMN treatment_type_id treatment_type_id INT AUTO_INCREMENT;
 // ALTER TABLE appointments CHANGE COLUMN treatment_type_id treatment_type_id INT;
+
+// ALTER TABLE person ADD COLUMN mother_name VARCHAR(30) NULL;
