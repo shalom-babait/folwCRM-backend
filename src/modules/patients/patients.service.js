@@ -29,7 +29,6 @@ export const fetchPatientOnly = async (patientId) => {
 export async function fetchPatientsByTherapist(therapistId) {
     // אפשר להוסיף לוגיקה נוספת, למשל פורמט תאריכים
     const patients = await getPatientsByTherapist(therapistId);
-    console.log(patients," ppppppppppppppppppppppppppppp");
     
     return patients;
 }
