@@ -169,7 +169,27 @@ export async function updateAppointmentController(req, res) {
     console.log('[updateAppointmentController] req.params:', req.params);
     console.log('[updateAppointmentController] req.body:', req.body);
     const { appointmentId } = req.params;
-    const updateData = req.body;
+    // נרמול שדות אופציונליים
+    const updateData = {
+      ...req.body,
+      room_id: req.body.room_id === undefined || req.body.room_id === 0 ? null : req.body.room_id,
+      treatment_type_id: req.body.treatment_type_id === undefined || req.body.treatment_type_id === 0 ? null : req.body.treatment_type_id
+    };
+// דוגמה לקריאה מה-frontend (fetch):
+//
+// fetch('/api/appointments/updateAppointment/123', {
+//   method: 'PUT',
+//   headers: { 'Content-Type': 'application/json' },
+//   body: JSON.stringify({
+//     appointment_date: '2025-12-25',
+//     start_time: '10:00',
+//     end_time: '11:00',
+//     room_id: 2,
+//     status: 'מתוזמנת'
+//   })
+// })
+// .then(res => res.json())
+// .then(data => console.log(data));
 
     // Validate appointmentId
     if (!appointmentId || isNaN(appointmentId)) {

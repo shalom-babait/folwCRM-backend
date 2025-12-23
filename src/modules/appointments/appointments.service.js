@@ -1,4 +1,4 @@
-import { getAppointmentsByGroupId, getAppointmentsByTherapist, create, checkTimeConflict, getAppointmentsByPatientAndTherapist, deleteFromAppointments, updateToAppointments, getAppointmentsByRoom ,getAppointmentsByPatientId} from "./appointments.repo.js";
+import { getAppointmentsByGroupId, getAppointmentsByTherapist, create, checkTimeConflict, getAppointmentsByPatientAndTherapist, deleteFromAppointments, updateToAppointments, getAppointmentsByRoom ,getAppointmentsByPatientId, updateAppointmentRepo } from "./appointments.repo.js";
 import pool from "../../services/database.js";
 
 export async function fetchAppointmentsByGroupId(groupId) {
@@ -133,7 +133,8 @@ export async function updateAppointment(appointmentId, updateData) {
       }
     }
 
-    return await updateToAppointments(appointmentId, updateData);
+    // שימוש בפונקציה החדשה
+    return await updateAppointmentRepo(Number(appointmentId), updateData);
   } catch (error) {
     throw error;
   }
