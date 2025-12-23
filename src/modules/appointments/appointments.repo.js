@@ -1,6 +1,62 @@
+/**
+ * עדכון פגישה בטבלת appointments לפי מזהה
+ * @param {number} appointmentId - מזהה הפגישה
+ * @param {object} updateData - אובייקט עם השדות לעדכון
+ * @returns {Promise<object>} תוצאת העדכון
+ */
+export async function updateAppointmentRepo(appointmentId, updateData) {
+  if (!appointmentId || typeof appointmentId !== 'number') {
+    throw new Error('Invalid appointmentId');
+  }
+  if (!updateData || typeof updateData !== 'object' || Object.keys(updateData).length === 0) {
+    throw new Error('No update data provided');
+  }
+
+  // בניית חלק ה-SET הדינמי
+  const fields = Object.keys(updateData);
+  const setClause = fields.map(field => `${field} = ?`).join(', ');
+  const values = fields.map(field => updateData[field]);
+  values.push(appointmentId);
+
+  const sql = `UPDATE appointments SET ${setClause} WHERE appointment_id = ?`;
+  try {
+    const [result] = await pool.query(sql, values);
+    return result;
+  } catch (err) {
+    console.error('Error updating appointment:', err);
+    throw err;
+  }
+}
 import Joi from "joi";
 const { not } = Joi;
 import pool, { deleteFromTable, updateTable } from "../../services/database.js";
+
+/**
+ * עדכון פגישה בטבלת appointments לפי מזהה
+ * @param {number} appointmentId - מזהה הפגישה
+ * @param {object} updateData - אובייקט עם השדות לעדכון
+ * @returns {Promise<object>} תוצאת העדכון
+ */
+export async function updateAppointment(appointmentId, updateData) {
+  if (!appointmentId || isNaN(appointmentId)) {
+    throw new Error('Invalid appointmentId');
+  }
+  if (!updateData || typeof updateData !== 'object' || Object.keys(updateData).length === 0) {
+    throw new Error('No update data provided');
+  }
+  const fields = Object.keys(updateData);
+  const setClause = fields.map(field => `${field} = ?`).join(', ');
+  const values = fields.map(field => updateData[field]);
+  values.push(appointmentId);
+  const sql = `UPDATE appointments SET ${setClause} WHERE appointment_id = ?`;
+  try {
+    const [result] = await pool.query(sql, values);
+    return result;
+  } catch (err) {
+    console.error('Error updating appointment:', err);
+    throw err;
+  }
+}
 
 // שליפת כל הפגישות של קבוצה מסוימת
 export async function getAppointmentsByGroupId(groupId) {
