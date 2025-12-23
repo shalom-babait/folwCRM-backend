@@ -102,7 +102,6 @@ export async function create(appointmentData) {
   const {
     therapist_id,
     patient_id,
-    room_id,
     appointment_date,
     start_time,
     end_time,
@@ -111,6 +110,8 @@ export async function create(appointmentData) {
   } = appointmentData;
   // אם treatment_type_id ריק או לא קיים, נכניס null
   const treatment_type_id = appointmentData.treatment_type_id ? appointmentData.treatment_type_id : null;
+  // אם room_id ריק או 0, נכניס null
+  const room_id = appointmentData.room_id && appointmentData.room_id !== 0 ? appointmentData.room_id : null;
 
   const query = `
     INSERT INTO appointments 
