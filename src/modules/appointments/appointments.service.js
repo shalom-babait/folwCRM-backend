@@ -59,13 +59,6 @@ export async function createAppointment(appointmentData) {
     }
 
     // וולידציה על תאריכים וזמנים
-    const appointmentDate = new Date(appointmentData.appointment_date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (appointmentDate < today) {
-      throw new Error("Appointment date cannot be in the past");
-    }
 
     // בדיקה שזמן הסיום אחרי זמן ההתחלה
     if (appointmentData.start_time >= appointmentData.end_time) {
