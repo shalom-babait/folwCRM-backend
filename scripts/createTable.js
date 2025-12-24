@@ -479,3 +479,19 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 // ALTER TABLE appointments CHANGE COLUMN treatment_type_id treatment_type_id INT;
 
 // ALTER TABLE person ADD COLUMN mother_name VARCHAR(30) NULL;
+ //הוספתי 4
+//  CREATE TABLE companies (
+//     company_id INT AUTO_INCREMENT PRIMARY KEY,
+
+//     company_name VARCHAR(150) NOT NULL,
+
+//     contact_name VARCHAR(100) NULL,      -- איש קשר
+//     contact_phone VARCHAR(20) NULL,
+//     contact_email VARCHAR(100) NULL,
+
+//     status ENUM('active','inactive') DEFAULT 'active',
+
+//     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+//         ON UPDATE CURRENT_TIMESTAMP
+// );

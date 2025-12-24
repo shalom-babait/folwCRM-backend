@@ -19,6 +19,7 @@ import {
     getPatientFullData,
     getAllPatients
 } from "./patients.repo.js";
+import { updatePerson } from "../person/person.repo.js";
 // שליפת נתוני מטופל בלבד
 export const fetchPatientOnly = async (patientId) => {
     const patient = await getPatientOnly(patientId);
@@ -93,17 +94,29 @@ export async function updatePatient(patientId, updateData) {
 
         let personUpdateResult = null;
         let patientUpdateResult = null;
+        // חיפוש person_id גם תחת patient.person וגם תחת person
+        let personId = patient.person_id;
+        if (!personId && patient.person && patient.person.person_id) {
+            personId = patient.person.person_id;
+        }
+        if (!personId && personUpdate.person_id) {
+            personId = personUpdate.person_id;
+        }
         // Update Person table if needed
         if (Object.keys(personUpdate).length > 0) {
-            if (patient.person_id) {
-                // personUpdateResult = await updateToPerson(patient.person_id, personUpdate);
+            if (personId) {
+                console.log('[updatePatient] Updating person:', personId, personUpdate);
+                personUpdateResult = await updatePerson(personId, personUpdate);
+                console.log('[updatePatient] personUpdateResult:', personUpdateResult);
             } else {
-                console.log('No person_id found for patient, cannot update person table');
+                console.log('[updatePatient] No person_id found for patient, cannot update person table');
             }
         }
         // Update Patients table
         if (Object.keys(patientUpdate).length > 0) {
+            console.log('[updatePatient] Updating patient:', patientId, patientUpdate);
             patientUpdateResult = await updateToPatients(patientId, patientUpdate);
+            console.log('[updatePatient] patientUpdateResult:', patientUpdateResult);
         }
         return { personUpdateResult, patientUpdateResult };
     } catch (error) {
