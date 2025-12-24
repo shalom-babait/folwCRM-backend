@@ -120,12 +120,21 @@ export async function updateAppointment(appointmentId, updateData) {
 
     // If updating time-related fields, check for conflicts
     if (updateData.start_time && updateData.end_time) {
+      // נרמול room_id ל-null אם הוא 0 או undefined
+      let roomId = updateData.room_id;
+      if (roomId === undefined || roomId === 0) {
+        roomId = null;
+      }
+      if (roomId === null && appointment[0].room_id) {
+        roomId = appointment[0].room_id === 0 ? null : appointment[0].room_id;
+      }
       const hasConflict = await checkTimeConflict(
         updateData.therapist_id || appointment[0].therapist_id,
-        updateData.room_id || appointment[0].room_id,
+        roomId,
         updateData.appointment_date || appointment[0].appointment_date,
         updateData.start_time,
-        updateData.end_time
+        updateData.end_time,
+        Number(appointmentId) // לא לכלול את הפגישה הנוכחית
       );
 
       if (hasConflict) {

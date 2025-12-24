@@ -206,8 +206,9 @@ export async function create(appointmentData) {
   }
 }
 
-export async function checkTimeConflict(therapist_id, room_id, appointment_date, start_time, end_time) {
-  const query = `
+// ניתן להעביר appointmentId כדי לא לכלול את הפגישה הנוכחית בבדיקת חפיפה
+export async function checkTimeConflict(therapist_id, room_id, appointment_date, start_time, end_time, appointmentIdToExclude = null) {
+  let query = `
     SELECT appointment_id FROM appointments 
     WHERE (therapist_id = ? OR room_id = ?) 
       AND appointment_date = ? 
@@ -216,16 +217,19 @@ export async function checkTimeConflict(therapist_id, room_id, appointment_date,
         (start_time <= ? AND end_time > ?) OR
         (start_time < ? AND end_time >= ?) OR
         (start_time >= ? AND end_time <= ?)
-      )
-  `;
-
+      )`;
+  const params = [
+    therapist_id, room_id, appointment_date,
+    start_time, start_time,
+    end_time, end_time,
+    start_time, end_time
+  ];
+  if (appointmentIdToExclude) {
+    query += ' AND appointment_id != ?';
+    params.push(appointmentIdToExclude);
+  }
   try {
-    const [rows] = await pool.execute(query, [
-      therapist_id, room_id, appointment_date,
-      start_time, start_time,  // חפיפה מתחילת התור החדש
-      end_time, end_time,      // חפיפה מסוף התור החדש
-      start_time, end_time     // התור החדש מכיל תור קיים
-    ]);
+    const [rows] = await pool.execute(query, params);
     return rows.length > 0;
   } catch (error) {
     throw error;
