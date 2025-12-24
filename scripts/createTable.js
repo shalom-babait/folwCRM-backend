@@ -495,3 +495,34 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 //     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 //         ON UPDATE CURRENT_TIMESTAMP
 // );
+
+// CREATE TABLE patient_contacts (
+//     patient_contacts_id INT AUTO_INCREMENT PRIMARY KEY,
+
+//     patient_id INT NOT NULL,
+//     contact_person_id INT NOT NULL,
+
+//     relation_type ENUM(
+//         'mother',
+//         'father',
+//         'guardian',
+//         'family_member',
+//         'other'
+//     ) NOT NULL,
+
+//     is_primary BOOLEAN DEFAULT FALSE,
+
+//     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+//     CONSTRAINT fk_pc_patient
+//         FOREIGN KEY (patient_id)
+//         REFERENCES patients(patient_id)
+//         ON DELETE CASCADE,
+
+//     CONSTRAINT fk_pc_person
+//         FOREIGN KEY (contact_person_id)
+//         REFERENCES person(person_id)
+//         ON DELETE CASCADE,
+
+//     UNIQUE (patient_id, contact_person_id)
+// );
