@@ -526,3 +526,19 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 
 //     UNIQUE (patient_id, contact_person_id)
 // );
+//הוספתי 5
+// ALTER TABLE payments
+// ADD COLUMN therapist_id INT NULL;
+
+// SET SQL_SAFE_UPDATES = 0;
+
+// UPDATE payments p
+// JOIN appointments a ON p.appointment_id = a.appointment_id
+// SET p.therapist_id = a.therapist_id;
+
+// SET SQL_SAFE_UPDATES = 1;
+
+// ALTER TABLE payments
+// ADD CONSTRAINT fk_payments_therapist
+// FOREIGN KEY (therapist_id) REFERENCES therapists(therapist_id);
+

@@ -1,3 +1,7 @@
+import { getTherapistMonthlyStats } from "./therapists.repo.js";
+export async function getTherapistMonthlyStatsService(therapistId) {
+  return await getTherapistMonthlyStats(therapistId);
+}
 import { getTherapistIdByUserId } from "./therapists.repo.js";
 // שירות שמחזיר therapist_id לפי user_id
 export async function fetchTherapistIdByUserId(user_id) {
