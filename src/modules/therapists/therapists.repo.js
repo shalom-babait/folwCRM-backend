@@ -1,3 +1,40 @@
+/**
+ * מחזיר סכום שעות, סכום פגישות וסכום תשלומים למטפל עבור החודש הנוכחי
+ * @param {number} therapistId
+ * @returns {Promise<{total_hours: number, total_appointments: number, total_payments: number}>}
+ */
+export async function getTherapistMonthlyStats(therapistId) {
+  // סכום שעות וסך פגישות
+  const sqlAppointments = `
+    SELECT
+      IFNULL(SUM(TIMESTAMPDIFF(MINUTE, start_time, end_time))/60, 0) AS total_hours,
+      COUNT(appointment_id) AS total_appointments
+    FROM appointments
+    WHERE therapist_id = ?
+      AND MONTH(appointment_date) = MONTH(CURRENT_DATE())
+      AND YEAR(appointment_date) = YEAR(CURRENT_DATE())
+      AND status != 'בוטלה'
+  `;
+  const [appointmentsRows] = await pool.query(sqlAppointments, [therapistId]);
+
+  // סכום תשלומים ישירות מטבלת payments לפי תאריך התשלום
+  const sqlPayments = `
+    SELECT IFNULL(SUM(amount), 0) AS total_payments
+    FROM payments
+    WHERE therapist_id = ?
+      AND MONTH(payment_date) = MONTH(CURRENT_DATE())
+      AND YEAR(payment_date) = YEAR(CURRENT_DATE())
+      AND status = 'paid'
+  `;
+  const [paymentsRows] = await pool.query(sqlPayments, [therapistId]);
+  const total_payments = paymentsRows[0].total_payments;
+
+  return {
+    total_hours: appointmentsRows[0].total_hours,
+    total_appointments: appointmentsRows[0].total_appointments,
+    total_payments
+  };
+}
 import pool, { deleteFromTable, updateTable } from "../../services/database.js";
 import { create as createUser } from "../users/user.repo.js";
 import { createPerson } from "../person/person.repo.js";

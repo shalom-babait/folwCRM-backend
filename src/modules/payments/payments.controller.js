@@ -52,11 +52,32 @@ export async function deletePaymentController(req, res) {
   }
 }
 
+// --- מחיקת תשלום לפי מזהה ---
+export async function deletePaymentByIdController(req, res) {
+  try {
+    await paymentsService.deletePaymentByIdService(req.params.payment_id);
+    res.status(204).end();
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
 // --- שליפה לפי patient_id ---
 export async function getAllPatientPaymentsController(req, res) {
   try {
     const payments = await paymentsService.getPaymentByPatientIdService(req.params.patient_id);
     res.status(200).json(payments);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+// --- רשימת תשלומים לפי מטפל לחודש הנוכחי ---
+export async function getTherapistMonthlyPaymentsListController(req, res) {
+  try {
+    const therapistId = req.params.therapist_id;
+    const paymentsList = await paymentsService.getTherapistMonthlyPaymentsListService(therapistId);
+    res.json(paymentsList);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
