@@ -1,13 +1,18 @@
+
 import express from "express";
 import { 
   createTherapistController, 
   getTherapistController,
   updateTherapistController,
-  getTherapistIdByUserIdController
+  getTherapistIdByUserIdController,
+  getTherapistMonthlyStatsController
 } from "./therapists.controller.js";
 import { createTherapist } from "./therapists.repo.js";
 
 const router = express.Router();
+
+// GET /therapists/:therapistId/monthly-stats - סטטיסטיקת חודש למטפל
+router.get("/:therapistId/monthly-stats", getTherapistMonthlyStatsController);
 
 // GET /therapists/byUser/:user_id - מחזיר therapist_id לפי user_id
 router.get("/byUser/:user_id", getTherapistIdByUserIdController);

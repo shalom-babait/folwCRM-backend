@@ -1,3 +1,17 @@
+import { getTherapistMonthlyStatsService } from "./therapists.service.js";
+export async function getTherapistMonthlyStatsController(req, res) {
+  try {
+    const { therapistId } = req.params;
+    if (!therapistId || isNaN(therapistId)) {
+      return res.status(400).json({ success: false, message: "Invalid therapist ID" });
+    }
+    const stats = await getTherapistMonthlyStatsService(Number(therapistId));
+    res.json({ success: true, data: stats });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
 import { fetchTherapistIdByUserId } from "./therapists.service.js";
 // מחזיר therapist_id לפי user_id
 export async function getTherapistIdByUserIdController(req, res) {
