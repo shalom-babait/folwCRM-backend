@@ -544,4 +544,25 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 // ADD CONSTRAINT fk_payments_therapist
 // FOREIGN KEY (therapist_id) REFERENCES therapists(therapist_id);
 
+// ALTER TABLE rooms
+// ADD COLUMN description TEXT AFTER color;
+
+// CREATE TABLE room_availability (
+//     availability_id INT AUTO_INCREMENT PRIMARY KEY,
+//     company_id INT NOT NULL,
+//     room_id INT NOT NULL,
+//     day_of_week TINYINT NOT NULL,
+//     start_time TIME NOT NULL,
+//     end_time TIME NOT NULL,
+
+//     CONSTRAINT fk_availability_room
+//         FOREIGN KEY (room_id)
+//         REFERENCES rooms(room_id)
+//         ON DELETE CASCADE,
+
+//     CONSTRAINT fk_availability_company
+//         FOREIGN KEY (company_id)
+//         REFERENCES companies(company_id)
+//         ON DELETE CASCADE
+// );
 

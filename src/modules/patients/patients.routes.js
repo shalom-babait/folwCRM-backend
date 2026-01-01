@@ -1,14 +1,13 @@
-
 import express from "express";
 import {
   createPatientController,
   getPatientsByTherapistController,
   getPatientDetailsController,
   getPatientStatsController,
-  deletePatientController,
   updatePatientController,
   getPatientOnlyController,
-  getAllPatientsController
+  getAllPatientsController,
+  deletePatientFullController
 } from "./patients.controller.js";
 
 const router = express.Router();
@@ -30,8 +29,8 @@ router.get("/:patientId", getPatientDetailsController);
 // GET /patients/stats/:patientId
 router.get("/stats/:patientId", getPatientStatsController);
 
-// DELETE /api/patients/deletePatient/:patientId - מחיקת מטופל
-router.delete("/deletePatient/:patientId", deletePatientController);
+// DELETE /api/patients/deleteFull/:patientId - מחיקת מטופל מכל הטבלאות
+router.delete('/deleteFull/:patientId', deletePatientFullController);
 
 // PUT /api/patients/updatePatient/:patientId - עדכון מטופל
 router.put("/updatePatient/:patientId", updatePatientController);

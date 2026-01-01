@@ -1,4 +1,4 @@
-import pool, { deleteFromTable, updateTable } from "../../services/database.js";
+import pool, { updateTable } from "../../services/database.js";
 import { createPerson } from "../person/person.repo.js";
 
 /**
@@ -412,14 +412,6 @@ export const getAllPatients = async () => {
   });
 }
 
-
-/**
- * מחיקת מטופל לפי מזהה
- */
-export async function deleteFromPatients(patientId) {
-  return deleteFromTable('patients', { patient_id: patientId });
-}
-
 /**
  * עדכון נתוני מטופל לפי מזהה
  */
@@ -470,4 +462,46 @@ export async function updateToPatients(patientId, updateData) {
       selectedDepartments: []
     };
   }
+
+/**
+ * מחיקת מטופל מכל הטבלאות הקשורות
+ */
+export async function deletePatientCascade(patientId) {
+  // שליפת person_id של המטופל
+  const sqlPerson = `SELECT person_id FROM patients WHERE patient_id = ?`;
+  const [rows] = await pool.query(sqlPerson, [patientId]);
+  if (!rows.length) return false;
+  const personId = rows[0].person_id;
+
+  // מחיקת פגישות קודם (כדי להימנע משגיאת foreign key)
+  await pool.query(`DELETE FROM appointments WHERE patient_id = ?`, [patientId]);
+
+  // מחיקת אנשי קשר של המטופל
+  await pool.query(`DELETE FROM patient_contacts WHERE patient_id = ?`, [patientId]);
+
+  // מחיקת קטגוריות של המטופל
+  await pool.query(`DELETE FROM patientcategories WHERE patient_id = ?`, [patientId]);
+
+  // מחיקת תשלומים
+  await pool.query(`DELETE FROM payments WHERE person_id = ?`, [personId]);
+
+  // מחיקת מעקבים (followups) לפי person_id
+  await pool.query(`DELETE FROM followups WHERE person_id = ?`, [personId]);
+
+  // מחיקת שיוך למחלקות וקבוצות
+  await pool.query(`DELETE FROM userdepartments WHERE person_id = ?`, [personId]);
+  await pool.query(`DELETE FROM user_groups WHERE person_id = ?`, [personId]);
+
+  // מחיקת המטופל עצמו
+  await pool.query(`DELETE FROM patients WHERE patient_id = ?`, [patientId]);
+
+  // מחיקת person אם לא משויך לטבלה אחרת (מטפל/משתמש)
+  const [therapistRows] = await pool.query(`SELECT therapist_id FROM therapists WHERE person_id = ?`, [personId]);
+  const [userRows] = await pool.query(`SELECT user_id FROM users WHERE person_id = ?`, [personId]);
+  if (therapistRows.length === 0 && userRows.length === 0) {
+    await pool.query(`DELETE FROM person WHERE person_id = ?`, [personId]);
+  }
+
+  return true;
+}
 
