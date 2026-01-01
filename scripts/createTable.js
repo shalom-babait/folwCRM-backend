@@ -87,6 +87,7 @@ const therapistsTableSQL = `
 CREATE TABLE IF NOT EXISTS therapists (
   therapist_id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT UNIQUE,
+  status ENUM('פעיל', 'לא פעיל', 'בהמתנה') NOT NULL DEFAULT 'פעיל',
   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 `;
@@ -526,6 +527,7 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 
 //     UNIQUE (patient_id, contact_person_id)
 // );
+
 //הוספתי 5
 // ALTER TABLE payments
 // ADD COLUMN therapist_id INT NULL;
@@ -563,3 +565,4 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 //         REFERENCES companies(company_id)
 //         ON DELETE CASCADE
 // );
+
