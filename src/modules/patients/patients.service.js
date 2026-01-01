@@ -13,11 +13,11 @@ import {
     getPatientsByTherapist,
     getPatientDetails,
     getPatientStats,
-    deleteFromPatients,
     updateToPatients,
     getPatientOnly,
     getPatientFullData,
-    getAllPatients
+    getAllPatients,
+    deletePatientCascade
 } from "./patients.repo.js";
 import { updatePerson } from "../person/person.repo.js";
 // שליפת נתוני מטופל בלבד
@@ -46,18 +46,8 @@ export const fetchPatientDetails = async (patientId) => {
     return await getPatientFullData(patientId);
 };
 
-export async function deletePatient(patientId) {
-    try {
-        // Check if patient exists
-        const patient = await getPatientDetails(patientId);
-        if (!patient) {
-            return false;
-        }
-
-        return await deleteFromPatients(patientId);
-    } catch (error) {
-        throw error;
-    }
+export async function deletePatientFull(patientId) {
+  return await deletePatientCascade(patientId);
 }
 
 export async function updatePatient(patientId, updateData) {

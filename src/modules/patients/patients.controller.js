@@ -3,10 +3,8 @@ import {
   fetchPatientsByTherapist,
   fetchPatientDetails,
   fetchPatientStats,
-  deletePatient,
-  updatePatient,
-  fetchPatientOnly,
-  fetchAllPatients
+  deletePatientFull,
+  fetchPatientOnly
 } from "./patients.service.js";
 // מחזיר אובייקט מטופל בלבד
 export const getPatientOnlyController = async (req, res) => {
@@ -118,37 +116,21 @@ export const getPatientStatsController = async (req, res) => {
   }
 };
 
-export async function deletePatientController(req, res) {
+export async function deletePatientFullController(req, res) {
   try {
     const { patientId } = req.params;
-
-    // Validate patientId
     if (!patientId || isNaN(patientId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid patient ID"
-      });
+      return res.status(400).json({ success: false, message: "Invalid patient ID" });
     }
-
-    const result = await deletePatient(patientId);
-
+    const result = await deletePatientFull(patientId);
     if (result) {
-      res.json({
-        success: true,
-        message: "Patient deleted successfully"
-      });
+      res.json({ success: true, message: "Patient and all related data deleted successfully" });
     } else {
-      res.status(404).json({
-        success: false,
-        message: "Patient not found"
-      });
+      res.status(404).json({ success: false, message: "Patient not found" });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      success: false,
-      message: error.message || "Error deleting patient"
-    });
+    res.status(500).json({ success: false, message: error.message || "Error deleting patient" });
   }
 }
 

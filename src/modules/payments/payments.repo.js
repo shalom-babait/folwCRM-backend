@@ -51,7 +51,7 @@ export async function createPayment(paymentData) {
   const [result] = await pool.query(sql, params);
 
   // הדפסה ללוג
-  console.log('createPayment result:', { payment_id: result.insertId, ...paymentData, person_id });
+  // console.log('createPayment result:', { payment_id: result.insertId, ...paymentData, person_id });
 
   return { payment_id: result.insertId, ...paymentData, person_id };
 }
@@ -129,7 +129,7 @@ export async function getTherapistPaymentsSumByMonth(therapistId, month, year) {
  * @returns {Promise<Array<{patient_name: string, total_payments: number}>>}
  */
 export async function getTherapistMonthlyPaymentsList(therapistId) {
-  console.log('getTherapistMonthlyPaymentsList therapistId:', therapistId);
+  // console.log('getTherapistMonthlyPaymentsList therapistId:', therapistId);
   // 1. כל התשלומים של המטפל החודש
   const [payments] = await pool.query(`
     SELECT * FROM payments
@@ -138,7 +138,7 @@ export async function getTherapistMonthlyPaymentsList(therapistId) {
       AND YEAR(payment_date) = YEAR(CURRENT_DATE())
       AND status = 'paid'
   `, [therapistId]);
-  console.log('שלב 1 - payments:', payments);
+  // console.log('שלב 1 - payments:', payments);
 
   // 2. כל הפציינטים של המטפל שיש להם תשלום החודש
   const [patients] = await pool.query(`
@@ -148,7 +148,7 @@ export async function getTherapistMonthlyPaymentsList(therapistId) {
       AND YEAR(payment_date) = YEAR(CURRENT_DATE())
       AND status = 'paid'
   `, [therapistId]);
-  console.log('שלב 2 - patients:', patients);
+  // console.log('שלב 2 - patients:', patients);
 
   // 3. שמות הפציינטים
   if (patients.length > 0) {
@@ -156,9 +156,9 @@ export async function getTherapistMonthlyPaymentsList(therapistId) {
     const [names] = await pool.query(`
       SELECT person_id, first_name, last_name FROM person WHERE person_id IN (${personIds.map(() => '?').join(',')})
     `, personIds);
-    console.log('שלב 3 - names:', names);
+    // console.log('שלב 3 - names:', names);
   } else {
-    console.log('שלב 3 - אין פציינטים');
+    // console.log('שלב 3 - אין פציינטים');
   }
 
   // 4. השאילתה הסופית
@@ -177,6 +177,6 @@ export async function getTherapistMonthlyPaymentsList(therapistId) {
     ORDER BY patient_name
   `;
   const [rows] = await pool.query(sql, [therapistId]);
-  console.log('שלב 4 - getTherapistMonthlyPaymentsList result:', rows);
+  // console.log('שלב 4 - getTherapistMonthlyPaymentsList result:', rows);
   return rows;
 }

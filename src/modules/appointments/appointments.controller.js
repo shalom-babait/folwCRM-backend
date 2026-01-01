@@ -3,10 +3,10 @@ import { createAppointment, fetchAppointments, deleteAppointment, updateAppointm
 export async function getAppointmentsByGroupId(req, res) {
 
   try {
-    console.log('[getAppointmentsByGroupId] req.params:', req.params);
+    // console.log('[getAppointmentsByGroupId] req.params:', req.params);
     const { groupId } = req.params;
     const appointments = await fetchAppointmentsByGroupId(groupId);
-    console.log('[getAppointmentsByGroupId] appointments:', appointments);
+    // console.log('[getAppointmentsByGroupId] appointments:', appointments);
     res.json({ success: true, data: appointments });
   } catch (err) {
     console.error('[getAppointmentsByGroupId] Error:', err);
@@ -17,13 +17,13 @@ export async function getAppointmentsByGroupId(req, res) {
 
 export async function getAppointmentsByTherapist(req, res) {
   try {
-    console.log('[getAppointmentsByTherapist] req.params:', req.params);
+    // console.log('[getAppointmentsByTherapist] req.params:', req.params);
     const { therapistId } = req.params;
     const appointments = await fetchAppointmentsByTherapist(therapistId);
     if (!appointments || appointments.length === 0) {
       console.warn('[getAppointmentsByTherapist] No appointments found for therapistId:', therapistId);
     }
-    console.log('[getAppointmentsByTherapist] appointments:', appointments);
+    // console.log('[getAppointmentsByTherapist] appointments:', appointments);
     res.json({ success: true, data: appointments });
   } catch (err) {
     console.error('[getAppointmentsByTherapist] Error:', err);
