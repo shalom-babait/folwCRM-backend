@@ -58,6 +58,7 @@ const therapistsTableSQL = `
 CREATE TABLE IF NOT EXISTS therapists (
   therapist_id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT UNIQUE,
+  status ENUM('פעיל', 'לא פעיל', 'בהמתנה') NOT NULL DEFAULT 'פעיל',
   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 `;

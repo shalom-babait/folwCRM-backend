@@ -48,6 +48,7 @@ export async function getTherapists() {
     SELECT 
       t.therapist_id,
       t.user_id,
+      t.status,
       u.user_name,
       u.role,
       u.agree,
@@ -92,6 +93,7 @@ export async function getTherapists() {
     },
     therapist: {
       therapist_id: row.therapist_id,
+      status: row.status,
       specialization: '',
       experience_years: null
     },
