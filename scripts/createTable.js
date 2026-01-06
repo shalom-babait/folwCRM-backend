@@ -87,6 +87,7 @@ const therapistsTableSQL = `
 CREATE TABLE IF NOT EXISTS therapists (
   therapist_id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT UNIQUE,
+  status ENUM('פעיל', 'לא פעיל', 'בהמתנה') NOT NULL DEFAULT 'פעיל',
   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 `;
@@ -543,4 +544,57 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 // ADD CONSTRAINT fk_payments_therapist
 // FOREIGN KEY (therapist_id) REFERENCES therapists(therapist_id);
 
+// ALTER TABLE rooms
+// ADD COLUMN description TEXT AFTER color;
 
+// CREATE TABLE room_availability (
+//     availability_id INT AUTO_INCREMENT PRIMARY KEY,
+//     company_id INT NOT NULL,
+//     room_id INT NOT NULL,
+//     day_of_week TINYINT NOT NULL,
+//     start_time TIME NOT NULL,
+//     end_time TIME NOT NULL,
+
+//     CONSTRAINT fk_availability_room
+//         FOREIGN KEY (room_id)
+//         REFERENCES rooms(room_id)
+//         ON DELETE CASCADE,
+
+//     CONSTRAINT fk_availability_company
+//         FOREIGN KEY (company_id)
+//         REFERENCES companies(company_id)
+//         ON DELETE CASCADE
+// );
+
+//הוספתי 6
+// CREATE TABLE patient_problems (
+//     patient_problem_id INT AUTO_INCREMENT PRIMARY KEY,
+//     patient_id INT NOT NULL,
+//     title VARCHAR(255) NOT NULL,
+//     description TEXT,
+//     status ENUM('active', 'resolved') DEFAULT 'active',
+//     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+//     closed_at DATETIME NULL,
+
+//     CONSTRAINT fk_patient_problems_patient
+//         FOREIGN KEY (patient_id)
+//         REFERENCES patients(patient_id)
+//         ON DELETE CASCADE
+// );
+
+// CREATE TABLE patient_problem_ratings (
+//     patient_problem_rating_id INT AUTO_INCREMENT PRIMARY KEY,
+//     patient_problem_id INT NOT NULL,
+//     rating_date DATE NOT NULL,
+//     score TINYINT NOT NULL CHECK (score BETWEEN 1 AND 10),
+//     notes TEXT,
+//     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+//     CONSTRAINT fk_problem_ratings_problem
+//         FOREIGN KEY (patient_problem_id)
+//         REFERENCES patient_problems(patient_problem_id)
+//         ON DELETE CASCADE,
+
+//     CONSTRAINT uq_problem_date
+//         UNIQUE (patient_problem_id, rating_date)
+// );
