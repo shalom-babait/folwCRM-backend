@@ -4,7 +4,9 @@ import {
   fetchPatientDetails,
   fetchPatientStats,
   deletePatientFull,
-  fetchPatientOnly
+  fetchPatientOnly,
+  updatePatient,
+  fetchAllPatients
 } from "./patients.service.js";
 // מחזיר אובייקט מטופל בלבד
 export const getPatientOnlyController = async (req, res) => {

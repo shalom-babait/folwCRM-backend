@@ -566,3 +566,35 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 //         ON DELETE CASCADE
 // );
 
+//הוספתי 6
+// CREATE TABLE patient_problems (
+//     patient_problem_id INT AUTO_INCREMENT PRIMARY KEY,
+//     patient_id INT NOT NULL,
+//     title VARCHAR(255) NOT NULL,
+//     description TEXT,
+//     status ENUM('active', 'resolved') DEFAULT 'active',
+//     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+//     closed_at DATETIME NULL,
+
+//     CONSTRAINT fk_patient_problems_patient
+//         FOREIGN KEY (patient_id)
+//         REFERENCES patients(patient_id)
+//         ON DELETE CASCADE
+// );
+
+// CREATE TABLE patient_problem_ratings (
+//     patient_problem_rating_id INT AUTO_INCREMENT PRIMARY KEY,
+//     patient_problem_id INT NOT NULL,
+//     rating_date DATE NOT NULL,
+//     score TINYINT NOT NULL CHECK (score BETWEEN 1 AND 10),
+//     notes TEXT,
+//     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+//     CONSTRAINT fk_problem_ratings_problem
+//         FOREIGN KEY (patient_problem_id)
+//         REFERENCES patient_problems(patient_problem_id)
+//         ON DELETE CASCADE,
+
+//     CONSTRAINT uq_problem_date
+//         UNIQUE (patient_problem_id, rating_date)
+// );
