@@ -598,3 +598,36 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 //     CONSTRAINT uq_problem_date
 //         UNIQUE (patient_problem_id, rating_date)
 // );
+// CREATE TABLE tasks (
+//   task_id SERIAL PRIMARY KEY,
+
+//   title VARCHAR(255) NOT NULL,
+//   description TEXT NULL,
+
+//   patient_id INTEGER NULL,
+
+//   created_by_user_id INTEGER NOT NULL,
+//   assigned_to_user_id INTEGER NULL,
+
+//   status VARCHAR(20) NOT NULL DEFAULT 'open',
+//   priority VARCHAR(20) NULL,
+
+//   due_date DATE NULL,
+//   completed_at TIMESTAMP NULL,
+
+//   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+//   updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+
+//   CONSTRAINT fk_tasks_patient
+//     FOREIGN KEY (patient_id)
+//     REFERENCES patients(patient_id),
+
+//   CONSTRAINT fk_tasks_created_by
+//     FOREIGN KEY (created_by_user_id)
+//     REFERENCES users(user_id),
+
+//   CONSTRAINT fk_tasks_assigned_to
+//     FOREIGN KEY (assigned_to_user_id)
+//     REFERENCES users(user_id)
+// );
+// ALTER TABLE tasks ADD COLUMN color VARCHAR(20) NULL;

@@ -13,9 +13,10 @@ import groupsRoutes from './modules/groups/groups.routes.js';
 import prospectsRoutes from './modules/prospects/prospects.routes.js';
 import categoriesRoutes from './modules/categories/categories.routes.js';
 import paymentsRoutes from './modules/payments/payments.routes.js';
-
+import taskRoutes from './modules/task/task.routes.js';
 import followUpsRoutes from './modules/followUps/followUps.routes.js';
 import pdfRoutes from './modules/reports/pdf.routes.js';
+import reportsRoutes from './modules/reports/reports.routes.js';
 import patientProblemsRoutes from './modules/patientProblems/patientProblems.routes.js';
 
 const app = express();
@@ -87,8 +88,10 @@ app.use('/api/prospects', prospectsRoutes);
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/followups', followUpsRoutes);
-app.use('/api/reports', pdfRoutes);
+app.use('/api/reports', reportsRoutes);
 app.use('/api/patient-problems', patientProblemsRoutes);
+app.use('/api/tasks', taskRoutes);
+
 
 // ✅ Start server
 const PORT = process.env.PORT || 3000;
