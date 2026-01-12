@@ -247,18 +247,19 @@ export async function getAppointmentsByPatientAndTherapist(patientId, therapistI
       A.total_minutes,
       A.status,
       A.notes,
-      GL.group_name AS group_name,
-      R.room_name AS room
+      GL.group_name AS group_name
     FROM
       appointments AS A
     LEFT JOIN group_list AS GL ON A.treatment_type_id = GL.group_id
-    JOIN rooms AS R ON A.room_id = R.room_id
     WHERE
       A.patient_id = ? AND A.therapist_id = ?
     ORDER BY
       A.appointment_date, A.start_time;
   `;
+  console.log('[getAppointmentsByPatientAndTherapist] SQL:', sql);
+  console.log('[getAppointmentsByPatientAndTherapist] params:', { patientId, therapistId });
   const [rows] = await pool.query(sql, [patientId, therapistId]);
+  console.log('[getAppointmentsByPatientAndTherapist] rows:', rows);
   return rows;
 }
 

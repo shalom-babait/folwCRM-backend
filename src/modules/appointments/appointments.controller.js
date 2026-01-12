@@ -118,8 +118,12 @@ export async function getAppointments(req, res) {
   try {
     console.log('[getAppointments] req.params:', req.params);
     const { patientId, therapistId } = req.params;
+    console.log(`[getAppointments] patientId: ${patientId}, therapistId: ${therapistId}`);
     const appointments = await fetchAppointments(patientId, therapistId);
-    console.log('[getAppointments] appointments:', appointments);
+    console.log('[getAppointments] appointments from DB:', appointments);
+    if (!appointments || appointments.length === 0) {
+      console.warn('[getAppointments] לא נמצאו פגישות במסד הנתונים עבור הפרמטרים:', { patientId, therapistId });
+    }
     res.json(appointments);
   } catch (err) {
     console.error('[getAppointments] Error:', err);
