@@ -11,10 +11,9 @@ router.delete('/:patient_problem_id', patientProblemsController.deletePatientPro
 // דירוגים לבעיה
 router.get('/:patient_problem_id/problem-ratings', patientProblemsController.getRatingsByProblemId);
 router.post('/:patient_problem_id/problem-ratings', patientProblemsController.addProblemRating);
-router.delete('/problem-ratings/:patient_problem_rating_id', patientProblemsController.deleteProblemRating);
 router.get('/all-problem-ratings', patientProblemsController.getAllProblemRatings);// כל הדירוגים לכל הבעיות
 router.get('/:patient_problem_id/problem-ratings-list', patientProblemsController.getProblemRatingsByProblemId);// דירוגים לפי מזהה בעיה
-
-
+router.delete('/delete-problem-rating-by-ratingId/:patient_problem_rating_id', patientProblemsController.deleteProblemRatingByRatingId);// מחיקת דירוג מסוים לפי מזהה דירוג בעיה
+router.delete('/delete-patient-problem/:patient_problem_id', patientProblemsController.deletePatientProblem);
 
 export default router;
