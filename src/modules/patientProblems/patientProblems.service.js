@@ -1,14 +1,17 @@
-import { getProblemRatingsByProblemId } from './patientProblem.model.js';
-
-export async function getProblemRatingsByProblemIdService(patient_problem_id) {
-    return await getProblemRatingsByProblemId(patient_problem_id);
+export async function deleteProblemRatingByRatingIdService(patient_problem_rating_id) {
+    return await deleteProblemRating(patient_problem_rating_id);
 }
 import {
     getRatingsByProblemId,
     addProblemRating,
     deleteProblemRating,
-    getAllProblemRatings
+    getAllProblemRatings,
+    getProblemRatingsByProblemId,
 } from './patientProblem.model.js';
+
+export async function getProblemRatingsByProblemIdService(patient_problem_id) {
+    return await getProblemRatingsByProblemId(patient_problem_id);
+}
 
 export async function getAllProblemRatingsService() {
     return await getAllProblemRatings();

@@ -1,3 +1,16 @@
+import { deleteProblemRatingByRatingIdService } from './patientProblems.service.js';
+
+// מחיקת דירוג מסוים מתוך בעיה מסוימת
+export async function deleteProblemRatingByRatingId(req, res) {
+    try {
+        const { patient_problem_rating_id } = req.params;
+        await deleteProblemRatingByRatingIdService(patient_problem_rating_id);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+}
+
 import { getProblemRatingsByProblemIdService } from './patientProblems.service.js';
 
 // קבלת דירוגים לפי מזהה בעיה
@@ -113,9 +126,12 @@ export async function updatePatientProblem(req, res) {
 export async function deletePatientProblem(req, res) {
     try {
         const { patient_problem_id } = req.params;
+        console.log(`[deletePatientProblem] מחיקת בעיה: patient_problem_id=${patient_problem_id}`);
         await patientProblemModel.deletePatientProblem(patient_problem_id);
+        console.log(`[deletePatientProblem] בעיה נמחקה בהצלחה: patient_problem_id=${patient_problem_id}`);
         res.json({ success: true });
     } catch (err) {
+        console.error(`[deletePatientProblem] שגיאה במחיקת בעיה:`, err);
         res.status(500).json({ error: err.message });
     }
 }

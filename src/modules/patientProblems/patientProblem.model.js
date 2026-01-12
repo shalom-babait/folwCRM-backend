@@ -1,3 +1,9 @@
+// מחיקת דירוג מסוים מתוך בעיה מסוימת
+export async function deleteProblemRatingByProblemId(patient_problem_id, patient_problem_rating_id) {
+    const sql = `DELETE FROM patient_problem_ratings WHERE patient_problem_id = ? AND patient_problem_rating_id = ?`;
+    await pool.query(sql, [patient_problem_id, patient_problem_rating_id]);
+    return true;
+}
 // דירוגים לפי מזהה בעיה
 export async function getProblemRatingsByProblemId(patient_problem_id) {
     const sql = `SELECT * FROM patient_problem_ratings WHERE patient_problem_id = ? ORDER BY rating_date DESC`;
