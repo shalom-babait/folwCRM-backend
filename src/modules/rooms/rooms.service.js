@@ -1,4 +1,4 @@
-import { create, deleteFromRooms, getRooms, updateToRooms } from "./rooms.repo.js";
+import { create, deleteFromRooms, getRooms, updateToRooms,fetchRoomAvailability, upsertRoomAvailability} from "./rooms.repo.js";
 import pool from "../../services/database.js";
 
 export const fetchRooms = async () => {
@@ -45,6 +45,21 @@ export async function updateRoom(id, updateData) {
       return false;
     }
     return await updateToRooms(id, updateData);
+  } catch (error) {
+    throw error;
+  }
+}
+export async function saveRoomAvailability(roomId, availabilityArr) {
+  try {
+    return await upsertRoomAvailability(roomId, availabilityArr);
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function getRoomAvailability(roomId) {
+  try {
+    return await fetchRoomAvailability(roomId);
   } catch (error) {
     throw error;
   }
