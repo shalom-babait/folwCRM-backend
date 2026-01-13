@@ -35,12 +35,17 @@ export async function getPaymentByIdController(req, res) {
 // --- עדכון תשלום ---
 export async function updatePaymentController(req, res) {
   try {
-    const updated = await paymentsService.updatePaymentService(req.params.payment_id, req.body);
+    const updated = await paymentsService.updatePaymentService(
+      req.params.payment_id,
+      req.body
+    );
     res.json(updated);
   } catch (err) {
+    console.error('SQL ERROR:', err);  
     res.status(500).json({ error: err.message });
   }
 }
+
 
 // --- מחיקת תשלום ---
 export async function deletePaymentController(req, res) {
