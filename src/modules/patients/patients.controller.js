@@ -27,9 +27,8 @@ export async function createPatientController(req, res) {
   try {
   const patientData = req.body;
   console.log('Received patientData from frontend:', JSON.stringify(patientData, null, 2));
-    // וולידציה בסיסית לשדות פרסון
+    // בדיקת חובה רק לשם פרטי ושם משפחה בפרסון
     if (!patientData.person || !patientData.person.first_name || !patientData.person.last_name) {
-
       return res.status(400).json({
         success: false,
         message: "first_name and last_name are required in person object"
