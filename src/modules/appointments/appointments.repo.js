@@ -112,6 +112,7 @@ ORDER BY
 //     ORDER BY
 //       A.appointment_date, A.start_time;
 // שליפת כל הפגישות של מטפל בלבד
+
 export async function getAppointmentsByTherapist(therapistId) {
   const sql = `
     SELECT
@@ -124,19 +125,28 @@ export async function getAppointmentsByTherapist(therapistId) {
       A.notes,
       GL.group_name AS group_name,
       R.room_name AS room,
-      A.patient_id
-    FROM
-      appointments AS A
-   -- LEFT JOIN treatmenttypes AS TT ON A.treatment_type_id = TT.treatment_type_id
-    LEFT JOIN group_list AS GL ON A.treatment_type_id = GL.group_id
-    JOIN rooms AS R ON A.room_id = R.room_id
-    WHERE
-      A.therapist_id = ?
-    ORDER BY
-      A.appointment_date, A.start_time;
+      A.patient_id,
+      CONCAT(P.first_name, ' ', P.last_name) AS patient_name
+    FROM appointments AS A
+    LEFT JOIN group_list AS GL
+      ON A.treatment_type_id = GL.group_id
+    JOIN rooms AS R
+      ON A.room_id = R.room_id
+    LEFT JOIN patients AS PA
+      ON PA.patient_id = A.patient_id
+    LEFT JOIN person AS P
+      ON P.person_id = PA.person_id
+    WHERE A.therapist_id = ?
+    ORDER BY A.appointment_date, A.start_time;
   `;
-  const [rows] = await pool.query(sql, [therapistId]);
-  return rows;
+
+  try {
+    const [rows] = await pool.query(sql, [therapistId]);
+    return rows;
+  } catch (err) {
+    console.error('SQL ERROR:', err);
+    throw err;
+  }
 }
 
 export async function getAppointmentsByRoom(roomId) {
