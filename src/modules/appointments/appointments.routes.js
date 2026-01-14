@@ -18,6 +18,7 @@ router.get("/therapist/:therapistId", getAppointmentsByTherapist);
 router.get("/byPatientAndTherapist/:patientId/:therapistId", getAppointments);
 router.get("/group/:groupId", getAppointmentsByGroupId);
 
+router.get("/patient/:patientId", getAppointmentsByPatientIdController);
 // POST /api/appointments - יצירת תור חדש
 router.post("/", createAppointmentController);
 

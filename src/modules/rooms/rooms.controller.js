@@ -1,4 +1,4 @@
-import { createRoom, deleteRoom, fetchRooms, updateRoom } from "./rooms.service.js";
+import { createRoom, deleteRoom, fetchRooms, updateRoom, saveRoomAvailability, getRoomAvailability } from "./rooms.service.js";
 
 export async function getRoomsController(req, res) {
   try {
@@ -67,7 +67,7 @@ export async function updateRoomController(req, res) {
     console.log('Request body for updateRoomController:', req.body);
     const { id } = req.params;
     const updateData = req.body;
-    
+
     if (!id || isNaN(id)) {
       return res.status(400).json({
         success: false,
@@ -80,7 +80,7 @@ export async function updateRoomController(req, res) {
         message: "No update data provided"
       });
     }
-    
+
     const result = await updateRoom(id, updateData);
     if (result) {
       res.json({
@@ -99,6 +99,35 @@ export async function updateRoomController(req, res) {
       message: error.message || "Error updating Room"
     });
     console.log(error.message);
-    
+
+  }
+}
+
+export async function saveRoomAvailabilityController(req, res) {
+  try {
+    const { roomId } = req.params;
+    const availability = req.body;
+    if (!roomId || isNaN(roomId) || !Array.isArray(availability)) {
+      return res.status(400).json({ success: false, message: "Invalid input" });
+    }
+    await saveRoomAvailability(roomId, availability);
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+}
+
+export async function getRoomAvailabilityController(req, res) {
+  try {
+    const { roomId } = req.params;
+    if (!roomId || isNaN(roomId)) {
+      return res.status(400).json({ success: false, message: "Invalid roomId" });
+    }
+    const availability = await getRoomAvailability(roomId);
+    res.json(availability);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 }
