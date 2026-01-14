@@ -88,7 +88,7 @@ export async function updatePayment(payment_id, paymentData) {
 
   const values = Object.values(paymentData);
   await pool.query(
-    `UPDATE payments SET ${fields} WHERE pay_id = ?`,
+    `UPDATE payments SET ${fields} WHERE payment_id = ?`,
     [...values, payment_id]
   );
   
