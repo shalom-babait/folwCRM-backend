@@ -37,29 +37,47 @@ async function createTable(sql) {
     console.error("Error creating table:", err);
   }
 }
-
+const companiesTableSQL = `
+ CREATE TABLE companies (
+    company_id INT AUTO_INCREMENT PRIMARY KEY,
+    company_name VARCHAR(150) NOT NULL,
+    contact_name VARCHAR(100) NULL,      -- איש קשר
+    contact_phone VARCHAR(20) NULL,
+    contact_email VARCHAR(100) NULL,
+    status ENUM('active','inactive') DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP
+); ';
+`;
 /* ============================
    טבלת משתמשים
 ============================ */
 const usersTableSQL = `
 CREATE TABLE IF NOT EXISTS users (
   user_id INT AUTO_INCREMENT PRIMARY KEY,
-  first_name VARCHAR(15) NOT NULL,
-  last_name VARCHAR(20) NOT NULL,
-  teudat_zehut VARCHAR(10),
-  phone VARCHAR(10) NOT NULL,
-  city VARCHAR(15) NOT NULL,
-  address VARCHAR(30),
-  email VARCHAR(30) NOT NULL UNIQUE,
-  password VARCHAR(100) NOT NULL,
+  user_name VARCHAR(30) NOT NULL UNIQUE,
+  password VARCHAR(512) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   agree TINYINT(1) DEFAULT 0,
-  role ENUM('secretary','manager','therapist','patient','other') NOT NULL DEFAULT 'patient',
-  gender ENUM('male','female','other') NOT NULL DEFAULT 'other',
-  birth_date DATE DEFAULT NULL
+  role ENUM('company_manager','admin','therapist','patient','secretary') NOT NULL DEFAULT 'patient',
+  person_id INT,
+  FOREIGN KEY (person_id) REFERENCES person(person_id)
 );
 `;
-
+const personTableSQL = `CREATE TABLE IF NOT EXISTS Person (
+   person_id INT AUTO_INCREMENT PRIMARY KEY,
+   first_name VARCHAR(15) NOT NULL,
+   last_name VARCHAR(20) NOT NULL,
+   teudat_zehut VARCHAR(10),
+   phone VARCHAR(10),
+   email VARCHAR(100),
+   city VARCHAR(15),
+   address VARCHAR(30),
+   birth_date DATE,
+   gender ENUM('male','female','other') DEFAULT 'other'
+   ,mother_name VARCHAR(30) NULL
+ ); `;
 /* ============================
    סוגי טיפולים
 ============================ */
@@ -77,6 +95,7 @@ const roomsTableSQL = `
 CREATE TABLE IF NOT EXISTS rooms (
   room_id INT AUTO_INCREMENT PRIMARY KEY,
   room_name VARCHAR(50) NOT NULL
+  ,description TEXT NULL
 );
 `;
 
@@ -87,8 +106,10 @@ const therapistsTableSQL = `
 CREATE TABLE IF NOT EXISTS therapists (
   therapist_id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT UNIQUE,
+  person_id INT,
   status ENUM('פעיל', 'לא פעיל', 'בהמתנה') NOT NULL DEFAULT 'פעיל',
-  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+  FOREIGN KEY (person_id) REFERENCES person(person_id)
 );
 `;
 
@@ -100,12 +121,14 @@ CREATE TABLE IF NOT EXISTS patients (
   patient_id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT,
   therapist_id INT,
+  person_id INT,
   birth_date DATE,
   gender ENUM('male','female','other') NOT NULL DEFAULT 'female',
   status ENUM('פעיל', 'לא פעיל', 'בהמתנה') NOT NULL DEFAULT 'פעיל',
   history_notes VARCHAR(500),
   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-  FOREIGN KEY (therapist_id) REFERENCES therapists(therapist_id)
+  FOREIGN KEY (therapist_id) REFERENCES therapists(therapist_id),
+  FOREIGN KEY (person_id) REFERENCES person(person_id)
 );
 `;
 
@@ -117,13 +140,14 @@ CREATE TABLE appointments (
   appointment_id INT AUTO_INCREMENT PRIMARY KEY,
   therapist_id INT NOT NULL,
   patient_id INT NOT NULL,
-  treatment_type_id INT,
-  room_id INT NOT NULL,
+  treatment_type_id INT NULL,
+  room_id INT NULL,
   appointment_date DATE NOT NULL,
   start_time TIME NOT NULL,
   end_time TIME NOT NULL,
   total_minutes INT AS (TIMESTAMPDIFF(MINUTE, start_time, end_time)) STORED,
   status ENUM('מתוזמנת', 'הושלמה', 'בוטלה', 'נדחתה') NOT NULL DEFAULT 'מתוזמנת',
+    meeting_type ENUM('frontal','phone') NOT NULL,
   FOREIGN KEY (therapist_id) REFERENCES therapists(therapist_id),
   FOREIGN KEY (patient_id) REFERENCES patients(patient_id),
   FOREIGN KEY (type_id) REFERENCES treatment_types(treatment_type_id),
@@ -138,11 +162,15 @@ const paymentsTableSQL = `
 CREATE TABLE IF NOT EXISTS Payments (
   payment_id INT AUTO_INCREMENT PRIMARY KEY,
   appointment_id INT,
+  person_id INT,
+  therapist_id INT NULL,
   amount DECIMAL(10, 2) NOT NULL,
   payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   method ENUM('כרטיס אשראי', 'העברה בנקאית', 'מזומן') NOT NULL,
   status ENUM('pending','paid','failed','refunded') DEFAULT 'pending',
-  FOREIGN KEY (appointment_id) REFERENCES appointments(appointment_id)
+  FOREIGN KEY (appointment_id) REFERENCES appointments(appointment_id),
+  FOREIGN KEY (person_id) REFERENCES person(person_id)
+  ,FOREIGN KEY (therapist_id) REFERENCES therapists(therapist_id)
 );
 `;
 
@@ -206,11 +234,11 @@ CREATE TABLE IF NOT EXISTS Departments (
 const userDepartmentsTableSQL = `
 CREATE TABLE IF NOT EXISTS UserDepartments (
   user_department_id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
+  person_id INT NOT NULL,
   department_id INT NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+  FOREIGN KEY (person_id) REFERENCES person(person_id) ON DELETE CASCADE,
   FOREIGN KEY (department_id) REFERENCES Departments(department_id),
-  UNIQUE (user_id, department_id)
+  UNIQUE KEY person_id_department_id (person_id, department_id)
 );
 `;
 
@@ -230,11 +258,11 @@ CREATE TABLE IF NOT EXISTS group_list (
 const userGroupsTableSQL = `
 CREATE TABLE IF NOT EXISTS UserGroups (
   user_group_id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
+  person_id INT NOT NULL,
   group_id INT NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+  FOREIGN KEY (person_id) REFERENCES person(person_id) ON DELETE CASCADE,
   FOREIGN KEY (group_id) REFERENCES group_list(group_id),
-  UNIQUE (user_id, group_id)
+  UNIQUE KEY person_id_group_id (person_id, group_id)
 );
 `;
 
@@ -327,6 +355,44 @@ CREATE TABLE IF NOT EXISTS UserCategories (
   UNIQUE KEY unique_user_category (user_id, category_id)
 );
 `;
+const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
+   followup_id INT AUTO_INCREMENT PRIMARY KEY,
+
+   person_id INT NOT NULL,                  -- מי שהמעקב שייך לו
+   created_by_person_id INT NOT NULL,       -- מי שהוסיף את המעק
+   follow_date DATE NOT NULL,               -- תאריך המעקב
+   follow_time TIME NULL,                   -- שעה (לא חובה)
+   remind BOOLEAN DEFAULT FALSE,            -- האם לתזכר
+   notes VARCHAR(500),                      -- הערו
+   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- תאריך יציר
+   FOREIGN KEY (person_id) REFERENCES person(person_id) ON DELETE CASCADE,
+   FOREIGN KEY (created_by_person_id) REFERENCES person(person_id)
+ );`;
+ const patient_contactsTableSQL = `
+ CREATE TABLE patient_contacts (
+     patient_contacts_id INT AUTO_INCREMENT PRIMARY KEY,
+     patient_id INT NOT NULL,
+     contact_person_id INT NOT NULL,
+     relation_type ENUM(
+         'mother',
+         'father',
+         'guardian',
+         'family_member',
+         'other'
+     ) NOT NULL,
+     is_primary BOOLEAN DEFAULT FALSE,
+     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+     CONSTRAINT fk_pc_patient
+         FOREIGN KEY (patient_id)
+         REFERENCES patients(patient_id)
+         ON DELETE CASCADE,
+   CONSTRAINT fk_pc_person
+       FOREIGN KEY (contact_person_id)
+       REFERENCES person(person_id)
+       ON DELETE CASCADE,
+   UNIQUE (patient_id, contact_person_id)
+; `;
+
 
 /* ============================
    הרצה בפועל
@@ -351,202 +417,12 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 //  createTable(prospectCategoriesTableSQL);
 //  createTable(patientCategoriesTableSQL);
 //  createTable(userCategoriesTableSQL);
-//שיניתי
-// ALTER TABLE users
-//   DROP COLUMN first_name,
-//   DROP COLUMN last_name,
-//   DROP COLUMN teudat_zehut,
-//   DROP COLUMN phone,
-//   DROP COLUMN city,
-//   DROP COLUMN address,
-//   DROP COLUMN birth_date,
-//   DROP COLUMN gender;
-
-// SET SQL_SAFE_UPDATES = 1;
-
-// UPDATE users u
-// JOIN Person p
-//   ON u.first_name = p.first_name
-//  AND u.last_name  = p.last_name
-//  AND u.email      = u.email
-// SET u.person_id = p.person_id;
-
-// SET SQL_SAFE_UPDATES = 0;
-
-
-// INSERT INTO Person (first_name, last_name, teudat_zehut, phone, city, address, birth_date, gender)
-// SELECT first_name, last_name, teudat_zehut, phone, city, address, birth_date, gender
-// FROM users;
-
-// ALTER TABLE users
-//   ADD COLUMN person_id INT,
-//   ADD CONSTRAINT fk_user_person
-//     FOREIGN KEY (person_id) REFERENCES person(person_id);
-
-// CREATE TABLE IF NOT EXISTS Person (
-//   person_id INT AUTO_INCREMENT PRIMARY KEY,
-//   first_name VARCHAR(15) NOT NULL,
-//   last_name VARCHAR(20) NOT NULL,
-//   teudat_zehut VARCHAR(10),
-//   phone VARCHAR(10),
-//   city VARCHAR(15),
-//   address VARCHAR(30),
-//   birth_date DATE,
-//   gender ENUM('male','female','other') DEFAULT 'other'
-// );
-
-// ALTER TABLE patients
-//   ADD COLUMN person_id INT,
-//   ADD CONSTRAINT fk_patient_person
-//     FOREIGN KEY (person_id) REFERENCES person(person_id);
-
-// ALTER TABLE UserDepartments
-//   ADD COLUMN person_id INT;
-
-// ALTER TABLE UserDepartments
-//   ADD CONSTRAINT fk_userdepartments_person
-//     FOREIGN KEY (person_id) REFERENCES person(person_id) ON DELETE CASCADE;
-
-// ALTER TABLE UserDepartments
-//   DROP FOREIGN KEY UserDepartments_user_fk,
-//   DROP INDEX user_id,
-//   DROP COLUMN user_id;
-
-// ALTER TABLE UserDepartments
-//   ADD UNIQUE KEY person_id_department_id (person_id, department_id);
-
-// ALTER TABLE UserGroups
-//   ADD COLUMN person_id INT;
-
-// ALTER TABLE UserGroups
-//   ADD CONSTRAINT fk_usergroups_person
-//     FOREIGN KEY (person_id) REFERENCES person(person_id) ON DELETE CASCADE;
-
-
-// ALTER TABLE UserGroups
-//   DROP FOREIGN KEY UserGroups_ibfk_1;
-
-//   ALTER TABLE UserGroups
-//   DROP INDEX user_id;
-
-// ALTER TABLE UserGroups
-//   DROP COLUMN user_id;
-
-// ALTER TABLE UserGroups
-//   ADD UNIQUE KEY person_id_group_id (person_id, group_id);
-
-// הוספתי 2
-// CREATE TABLE IF NOT EXISTS followups (
-//   followup_id INT AUTO_INCREMENT PRIMARY KEY,
-
-//   person_id INT NOT NULL,                  -- מי שהמעקב שייך לו
-//   created_by_person_id INT NOT NULL,       -- מי שהוסיף את המעקב
-
-//   follow_date DATE NOT NULL,               -- תאריך המעקב
-//   follow_time TIME NULL,                   -- שעה (לא חובה)
-//   remind BOOLEAN DEFAULT FALSE,            -- האם לתזכר
-//   notes VARCHAR(500),                      -- הערות
-
-//   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- תאריך יצירה
-
-//   FOREIGN KEY (person_id) REFERENCES person(person_id) ON DELETE CASCADE,
-//   FOREIGN KEY (created_by_person_id) REFERENCES person(person_id)
-// );
-
-
-//הוספתי ע"מ לדעת לאיזה מטופל לשייך את העיסקה
-// ALTER TABLE Payments
-// ADD COLUMN person_id INT NULL,
-// ADD CONSTRAINT fk_payment_person
-//   FOREIGN KEY (person_id) REFERENCES person(person_id);
-
-// הוספתי 3
-//ALTER TABLE Therapists ADD COLUMN status ENUM('פעיל', 'לא פעיל', 'בהמתנה') NOT NULL DEFAULT 'פעיל';
-//ALTER TABLE Therapists ADD COLUMN person_id INT, ADD CONSTRAINT fk_therapist_person FOREIGN KEY (person_id) REFERENCES person(person_id);
-// ALTER TABLE users MODIFY COLUMN password VARCHAR(512);
-// ALTER TABLE appointments MODIFY COLUMN treatment_type_id INT NULL;
-//ALTER TABLE users MODIFY role ENUM(
-// 'company_manager',
-//   'admin',
-//   'therapist',
-//   'patient',
-//   'secretary'
-// );
-// ALTER TABLE person ADD COLUMN email VARCHAR(100);
-// ALTER TABLE users CHANGE COLUMN email user_name VARCHAR(30);
-// ALTER TABLE appointments MODIFY room_id INT NULL;
-// ALTER TABLE appointments ADD COLUMN meeting_type ENUM('frontal','phone') NOT NULL;
-// ALTER TABLE treatment_types CHANGE COLUMN treatment_type_id treatment_type_id INT AUTO_INCREMENT;
-// ALTER TABLE appointments CHANGE COLUMN treatment_type_id treatment_type_id INT;
-
-// ALTER TABLE person ADD COLUMN mother_name VARCHAR(30) NULL;
- //הוספתי 4
-//  CREATE TABLE companies (
-//     company_id INT AUTO_INCREMENT PRIMARY KEY,
-
-//     company_name VARCHAR(150) NOT NULL,
-
-//     contact_name VARCHAR(100) NULL,      -- איש קשר
-//     contact_phone VARCHAR(20) NULL,
-//     contact_email VARCHAR(100) NULL,
-
-//     status ENUM('active','inactive') DEFAULT 'active',
-
-//     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-//     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-//         ON UPDATE CURRENT_TIMESTAMP
-// );
-
-// CREATE TABLE patient_contacts (
-//     patient_contacts_id INT AUTO_INCREMENT PRIMARY KEY,
-
-//     patient_id INT NOT NULL,
-//     contact_person_id INT NOT NULL,
-
-//     relation_type ENUM(
-//         'mother',
-//         'father',
-//         'guardian',
-//         'family_member',
-//         'other'
-//     ) NOT NULL,
-
-//     is_primary BOOLEAN DEFAULT FALSE,
-
-//     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-//     CONSTRAINT fk_pc_patient
-//         FOREIGN KEY (patient_id)
-//         REFERENCES patients(patient_id)
-//         ON DELETE CASCADE,
-
-//     CONSTRAINT fk_pc_person
-//         FOREIGN KEY (contact_person_id)
-//         REFERENCES person(person_id)
-//         ON DELETE CASCADE,
-
-//     UNIQUE (patient_id, contact_person_id)
-// );
+//  createTable(personTableSQL);
+//  createTable(followupsTableSQL);
+// createTable(companiesTableSQL);
+// createTable(patient_contactsTableSQL);
 
 //הוספתי 5
-// ALTER TABLE payments
-// ADD COLUMN therapist_id INT NULL;
-
-// SET SQL_SAFE_UPDATES = 0;
-
-// UPDATE payments p
-// JOIN appointments a ON p.appointment_id = a.appointment_id
-// SET p.therapist_id = a.therapist_id;
-
-// SET SQL_SAFE_UPDATES = 1;
-
-// ALTER TABLE payments
-// ADD CONSTRAINT fk_payments_therapist
-// FOREIGN KEY (therapist_id) REFERENCES therapists(therapist_id);
-
-// ALTER TABLE rooms
-// ADD COLUMN description TEXT AFTER color;
-
 // CREATE TABLE room_availability (
 //     availability_id INT AUTO_INCREMENT PRIMARY KEY,
 //     company_id INT NOT NULL,
@@ -631,3 +507,11 @@ CREATE TABLE IF NOT EXISTS UserCategories (
 //     REFERENCES users(user_id)
 // );
 // ALTER TABLE tasks ADD COLUMN color VARCHAR(20) NULL;
+// הוספתי 7
+// ALTER TABLE followups
+// ADD COLUMN status ENUM('open', 'completed', 'cancelled', 'snoozed')
+// NOT NULL DEFAULT 'open';
+
+// UPDATE followups
+// SET status = 'open'
+// WHERE status IS NULL;
