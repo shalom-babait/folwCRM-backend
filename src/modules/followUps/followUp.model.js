@@ -1,13 +1,13 @@
 // שליפת כל המעקבים שנוצרו ע"י משתמש מסוים, תאריך היום ומעלה, כולל כל שדות המעקב וכל שדות הפרסון
 export async function getUpcomingFollowUpsByCreator(created_by_person_id) {
-        const sql = `
-            SELECT f.*, p.*
-            FROM followups f
-            JOIN person p ON f.person_id = p.person_id
-            WHERE f.created_by_person_id = ?
-              AND f.follow_date >= CURDATE()
-            ORDER BY f.follow_date ASC, f.follow_time ASC
-        `;
+                const sql = `
+                        SELECT f.*, p.*
+                        FROM followups f
+                        JOIN person p ON f.person_id = p.person_id
+                        WHERE f.created_by_person_id = ?
+                            AND f.follow_date >= CURDATE()
+                        ORDER BY f.follow_date ASC, f.follow_time ASC
+                `;
         const [rows] = await pool.query(sql, [created_by_person_id]);
         // separate followUp and person fields
         return rows.map(row => {
@@ -19,7 +19,8 @@ export async function getUpcomingFollowUpsByCreator(created_by_person_id) {
                 follow_time: row.follow_time,
                 remind: row.remind,
                 notes: row.notes,
-                created_at: row.created_at
+                created_at: row.created_at,
+                status: row.status
             };
             const person = {};
             for (const key in row) {
@@ -33,21 +34,30 @@ export async function getUpcomingFollowUpsByCreator(created_by_person_id) {
 import pool from '../../services/database.js';
 
 export async function createFollowUp({ person_id, follow_date, follow_time = null, remind = false, notes = '', created_by_person_id }) {
-    const sql = `INSERT INTO followups (person_id, follow_date, follow_time, remind, notes, created_by_person_id) VALUES (?, ?, ?, ?, ?, ?)`;
-    const [result] = await pool.query(sql, [person_id, follow_date, follow_time, remind, notes, created_by_person_id]);
-    return { followup_id: result.insertId, person_id, follow_date, follow_time, remind, notes, created_by_person_id };
+    const sql = `INSERT INTO followups (person_id, follow_date, follow_time, remind, notes, created_by_person_id, status) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    // default status to 'open' if not provided
+    const status = arguments[0]?.status || 'open';
+    const [result] = await pool.query(sql, [person_id, follow_date, follow_time, remind, notes, created_by_person_id, status]);
+    return { followup_id: result.insertId, person_id, follow_date, follow_time, remind, notes, created_by_person_id, status };
 }
 
 export async function getFollowUpsByPerson(person_id) {
     const sql = `SELECT * FROM followups WHERE person_id = ? ORDER BY follow_date DESC`;
     const [rows] = await pool.query(sql, [person_id]);
-    return rows;
+    return rows.map(row => ({
+        ...row,
+        status: row.status
+    }));
 }
 
 export async function getFollowUpById(followup_id) {
     const sql = `SELECT * FROM followups WHERE followup_id = ?`;
     const [rows] = await pool.query(sql, [followup_id]);
-    return rows[0] || null;
+    if (!rows[0]) return null;
+    return {
+        ...rows[0],
+        status: rows[0].status
+    };
 }
 
 export async function updateFollowUp(followup_id, updateData) {
