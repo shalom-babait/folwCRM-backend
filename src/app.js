@@ -18,7 +18,7 @@ import followUpsRoutes from './modules/followUps/followUps.routes.js';
 import pdfRoutes from './modules/reports/pdf.routes.js';
 import reportsRoutes from './modules/reports/reports.routes.js';
 import patientProblemsRoutes from './modules/patientProblems/patientProblems.routes.js';
-
+import treatmentTypesRoutes from './modules/treatmentTypes/treatmentType.routes.js';
 const app = express();
 
 // ✅ רשימת דומיינים מורשים
@@ -91,7 +91,7 @@ app.use('/api/followups', followUpsRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/patient-problems', patientProblemsRoutes);
 app.use('/api/tasks', taskRoutes);
-
+app.use('/api/treatmentTypes', treatmentTypesRoutes);
 
 // ✅ Start server
 const PORT = process.env.PORT || 3000;
