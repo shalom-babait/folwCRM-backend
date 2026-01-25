@@ -1,5 +1,5 @@
 
-import { createTreatmentType, deleteTreatmentTypeById, updateTreatmentTypeById, getAllTreatmentTypes } from './treatmentType.repo.js';
+import { createTreatmentType, deleteTreatmentTypeById, updateTreatmentTypeById, getAllTreatmentTypes, getTreatmentTypesByTherapistId } from './treatmentType.repo.js';
 import pool from '../../services/database.js';
 
 // הוספה
@@ -44,8 +44,11 @@ export async function updateTreatmentTypeService(id, updateData) {
 }
 
 // קבלת כל הרשימה
-export async function getAllTreatmentTypesService() {
+export async function getAllTreatmentTypesService(therapist_id = null) {
 	try {
+		if (therapist_id) {
+			return await getTreatmentTypesByTherapistId(therapist_id);
+		}
 		return await getAllTreatmentTypes();
 	} catch (error) {
 		throw error;
