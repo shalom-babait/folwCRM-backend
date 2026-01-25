@@ -38,3 +38,10 @@ export async function getAllTreatmentTypes() {
 	const [rows] = await pool.execute(query);
 	return rows;
 }
+
+// קבלת רשימה לפי therapist_id
+export async function getTreatmentTypesByTherapistId(therapist_id) {
+	const query = 'SELECT * FROM treatment_types WHERE therapist_id = ?';
+	const [rows] = await pool.execute(query, [therapist_id]);
+	return rows;
+}

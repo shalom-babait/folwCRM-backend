@@ -55,10 +55,11 @@ export async function updateTreatmentTypeController(req, res) {
 	}
 }
 
-// קבלת כל הרשימה
+// קבלת כל הרשימה (עם אפשרות לסינון לפי therapist_id)
 export async function getAllTreatmentTypesController(req, res) {
 	try {
-		const treatmentTypes = await getAllTreatmentTypesService(); // נוודא שהנתונים הם מערך
+		const { therapist_id } = req.query;
+		const treatmentTypes = await getAllTreatmentTypesService(therapist_id ? Number(therapist_id) : null);
 		if (!Array.isArray(treatmentTypes)) {
 			return res.status(500).json({ error: 'Data is not an array' });
 		}
