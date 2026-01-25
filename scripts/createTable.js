@@ -507,6 +507,7 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
 //     REFERENCES users(user_id)
 // );
 // ALTER TABLE tasks ADD COLUMN color VARCHAR(20) NULL;
+
 // הוספתי 7
 // ALTER TABLE followups
 // ADD COLUMN status ENUM('open', 'completed', 'cancelled', 'snoozed')
@@ -533,3 +534,20 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
 
 // ALTER TABLE tasks
 // DROP COLUMN assigned_to_user_id;
+
+// הוספתי שרי
+
+// ALTER TABLE treatment_types
+// ADD type_description TEXT;
+
+// ALTER TABLE appointments
+// ADD CONSTRAINT fk_treatment_type
+// FOREIGN KEY (treatment_type_id) REFERENCES treatment_types(treatment_type_id);
+
+// ALTER TABLE treatment_types
+// ADD COLUMN therapist_id INT;
+
+// ALTER TABLE treatment_types
+// ADD CONSTRAINT fk_therapist_id
+// FOREIGN KEY (therapist_id) REFERENCES therapists(therapist_id);
+
