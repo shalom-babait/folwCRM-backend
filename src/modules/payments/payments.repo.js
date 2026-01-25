@@ -12,25 +12,15 @@ function toMysqlLocalDatetime(date) {
 }
 
 export async function createPayment(paymentData) {
-  let { appointment_id, amount, payment_date, method, status, transaction_type, patient_id, therapist_id } = paymentData;
+  console.log('createPayment - received from frontend:', paymentData);
+  let { appointment_id, amount, payment_date, method, status, transaction_type, person_id, therapist_id } = paymentData;
+
+  if (!person_id) {
+    throw new Error('person_id is required');
+  }
 
   const formattedDate = toMysqlLocalDatetime(payment_date);
 
-  // 1. שליפת person_id לפי patient_id
-  const personSql = `
-    SELECT person_id 
-    FROM patients 
-    WHERE patient_id = ?
-  `;
-  const [personResult] = await pool.query(personSql, [patient_id]);
-
-  if (personResult.length === 0) {
-    throw new Error('No person found for the given patient_id');
-  }
-
-  const person_id = personResult[0].person_id;
-
-  // 2. שמירת התשלום בטבלת payments
   const sql = `
     INSERT INTO payments 
       (appointment_id, amount, payment_date, method, status, transaction_type, person_id, therapist_id)
@@ -49,11 +39,7 @@ export async function createPayment(paymentData) {
   ];
 
   const [result] = await pool.query(sql, params);
-
-  // הדפסה ללוג
-  // console.log('createPayment result:', { payment_id: result.insertId, ...paymentData, person_id });
-
-  return { payment_id: result.insertId, ...paymentData, person_id };
+  return { payment_id: result.insertId, ...paymentData };
 }
 
 // --- שליפות CRUD ---
