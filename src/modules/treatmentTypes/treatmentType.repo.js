@@ -3,17 +3,18 @@ import pool, { deleteFromTable, updateTable } from '../../services/database.js';
 
 // הוספה
 export async function createTreatmentType(typeData) {
-	const { type_name, type_description } = typeData;
+	const { type_name, type_description, therapist_id } = typeData;
 	const query = `
-		INSERT INTO treatment_types (type_name, type_description)
-		VALUES (?, ?)
+		INSERT INTO treatment_types (type_name, type_description, therapist_id)
+		VALUES (?, ?, ?)
 	`;
 	try {
-		const [result] = await pool.execute(query, [type_name, type_description]);
+		const [result] = await pool.execute(query, [type_name, type_description, therapist_id]);
 		return {
 			treatment_type_id: result.insertId,
 			type_name,
 			type_description,
+			therapist_id,
 			message: 'treatment type created successfully'
 		};
 	} catch (error) {
