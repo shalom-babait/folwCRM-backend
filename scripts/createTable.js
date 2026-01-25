@@ -515,3 +515,21 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
 // UPDATE followups
 // SET status = 'open'
 // WHERE status IS NULL;
+
+//הוספתי 8
+// CREATE TABLE task_assignments (
+//   task_assignments_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+//   task_id BIGINT UNSIGNED NOT NULL,
+//   entity_id INT NOT NULL,
+//   entity_type ENUM('patient', 'therapist', 'staff', 'secretary', 'manager', 'admin') NOT NULL,
+//   role VARCHAR(30) DEFAULT 'participant',
+//   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//   CONSTRAINT fk_task_assignments_task
+//     FOREIGN KEY (task_id)
+//     REFERENCES tasks(task_id)
+//     ON DELETE CASCADE
+// );
+
+
+// ALTER TABLE tasks
+// DROP COLUMN assigned_to_user_id;

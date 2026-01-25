@@ -107,6 +107,18 @@ export async function createAppointmentController(req, res) {
     });
   } catch (error) {
     console.error('[createAppointmentController] Error:', error);
+    if (error.message && error.message.includes('Time conflict: Therapist')) {
+      return res.status(409).json({
+        success: false,
+        message: 'המטפל אינו פנוי בשעה שבחרת. אנא בחר זמן אחר.'
+      });
+    }
+    if (error.message && error.message.includes('Time conflict: Room')) {
+      return res.status(409).json({
+        success: false,
+        message: 'החדר אינו פנוי בשעה שבחרת. אנא בחר זמן אחר.'
+      });
+    }
     res.status(500).json({
       success: false,
       message: error.message
