@@ -551,3 +551,59 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
 // ADD CONSTRAINT fk_therapist_id
 // FOREIGN KEY (therapist_id) REFERENCES therapists(therapist_id);
 
+//הוספתי 9
+//  ALTER TABLE treatment_types
+// ADD COLUMN price_default DECIMAL(10,2) NULL,
+// ADD COLUMN color VARCHAR(20) NULL;
+
+// CREATE TABLE treatment_templates (
+//   template_id INT AUTO_INCREMENT PRIMARY KEY,
+//   treatment_type_id INT NOT NULL,
+//   name VARCHAR(100) NOT NULL,
+//   description TEXT,
+//   template_type ENUM('protocol', 'questionnaire') NOT NULL,
+//   version VARCHAR(20),
+//   is_active TINYINT(1) DEFAULT 1,
+//   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+//   CONSTRAINT fk_template_treatment_type
+//     FOREIGN KEY (treatment_type_id)
+//     REFERENCES treatment_types(treatment_type_id)
+//     ON DELETE CASCADE
+// );
+
+// CREATE TABLE template_questions (
+//   question_id INT AUTO_INCREMENT PRIMARY KEY,
+//   template_id INT NOT NULL,
+//   question_text TEXT NOT NULL,
+//   question_type ENUM(
+//     'static_text',   -- טקסט לקריאה בלבד (פרוטוקול)
+//     'text',          -- טקסט חופשי
+//     'number',
+//     'scale',
+//     'boolean',
+//     'select'
+//   ) NOT NULL,
+//   is_required TINYINT(1) DEFAULT 0,
+//   order_index INT DEFAULT 0,
+//   visible_to ENUM('therapist', 'patient', 'both') DEFAULT 'therapist',
+
+//   CONSTRAINT fk_question_template
+//     FOREIGN KEY (template_id)
+//     REFERENCES treatment_templates(template_id)
+//     ON DELETE CASCADE
+// );
+
+// CREATE TABLE template_answers (
+//   answer_id INT AUTO_INCREMENT PRIMARY KEY,
+//   question_id INT NOT NULL,
+//   patient_id INT NOT NULL,
+//   treatment_session_id INT NULL,
+//   answer_text TEXT,
+//   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+//   CONSTRAINT fk_answer_question
+//     FOREIGN KEY (question_id)
+//     REFERENCES template_questions(question_id)
+//     ON DELETE CASCADE
+// );
