@@ -65,17 +65,28 @@ export async function createAppointment(appointmentData) {
       throw new Error("End time must be after start time");
     }
 
-    // בדיקת התנגשות זמנים
-    const hasConflict = await checkTimeConflict(
+    // בדיקת התנגשות למטפל
+    const therapistConflict = await checkTimeConflict(
       appointmentData.therapist_id,
-      appointmentData.room_id,
+      null,
       appointmentData.appointment_date,
       appointmentData.start_time,
       appointmentData.end_time
     );
+    // בדיקת התנגשות לחדר
+    const roomConflict = appointmentData.room_id ? await checkTimeConflict(
+      null,
+      appointmentData.room_id,
+      appointmentData.appointment_date,
+      appointmentData.start_time,
+      appointmentData.end_time
+    ) : false;
 
-    if (hasConflict) {
-      throw new Error("Time conflict: Therapist or room is not available at this time");
+    if (therapistConflict) {
+      throw new Error("Time conflict: Therapist is not available at this time");
+    }
+    if (roomConflict) {
+      throw new Error("Time conflict: Room is not available at this time");
     }
 
     const newAppointment = await create(appointmentData);
