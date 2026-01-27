@@ -1,9 +1,12 @@
 import { getUpcomingFollowUpsByCreator as getUpcomingFollowUpsByCreatorModel } from './followUp.model.js';
 
 export async function getUpcomingFollowUpsByCreator(req, res) {
+            
     try {
         const { created_by_person_id } = req.params;
         const followUps = await getUpcomingFollowUpsByCreatorModel(created_by_person_id);
+        console.log("followUps"  ,followUps);
+        
         res.json(followUps);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -27,6 +30,8 @@ export async function createFollowUp(req, res) {
 }
 
 export async function getFollowUpsByPerson(req, res) {
+        console.log("getFollowUpsByPerson");
+
     try {
         const { person_id } = req.params;
         const followUps = await followUpModel.getFollowUpsByPerson(person_id);
@@ -37,6 +42,8 @@ export async function getFollowUpsByPerson(req, res) {
 }
 
 export async function getFollowUpById(req, res) {
+    console.log("getFollowUpById");
+    
     try {
         const { followup_id } = req.params;
         const followUp = await followUpModel.getFollowUpById(followup_id);
