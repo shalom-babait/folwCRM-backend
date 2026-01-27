@@ -8,7 +8,7 @@ export async function getUpcomingFollowUpsByCreator(user_id) {
         JOIN person p ON f.person_id = p.person_id
         JOIN users u ON f.created_by_person_id = u.person_id
         WHERE u.user_id = ?
-          AND f.follow_date >= CURDATE()
+          AND f.follow_date <= CURDATE()
           AND f.status = 'open'
         ORDER BY f.follow_date ASC, f.follow_time ASC
     `;
