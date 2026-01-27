@@ -1,35 +1,43 @@
 // שליפת כל המעקבים שנוצרו ע"י משתמש מסוים, תאריך היום ומעלה, כולל כל שדות המעקב וכל שדות הפרסון
-export async function getUpcomingFollowUpsByCreator(created_by_person_id) {
-                const sql = `
-                        SELECT f.*, p.*
-                        FROM followups f
-                        JOIN person p ON f.person_id = p.person_id
-                        WHERE f.created_by_person_id = ?
-                            AND f.follow_date >= CURDATE()
-                        ORDER BY f.follow_date ASC, f.follow_time ASC
-                `;
-        const [rows] = await pool.query(sql, [created_by_person_id]);
-        // separate followUp and person fields
-        return rows.map(row => {
-            const followUp = {
-                followup_id: row.followup_id,
-                person_id: row.person_id,
-                created_by_person_id: row.created_by_person_id,
-                follow_date: row.follow_date,
-                follow_time: row.follow_time,
-                remind: row.remind,
-                notes: row.notes,
-                created_at: row.created_at,
-                status: row.status
-            };
-            const person = {};
-            for (const key in row) {
-                if (!(key in followUp)) {
-                    person[key] = row[key];
-                }
+export async function getUpcomingFollowUpsByCreator(user_id) {
+    console.log(user_id, "      user_id");
+
+    const sql = `
+        SELECT f.*, p.*
+        FROM followups f
+        JOIN person p ON f.person_id = p.person_id
+        JOIN users u ON f.created_by_person_id = u.person_id
+        WHERE u.user_id = ?
+          AND f.follow_date >= CURDATE()
+          AND f.status = 'open'
+        ORDER BY f.follow_date ASC, f.follow_time ASC
+    `;
+    const [rows] = await pool.query(sql, [user_id]);
+   
+
+    // separate followUp and person fields
+    return rows.map(row => {
+        const followUp = {
+            followup_id: row.followup_id,
+            person_id: row.person_id,
+            created_by_person_id: row.created_by_person_id,
+            follow_date: row.follow_date,
+            follow_time: row.follow_time,
+            remind: row.remind,
+            notes: row.notes,
+            created_at: row.created_at,
+            status: row.status
+        };
+        const person = {};
+        for (const key in row) {
+            if (!(key in followUp)) {
+                person[key] = row[key];
             }
-            return { followUp, person };
-        });
+        }
+
+
+        return { followUp, person };
+    });
 }
 import pool from '../../services/database.js';
 
