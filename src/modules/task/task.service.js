@@ -1,3 +1,8 @@
+import { getTasksByUserId as repoGetTasksByUserId } from './task.repo.js';
+
+export async function getTasksByUserIdService(user_id) {
+	return await repoGetTasksByUserId(user_id);
+}
 import { addTask, deleteTask, updateTaskWithAssignments, getTasksByPatientId } from './task.repo.js';
 
 export async function addTaskService(task) {
