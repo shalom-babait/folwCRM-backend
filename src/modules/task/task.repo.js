@@ -1,3 +1,13 @@
+// קבלת רשימת משימות לפי מזהה מטפל
+export async function getTasksByUserId(user_id) {
+	const sql = `SELECT * FROM tasks WHERE created_by_user_id = ? ORDER BY due_date DESC, created_at DESC`;
+	const [rows] = await pool.query(sql, [user_id]);
+	// הוספת מערך שיוכים לכל משימה
+	for (const task of rows) {
+		task.assignments = await getAssignmentsByTaskId(task.task_id);
+	}
+	return rows;
+}
 // קבלת רשימת שיוכים לפי מזהה משימה
 export async function getAssignmentsByTaskId(task_id) {
 	const [rows] = await pool.query('SELECT entity_id, entity_type, role, created_at FROM task_assignments WHERE task_id = ?', [task_id]);

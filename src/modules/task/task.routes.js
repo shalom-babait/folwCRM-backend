@@ -11,4 +11,7 @@ router.delete('/:task_id', taskController.deleteTask);
 router.put('/:task_id', taskController.updateTask);
 // קבלת רשימת משימות לפי מזהה מטופל
 router.get('/by-patient/:patient_id', taskController.getTasksByPatientId);
+// קבלת רשימת משימות לפי מזהה יוזר
+router.get('/by-user/:user_id', taskController.getTasksByUserId);
+
 export default router;
