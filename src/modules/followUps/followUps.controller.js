@@ -3,8 +3,8 @@ import { getUpcomingFollowUpsByCreator as getUpcomingFollowUpsByCreatorModel } f
 export async function getUpcomingFollowUpsByCreator(req, res) {
             
     try {
-        const { created_by_person_id } = req.params;
-        const followUps = await getUpcomingFollowUpsByCreatorModel(created_by_person_id);
+        const { created_by_user_id } = req.params;
+        const followUps = await getUpcomingFollowUpsByCreatorModel(created_by_user_id);
         console.log("followUps"  ,followUps);
         
         res.json(followUps);
@@ -17,7 +17,7 @@ import * as followUpModel from './followUp.model.js';
 export async function createFollowUp(req, res) {
     try {
         console.log('Request Body:', req.body); // לוג של גוף הבקשה
-        // ודא שמעבירים גם created_by_person_id
+        // ודא שמעבירים גם created_by_user_id
         const followUp = await followUpModel.createFollowUp(req.body);
         res.status(201).json(followUp);
     } catch (err) {
