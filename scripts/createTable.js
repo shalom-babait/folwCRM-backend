@@ -359,14 +359,14 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
    followup_id INT AUTO_INCREMENT PRIMARY KEY,
 
    person_id INT NOT NULL,                  -- מי שהמעקב שייך לו
-   created_by_person_id INT NOT NULL,       -- מי שהוסיף את המעק
+   created_by_user_id INT NOT NULL,       -- מי שהוסיף את המעק
    follow_date DATE NOT NULL,               -- תאריך המעקב
    follow_time TIME NULL,                   -- שעה (לא חובה)
    remind BOOLEAN DEFAULT FALSE,            -- האם לתזכר
    notes VARCHAR(500),                      -- הערו
    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- תאריך יציר
    FOREIGN KEY (person_id) REFERENCES person(person_id) ON DELETE CASCADE,
-   FOREIGN KEY (created_by_person_id) REFERENCES person(person_id)
+   FOREIGN KEY (created_by_user_id) REFERENCES person(person_id)
  );`;
  const patient_contactsTableSQL = `
  CREATE TABLE patient_contacts (
@@ -609,5 +609,5 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
 // );
 // הוספתי 10
 //ALTER TABLE followups
-//RENAME COLUMN created_by_person_id TO created_by_user_id;
+//RENAME COLUMN created_by_user_id TO created_by_user_id;
 
