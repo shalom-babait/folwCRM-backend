@@ -10,7 +10,6 @@ export async function getUpcomingFollowUpsByCreator(user_id) {
         AND f.follow_date <= CURDATE()
         AND f.status = 'open'
       ORDER BY f.follow_date ASC, f.follow_time ASC;
-
     `;
     const [rows] = await pool.query(sql, [user_id]);
 
@@ -21,7 +20,7 @@ export async function getUpcomingFollowUpsByCreator(user_id) {
         const followUp = {
             followup_id: row.followup_id,
             person_id: row.person_id,
-            created_by_person_id: row.created_by_person_id,
+            created_by_user_id: row.created_by_user_id,
             follow_date: row.follow_date,
             follow_time: row.follow_time,
             remind: row.remind,
@@ -42,12 +41,12 @@ export async function getUpcomingFollowUpsByCreator(user_id) {
 }
 import pool from '../../services/database.js';
 
-export async function createFollowUp({ person_id, follow_date, follow_time = null, remind = false, notes = '', created_by_person_id }) {
-    const sql = `INSERT INTO followups (person_id, follow_date, follow_time, remind, notes, created_by_person_id, status) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+export async function createFollowUp({ person_id, follow_date, follow_time = null, remind = false, notes = '', created_by_user_id }) {
+    const sql = `INSERT INTO followups (person_id, follow_date, follow_time, remind, notes, created_by_user_id, status) VALUES (?, ?, ?, ?, ?, ?, ?)`;
     // default status to 'open' if not provided
     const status = arguments[0]?.status || 'open';
-    const [result] = await pool.query(sql, [person_id, follow_date, follow_time, remind, notes, created_by_person_id, status]);
-    return { followup_id: result.insertId, person_id, follow_date, follow_time, remind, notes, created_by_person_id, status };
+    const [result] = await pool.query(sql, [person_id, follow_date, follow_time, remind, notes, created_by_user_id, status]);
+    return { followup_id: result.insertId, person_id, follow_date, follow_time, remind, notes, created_by_user_id, status };
 }
 
 export async function getFollowUpsByPerson(person_id) {
