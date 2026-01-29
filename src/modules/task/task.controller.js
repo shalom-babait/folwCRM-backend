@@ -1,4 +1,17 @@
-import { addTaskService, deleteTaskService, updateTaskService, getTasksByPatientIdService } from './task.service.js';
+
+// קבלת רשימת משימות לפי מזהה יוזר
+export async function getTasksByUserId(req, res) {
+	try {
+		console.log('[controller] קבלת משימות לפי יוזר:', req.params.user_id);
+		const tasks = await getTasksByUserIdService(req.params.user_id);
+		console.log('[controller] משימות שנמצאו:', tasks);
+		res.json(tasks);
+	} catch (err) {
+		console.error('[controller] שגיאה בשליפת משימות לפי יוזר:', err);
+		res.status(500).json({ error: err.message });
+	}
+}
+import { addTaskService, deleteTaskService, updateTaskService, getTasksByPatientIdService, getTasksByUserIdService } from './task.service.js';
 
 // הוספת משימה
 export async function addTask(req, res) {
