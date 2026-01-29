@@ -607,3 +607,7 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
 //     REFERENCES template_questions(question_id)
 //     ON DELETE CASCADE
 // );
+// הוספתי 10
+//ALTER TABLE followups
+//RENAME COLUMN created_by_person_id TO created_by_user_id;
+
