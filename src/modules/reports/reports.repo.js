@@ -61,7 +61,7 @@ export async function getOpenDebtsByTherapist(therapist_id) {
     ORDER BY p.first_name
   `;
   const [rows] = await pool.query(sql, [therapist_id]);
-  console.log('[getOpenDebtsByTherapist] rows:', rows);
+  // console.log('[getOpenDebtsByTherapist] rows:', rows);
   return rows;
 }
 import pool from '../../services/database.js';
