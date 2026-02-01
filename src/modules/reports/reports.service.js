@@ -1,3 +1,8 @@
+import { getIncomeReportByMonthsAndYear } from './reports.repo.js';
+
+export async function getIncomeReportByMonthsAndYearService(data) {
+  return await getIncomeReportByMonthsAndYear(data);
+}
 import { getOpenDebtsByTherapist } from './reports.repo.js';
 
 export async function getOpenDebtsByTherapistService(therapist_id) {

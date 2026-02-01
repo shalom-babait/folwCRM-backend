@@ -1,3 +1,18 @@
+import { getIncomeReportByMonthsAndYearService } from './reports.service.js';
+
+// דוח הכנסות לפי חודשים ושנה
+export async function getIncomeReportByMonthsAndYearController(req, res) {
+  try {
+    const { year, months } = req.body;
+    if (!year || !Array.isArray(months) || months.length === 0) {
+      return res.status(400).json({ success: false, message: 'year and months are required' });
+    }
+    const report = await getIncomeReportByMonthsAndYearService({ year, months });
+    res.json({ success: true, data: report });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+}
 import { getOpenDebtsByTherapistService } from './reports.service.js';
 
 // דוח חובות פתוחים למטפל
