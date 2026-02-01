@@ -95,18 +95,12 @@ export async function updatePatient(patientId, updateData) {
         // Update Person table if needed
         if (Object.keys(personUpdate).length > 0) {
             if (personId) {
-                console.log('[updatePatient] Updating person:', personId, personUpdate);
                 personUpdateResult = await updatePerson(personId, personUpdate);
-                console.log('[updatePatient] personUpdateResult:', personUpdateResult);
-            } else {
-                console.log('[updatePatient] No person_id found for patient, cannot update person table');
             }
         }
         // Update Patients table
         if (Object.keys(patientUpdate).length > 0) {
-            console.log('[updatePatient] Updating patient:', patientId, patientUpdate);
             patientUpdateResult = await updateToPatients(patientId, patientUpdate);
-            console.log('[updatePatient] patientUpdateResult:', patientUpdateResult);
         }
         return { personUpdateResult, patientUpdateResult };
     } catch (error) {

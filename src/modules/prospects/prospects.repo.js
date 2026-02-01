@@ -106,7 +106,7 @@ export async function getAllProspects() {
  * יצירת prospect חדש בטבלת Prospects
  */
 export async function createProspect(prospectData) {
-  console.log('Creating prospect with data:', prospectData);
+  // console.log('Creating prospect with data:', prospectData);
   const {
     first_name,
     last_name,
