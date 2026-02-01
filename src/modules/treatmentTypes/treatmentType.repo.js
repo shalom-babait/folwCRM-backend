@@ -10,25 +10,21 @@ export async function createTreatmentType(typeData) {
 		INSERT INTO treatment_types (type_name, type_description, therapist_id, color, price_default)
 		VALUES (?, ?, ?, ?, ?)
 	`;
-	try {
-		console.log('[repo] יצירת סוג טיפול - קלט:', typeData);
-		console.log('[repo] שאילתה:', query);
-		console.log('[repo] ערכים:', [type_name, type_description, therapist_id, color, finalPrice]);
-		const [result] = await pool.execute(query, [type_name, type_description, therapist_id, color, finalPrice]);
-		console.log('[repo] סוג טיפול נוצר בהצלחה:', result);
-		return {
-			treatment_type_id: result.insertId,
-			type_name,
-			type_description,
-			therapist_id,
-			color,
-			price_default: finalPrice,
-			message: 'treatment type created successfully'
-		};
-	} catch (error) {
-		console.error('[repo] שגיאה ביצירת סוג טיפול:', error);
-		throw error;
-	}
+	   try {
+		   const [result] = await pool.execute(query, [type_name, type_description, therapist_id, color, finalPrice]);
+		   return {
+			   treatment_type_id: result.insertId,
+			   type_name,
+			   type_description,
+			   therapist_id,
+			   color,
+			   price_default: finalPrice,
+			   message: 'treatment type created successfully'
+		   };
+	   } catch (error) {
+		   console.error('[repo] שגיאה ביצירת סוג טיפול:', error);
+		   throw error;
+	   }
 }
 
 // מחיקה לפי ID
