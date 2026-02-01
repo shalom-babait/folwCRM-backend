@@ -1,3 +1,4 @@
+import { getIncomeReportByMonthsAndYearController } from './reports.controller.js';
 import express from 'express';
 import {
   createReportController,
@@ -12,7 +13,8 @@ const router = express.Router();
 
 // דוח חובות פתוחים למטפל
 router.get('/open-debts/:therapist_id', getOpenDebtsByTherapistController);
-
+// דוח הכנסות לפי חודשים ושנה
+router.post('/income-by-months', getIncomeReportByMonthsAndYearController);
 router.post('/create', createReportController);
 router.get('/getAll', getAllReportsController);
 router.get('/:report_id', getReportByIdController);
