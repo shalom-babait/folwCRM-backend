@@ -3,10 +3,8 @@ import { createAppointment, fetchAppointments, deleteAppointment, updateAppointm
 export async function getAppointmentsByGroupId(req, res) {
 
   try {
-    // console.log('[getAppointmentsByGroupId] req.params:', req.params);
     const { groupId } = req.params;
     const appointments = await fetchAppointmentsByGroupId(groupId);
-    // console.log('[getAppointmentsByGroupId] appointments:', appointments);
     res.json({ success: true, data: appointments });
   } catch (err) {
     console.error('[getAppointmentsByGroupId] Error:', err);
@@ -17,13 +15,8 @@ export async function getAppointmentsByGroupId(req, res) {
 
 export async function getAppointmentsByTherapist(req, res) {
   try {
-    // console.log('[getAppointmentsByTherapist] req.params:', req.params);
     const { therapistId } = req.params;
     const appointments = await fetchAppointmentsByTherapist(therapistId);
-    if (!appointments || appointments.length === 0) {
-      console.warn('[getAppointmentsByTherapist] No appointments found for therapistId:', therapistId);
-    }
-    // console.log('[getAppointmentsByTherapist] appointments:', appointments);
     res.json({ success: true, data: appointments });
   } catch (err) {
     console.error('[getAppointmentsByTherapist] Error:', err);
@@ -32,10 +25,8 @@ export async function getAppointmentsByTherapist(req, res) {
 }
 export async function getAppointmentsByRoom(req, res) {
   try {
-    console.log('[getAppointmentsByRoom] req.params:', req.params);
     const { roomId } = req.params;
     const appointments = await fetchAppointmentsByRoom(roomId);
-    console.log('[getAppointmentsByRoom] appointments:', appointments);
     res.json({ success: true, data: appointments });
   } catch (err) {
     console.error('[getAppointmentsByRoom] Error:', err);
@@ -45,62 +36,50 @@ export async function getAppointmentsByRoom(req, res) {
 
 export async function createAppointmentController(req, res) {
   try {
-    console.log('[createAppointmentController] req.body:', req.body);
     const appointmentData = {
       ...req.body,
       room_id: req.body.room_id === undefined || req.body.room_id === 0 ? null : req.body.room_id,
       treatment_type_id: req.body.treatment_type_id === undefined || req.body.treatment_type_id === 0 ? null : req.body.treatment_type_id
     };
-
     // וולידציה בסיסית
     // room_id לא חובה, אפשר 0/null
     const requiredFields = [
       'therapist_id', 'patient_id',
       'appointment_date', 'start_time', 'end_time'
     ];
-
     for (const field of requiredFields) {
       if (!appointmentData[field] && appointmentData[field] !== 0) {
-        console.warn(`[createAppointmentController] Missing required field: ${field}`);
         return res.status(400).json({
           success: false,
           message: `${field} is required`
         });
       }
     }
-
     // וולידציה על סטטוס
     const validStatuses = ['מתוזמנת', 'הושלמה', 'בוטלה', 'נדחתה'];
     if (appointmentData.status && !validStatuses.includes(appointmentData.status)) {
-      console.warn('[createAppointmentController] Invalid status value:', appointmentData.status);
       return res.status(400).json({
         success: false,
         message: "Invalid status value"
       });
     }
-
     // וולידציה על פורמט תאריך
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(appointmentData.appointment_date)) {
-      console.warn('[createAppointmentController] Invalid date format:', appointmentData.appointment_date);
       return res.status(400).json({
         success: false,
         message: "Invalid date format. Use YYYY-MM-DD"
       });
     }
-
     // וולידציה על פורמט זמן
     const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/;
     if (!timeRegex.test(appointmentData.start_time) || !timeRegex.test(appointmentData.end_time)) {
-      console.warn('[createAppointmentController] Invalid time format:', appointmentData.start_time, appointmentData.end_time);
       return res.status(400).json({
         success: false,
         message: "Invalid time format. Use HH:MM or HH:MM:SS"
       });
     }
-
     const newAppointment = await createAppointment(appointmentData);
-    console.log('[createAppointmentController] newAppointment:', newAppointment);
     res.status(201).json({
       success: true,
       data: newAppointment
@@ -128,14 +107,8 @@ export async function createAppointmentController(req, res) {
 
 export async function getAppointments(req, res) {
   try {
-    console.log('[getAppointments] req.params:', req.params);
     const { patientId, therapistId } = req.params;
-    console.log(`[getAppointments] patientId: ${patientId}, therapistId: ${therapistId}`);
     const appointments = await fetchAppointments(patientId, therapistId);
-    console.log('[getAppointments] appointments from DB:', appointments);
-    if (!appointments || appointments.length === 0) {
-      console.warn('[getAppointments] לא נמצאו פגישות במסד הנתונים עבור הפרמטרים:', { patientId, therapistId });
-    }
     res.json(appointments);
   } catch (err) {
     console.error('[getAppointments] Error:', err);
@@ -145,21 +118,15 @@ export async function getAppointments(req, res) {
 
 export async function deleteAppointmentController(req, res) {
   try {
-    console.log('[deleteAppointmentController] req.params:', req.params);
     const { appointmentId } = req.params;
-
     // Validate appointmentId
     if (!appointmentId || isNaN(appointmentId)) {
-      console.warn('[deleteAppointmentController] Invalid appointment ID:', appointmentId);
       return res.status(400).json({
         success: false,
         message: "Invalid appointment ID"
       });
     }
-
     const result = await deleteAppointment(appointmentId);
-    console.log('[deleteAppointmentController] result:', result);
-
     if (result) {
       res.json({
         success: true,
@@ -182,8 +149,6 @@ export async function deleteAppointmentController(req, res) {
 
 export async function updateAppointmentController(req, res) {
   try {
-    console.log('[updateAppointmentController] req.params:', req.params);
-    console.log('[updateAppointmentController] req.body:', req.body);
     const { appointmentId } = req.params;
     // נרמול שדות אופציונליים
     const updateData = {
@@ -191,84 +156,55 @@ export async function updateAppointmentController(req, res) {
       room_id: req.body.room_id === undefined || req.body.room_id === 0 ? null : req.body.room_id,
       treatment_type_id: req.body.treatment_type_id === undefined || req.body.treatment_type_id === 0 ? null : req.body.treatment_type_id
     };
-// דוגמה לקריאה מה-frontend (fetch):
-//
-// fetch('/api/appointments/updateAppointment/123', {
-//   method: 'PUT',
-//   headers: { 'Content-Type': 'application/json' },
-//   body: JSON.stringify({
-//     appointment_date: '2025-12-25',
-//     start_time: '10:00',
-//     end_time: '11:00',
-//     room_id: 2,
-//     status: 'מתוזמנת'
-//   })
-// })
-// .then(res => res.json())
-// .then(data => console.log(data));
-
     // Validate appointmentId
     if (!appointmentId || isNaN(appointmentId)) {
-      console.warn('[updateAppointmentController] Invalid appointment ID:', appointmentId);
       return res.status(400).json({
         success: false,
         message: "Invalid appointment ID"
       });
     }
-
     // Validate update data
     if (Object.keys(updateData).length === 0) {
-      console.warn('[updateAppointmentController] No update data provided');
       return res.status(400).json({
         success: false,
         message: "No update data provided"
       });
     }
-
     // Validate date format if provided
     if (updateData.appointment_date) {
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
       if (!dateRegex.test(updateData.appointment_date)) {
-        console.warn('[updateAppointmentController] Invalid date format:', updateData.appointment_date);
         return res.status(400).json({
           success: false,
           message: "Invalid date format. Use YYYY-MM-DD"
         });
       }
     }
-
     // Validate time format if provided
     const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/;
     if (updateData.start_time && !timeRegex.test(updateData.start_time)) {
-      console.warn('[updateAppointmentController] Invalid start time format:', updateData.start_time);
       return res.status(400).json({
         success: false,
         message: "Invalid start time format. Use HH:MM or HH:MM:SS"
       });
     }
     if (updateData.end_time && !timeRegex.test(updateData.end_time)) {
-      console.warn('[updateAppointmentController] Invalid end time format:', updateData.end_time);
       return res.status(400).json({
         success: false,
         message: "Invalid end time format. Use HH:MM or HH:MM:SS"
       });
     }
-
     // Validate status if provided
     if (updateData.status) {
       const validStatuses = ['מתוזמנת', 'הושלמה', 'בוטלה', 'נדחתה'];
       if (!validStatuses.includes(updateData.status)) {
-        console.warn('[updateAppointmentController] Invalid status value:', updateData.status);
         return res.status(400).json({
           success: false,
           message: "Invalid status value"
         });
       }
     }
-
     const result = await updateAppointment(appointmentId, updateData);
-    console.log('[updateAppointmentController] result:', result);
-
     if (result) {
       res.json({
         success: true,
@@ -292,9 +228,7 @@ export async function updateAppointmentController(req, res) {
 
 export async function getAppointmentsByPatientIdController(req, res) {
   try {
-    console.log('[getAppointmentsByPatientIdController] req.params:', req.params);
     const rows = await getAppointmentsByPatientIdService(req.params.patientId);   
-    console.log('[getAppointmentsByPatientIdController] rows:', rows);
     res.status(200).json(rows);
   } catch (err) {
     console.error('[getAppointmentsByPatientIdController] Error:', err);

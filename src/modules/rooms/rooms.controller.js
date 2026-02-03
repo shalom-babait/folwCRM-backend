@@ -2,7 +2,6 @@ import { createRoom, deleteRoom, fetchRooms, updateRoom, saveRoomAvailability, g
 
 export async function getRoomsController(req, res) {
   try {
-    console.log('Request body for getRoomsController:', req.body);
     const rooms = await fetchRooms();
     res.json(rooms);
   } catch (err) {
@@ -13,7 +12,6 @@ export async function getRoomsController(req, res) {
 
 export async function createRoomController(req, res) {
   try {
-    console.log('Request body for createRoomController:', req.body);
     let roomData = req.body;
     // אם נשלח { room: { ... } } קח את הפנימי
     if (roomData.room && typeof roomData.room === 'object') {
@@ -34,7 +32,6 @@ export async function createRoomController(req, res) {
 
 export async function deleteRoomController(req, res) {
   try {
-    console.log('Request body for deleteRoomController:', req.body);
     const { id } = req.params;
     if (!id || isNaN(id)) {
       return res.status(400).json({
@@ -64,10 +61,8 @@ export async function deleteRoomController(req, res) {
 
 export async function updateRoomController(req, res) {
   try {
-    console.log('Request body for updateRoomController:', req.body);
     const { id } = req.params;
     const updateData = req.body;
-
     if (!id || isNaN(id)) {
       return res.status(400).json({
         success: false,
@@ -80,7 +75,6 @@ export async function updateRoomController(req, res) {
         message: "No update data provided"
       });
     }
-
     const result = await updateRoom(id, updateData);
     if (result) {
       res.json({
@@ -98,8 +92,6 @@ export async function updateRoomController(req, res) {
       success: false,
       message: error.message || "Error updating Room"
     });
-    console.log(error.message);
-
   }
 }
 

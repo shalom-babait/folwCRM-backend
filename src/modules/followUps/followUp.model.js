@@ -10,7 +10,6 @@ export async function getUpcomingFollowUpsByCreator(user_id) {
         AND f.follow_date <= CURDATE()
         AND f.status = 'open'
       ORDER BY f.follow_date ASC, f.follow_time ASC;
-
     `;
     const [rows] = await pool.query(sql, [user_id]);
     console.log("rows", rows);

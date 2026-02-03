@@ -1,3 +1,22 @@
+import { getIncomeReportByMonthsAndYearService } from './reports.service.js';
+
+// דוח הכנסות לפי חודשים ושנה
+export async function getIncomeReportByMonthsAndYearController(req, res) {
+  try {
+    const { year, months } = req.body;
+    if (typeof year !== 'number' || !Array.isArray(months) || months.length === 0 || months.some(m => typeof m !== 'number')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid input: year must be a number and months must be a non-empty array of numbers',
+        received: req.body
+      });
+    }
+    const report = await getIncomeReportByMonthsAndYearService({ year, months });
+    res.json({ success: true, data: report });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+}
 import { getOpenDebtsByTherapistService } from './reports.service.js';
 
 // דוח חובות פתוחים למטפל
