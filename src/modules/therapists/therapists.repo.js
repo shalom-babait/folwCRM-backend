@@ -54,7 +54,6 @@ export async function getTherapistIdByUserId(user_id) {
 }
 // therapistData: { user: { ...userData }, therapist: { ...otherTherapistData } }
 export async function create(TherapistCreationData) {
-  console.log("In therapists.repo.js - create function");
   const { user, therapist } = TherapistCreationData;
 
   try {
@@ -153,8 +152,6 @@ export async function createTherapist({ user, person, therapist, selectedDepartm
     }
   const connection = await pool.getConnection();
   try {
-    console.log('--- יצירת מטפל חדש ---');
-    console.log('קלט מהפרונט:', JSON.stringify({ user, person, therapist, selectedDepartments }, null, 2));
     await connection.beginTransaction();
 
     // 1. יצירת User
@@ -166,20 +163,17 @@ export async function createTherapist({ user, person, therapist, selectedDepartm
       user.role || 'therapist',
       user.agree || 0
     ];
-    console.log('userFields:', userFields);
     const [userResult] = await connection.execute(
       `INSERT INTO users (user_name, password, role, agree) VALUES (?, ?, ?, ?)`,
       userFields
     );
     const user_id = userResult.insertId;
-    console.log('נוצר user_id:', user_id);
 
     // 2. יצירת Person דרך הפונקציה הכללית (כולל טרנזקציה)
     const personResult = await createPerson(person, connection);
     const person_id = typeof personResult === 'object' && personResult !== null && 'person_id' in personResult
       ? personResult.person_id
       : personResult;
-    console.log('נוצר person_id:', person_id);
 
     // 3. עדכון user עם person_id
     await connection.execute(
@@ -192,25 +186,21 @@ export async function createTherapist({ user, person, therapist, selectedDepartm
       user_id,
       person_id
     ];
-    console.log('therapistFields:', therapistFields);
     const [therapistResult] = await connection.execute(
       `INSERT INTO therapists (user_id, person_id) VALUES (?, ?)`,
       therapistFields
     );
     const therapist_id = therapistResult.insertId;
-    console.log('נוצר therapist_id:', therapist_id);
 
     // 5. שיוך מחלקות וקבוצות
     if (Array.isArray(selectedDepartments)) {
       for (const dep of selectedDepartments) {
-        console.log('שיוך למחלקה:', dep.department_id);
         await connection.execute(
           `INSERT INTO userdepartments (person_id, department_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE department_id = VALUES(department_id)`,
           [person_id, dep.department_id]
         );
         if (Array.isArray(dep.group_ids)) {
           for (const groupId of dep.group_ids) {
-            console.log('שיוך לקבוצה:', groupId, 'במחלקה', dep.department_id);
             await connection.execute(
               `INSERT INTO user_groups (person_id, group_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE group_id = VALUES(group_id)`,
               [person_id, groupId]
@@ -221,7 +211,6 @@ export async function createTherapist({ user, person, therapist, selectedDepartm
     }
 
     await connection.commit();
-    console.log('הוספת מטפל הסתיימה בהצלחה');
     // מבנה TherapistCreationData
     return {
       user: {
