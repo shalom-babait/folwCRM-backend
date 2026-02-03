@@ -108,3 +108,67 @@ export async function findByPhone(phone) {
   }
 }
 
+// מחזיר את כל פרטי המשתמש לפי email כולל פרטי person
+export async function findByEmail(email) {
+  const query = `
+    SELECT u.*, p.*
+    FROM users u
+    LEFT JOIN person p ON u.person_id = p.person_id
+    WHERE p.email = ?
+  `;
+  try {
+    const [rows] = await pool.execute(query, [email]);
+    return rows[0] || null;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// עדכון סיסמה של משתמש
+export async function updatePassword(userId, newPassword) {
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  return updateTable('users', { password: hashedPassword }, { user_id: userId });
+}
+
+// שמירת סיסמה זמנית עם תוקף של 5 דקות
+export async function setTempPassword(userId, tempPassword) {
+  const hashedPassword = await bcrypt.hash(tempPassword, 10);
+  
+  // שימוש ב-SQL לחישוב זמן התפוגה (DATE_ADD עובד עם timezone של MySQL)
+  const query = `
+    UPDATE users 
+    SET temp_password = ?,
+        temp_password_expires_at = DATE_ADD(NOW(), INTERVAL 5 MINUTE),
+        first_login_with_temp = TRUE
+    WHERE user_id = ?
+  `;
+  
+  try {
+    const [result] = await pool.execute(query, [hashedPassword, userId]);
+    return result.affectedRows > 0;
+  } catch (error) {
+    console.error('Error setting temp password:', error);
+    throw error;
+  }
+}
+
+// מעתיק סיסמה זמנית לסיסמה קבועה ומנקה את השדות הזמניים
+export async function promoteTempPasswordToPermanent(userId, tempPassword) {
+  const hashedPassword = await bcrypt.hash(tempPassword, 10);
+  return updateTable('users', { 
+    password: hashedPassword,
+    temp_password: null,
+    temp_password_expires_at: null,
+    first_login_with_temp: false
+  }, { user_id: userId });
+}
+
+// מחיקת סיסמה זמנית שפג תוקפה
+export async function clearExpiredTempPassword(userId) {
+  return updateTable('users', { 
+    temp_password: null,
+    temp_password_expires_at: null,
+    first_login_with_temp: false
+  }, { user_id: userId });
+}
+
