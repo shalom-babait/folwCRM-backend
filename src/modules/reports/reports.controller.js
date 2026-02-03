@@ -1,3 +1,18 @@
+import { getMonthlyIncomeLast12Service } from './reports.service.js';
+
+// דוח הכנסות 12 חודשים אחורה עד חודש ושנה
+export async function getMonthlyIncomeLast12Controller(req, res) {
+  try {
+    const { year, month } = req.body;
+    if (typeof year !== 'number' || typeof month !== 'number' || month < 1 || month > 12) {
+      return res.status(400).json({ success: false, message: 'year and month (1-12) are required' });
+    }
+    const result = await getMonthlyIncomeLast12Service({ year, month });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+}
 import { getIncomeReportByMonthsAndYearService } from './reports.service.js';
 
 // דוח הכנסות לפי חודשים ושנה

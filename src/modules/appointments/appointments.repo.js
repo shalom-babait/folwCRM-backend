@@ -265,10 +265,10 @@ export async function getAppointmentsByPatientAndTherapist(patientId, therapistI
     ORDER BY
       A.appointment_date, A.start_time;
   `;
-  console.log('[getAppointmentsByPatientAndTherapist] SQL:', sql);
-  console.log('[getAppointmentsByPatientAndTherapist] params:', { patientId, therapistId });
+  // console.log('[getAppointmentsByPatientAndTherapist] SQL:', sql);
+  // console.log('[getAppointmentsByPatientAndTherapist] params:', { patientId, therapistId });
   const [rows] = await pool.query(sql, [patientId, therapistId]);
-  console.log('[getAppointmentsByPatientAndTherapist] rows:', rows);
+  // console.log('[getAppointmentsByPatientAndTherapist] rows:', rows);
   return rows;
 }
 
