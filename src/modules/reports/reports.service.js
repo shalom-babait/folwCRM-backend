@@ -1,3 +1,8 @@
+import { getMonthlyIncomeLast12 } from './reports.repo.js';
+
+export async function getMonthlyIncomeLast12Service(data) {
+  return await getMonthlyIncomeLast12(data);
+}
 import { getIncomeReportByMonthsAndYear } from './reports.repo.js';
 
 export async function getIncomeReportByMonthsAndYearService(data) {

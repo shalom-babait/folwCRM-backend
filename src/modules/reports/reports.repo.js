@@ -1,10 +1,45 @@
+// דוח הכנסות 12 חודשים אחורה עד חודש ושנה שנבחרו
+export async function getMonthlyIncomeLast12({ year, month }) {
+  // month: 1-12 (JS: 0-11, כאן 1-12)
+  // נחשב את התאריכים
+  const endDate = new Date(year, month - 1, 1); // JS month 0-based
+  const startDate = new Date(endDate);
+  startDate.setMonth(startDate.getMonth() - 11);
+  // פורמט תאריכים ל-YYYY-MM-01
+  function formatDate(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+  }
+  const start = formatDate(startDate);
+  const end = formatDate(endDate);
+  // שלוף סכום הכנסות לכל חודש בטווח
+  const sql = `
+    SELECT YEAR(payment_date) AS y, MONTH(payment_date) AS m, SUM(amount) AS total
+    FROM payments
+    WHERE payment_date >= ? AND payment_date < DATE_ADD(?, INTERVAL 1 MONTH)
+      AND status = 'paid'
+    GROUP BY y, m
+    ORDER BY y, m
+  `;
+  const [rows] = await pool.query(sql, [start, end]);
+  // בנה מערך 12 חודשים אחורה
+  const monthlyIncome = [];
+  let cur = new Date(startDate);
+  for (let i = 0; i < 12; i++) {
+    const y = cur.getFullYear();
+    const m = cur.getMonth() + 1;
+    const found = rows.find(r => r.y === y && r.m === m);
+    monthlyIncome.push(found ? Number(found.total) : 0);
+    cur.setMonth(cur.getMonth() + 1);
+  }
+  return { monthlyIncome };
+}
 
 // דוח הכנסות לפי חודשים ושנה
 export async function getIncomeReportByMonthsAndYear({ year, months }) {
   try {
-    console.log('[income-report] input:', { year, months });
+    // console.log('[income-report] input:', { year, months });
     if (!year || !Array.isArray(months) || months.length === 0) {
-      console.error('[income-report] invalid input:', { year, months });
+      // console.error('[income-report] invalid input:', { year, months });
       return [];
     }
     const placeholders = months.map(() => '?').join(',');
@@ -23,10 +58,7 @@ export async function getIncomeReportByMonthsAndYear({ year, months }) {
       ORDER BY month, client_name
     `;
     const params = [year, ...months.map(m => m + 1)];
-    console.log('[income-report] SQL:', sql);
-    console.log('[income-report] params:', params);
     const [rows] = await pool.query(sql, params);
-    console.log('[income-report] rows:', rows);
     // שלב 2: ארגן את התוצאות למבנה נוח
     const result = [];
     for (const m of months) {
@@ -44,7 +76,6 @@ export async function getIncomeReportByMonthsAndYear({ year, months }) {
         total: monthTotal
       });
     }
-    console.log('[income-report] result:', result);
     return result;
   } catch (err) {
     console.error('[income-report] ERROR:', err && err.message, err && err.stack, { year, months });
