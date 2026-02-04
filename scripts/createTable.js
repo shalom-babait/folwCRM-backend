@@ -535,7 +535,7 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
 // ALTER TABLE tasks
 // DROP COLUMN assigned_to_user_id;
 
-// הוספתי שרי
+//  1הוספתי שרי
 
 // ALTER TABLE treatment_types
 // ADD type_description TEXT;
@@ -607,6 +607,13 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
 //     REFERENCES template_questions(question_id)
 //     ON DELETE CASCADE
 // );
+// הוספתי שרי 2
+
+// ALTER TABLE users 
+// ADD COLUMN temp_password VARCHAR(512) NULL,
+// ADD COLUMN temp_password_expires_at DATETIME NULL,
+// ADD COLUMN first_login_with_temp BOOLEAN DEFAULT FALSE;
+
 // הוספתי 10
 //ALTER TABLE followups
 //RENAME COLUMN created_by_user_id TO created_by_user_id;

@@ -15,7 +15,7 @@ export function sendMail(details) {
     });
 
     const mailOptions = {
-        from:  `"no reply" <${EMAIL}>`,
+        from:  `"Flow CRM" <${EMAIL}>`,
         to: recipient,
         subject: subject,
         text: body
