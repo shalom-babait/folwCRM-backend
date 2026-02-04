@@ -11,6 +11,8 @@ import {
 } from "./appointments.controller.js";
 const router = express.Router();
 
+
+
 // שליפת כל הפגישות של מטפל בלבד
 router.get("/therapist/:therapistId", getAppointmentsByTherapist);
 
@@ -24,17 +26,11 @@ router.post("/", createAppointmentController);
 
 router.get("/byRoom/:roomId", getAppointmentsByRoom);
 
-// שליפת כל הפגישות של מטפל בלבד
-router.get("/therapist/:therapistId", getAppointmentsByTherapist);
-
-// שליפת כל הפגישות של מטפל ומטופל מסוימים יחד
-
 // DELETE /api/appointments/deleteAppointment/:appointmentId - מחיקת תור
 router.delete("/deleteAppointment/:appointmentId", deleteAppointmentController);
 
 // PUT /api/appointments/updateAppointment/:appointmentId - עדכון תור
 router.put("/updateAppointment/:appointmentId", updateAppointmentController);
 router.put("/:appointmentId/status", updateAppointmentController);
-
 
 export default router;

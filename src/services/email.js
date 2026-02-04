@@ -4,8 +4,9 @@ dotenv.config();
 
 const { EMAIL, PASSWORD } = process.env;
 
-export function sendMail(details) {    
-    const { recipient, subject, body } = details;    
+export async function sendMail(details) {    
+    const { recipient, subject, body, html } = details;    
+    
     const transporter = nodemailer.createTransport({
         service: 'Gmail',
         auth: {
@@ -15,16 +16,19 @@ export function sendMail(details) {
     });
 
     const mailOptions = {
-        from:  `"Flow CRM" <${EMAIL}>`,
+        from: `"Flow CRM" <${EMAIL}>`,
         to: recipient,
         subject: subject,
-        text: body
+        text: body,
+        html: html || body // אם יש HTML תשתמש בו, אחרת text
     };
 
-    transporter.sendMail(mailOptions, function (error, info) {
-        if (error) {
-            return console.log(error);
-        }
-        console.log('Email sent: ' + info.response);
-    });
+    try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log('✅ Email sent:', info.response);
+        return info;
+    } catch (error) {
+        console.error('❌ Email error:', error);
+        throw error;
+    }
 }
