@@ -12,8 +12,9 @@ export async function getUpcomingFollowUpsByCreator(user_id) {
       ORDER BY f.follow_date ASC, f.follow_time ASC;
     `;
     const [rows] = await pool.query(sql, [user_id]);
+    console.log("rows", rows);
 
-   
+
 
     // separate followUp and person fields
     return rows.map(row => {
