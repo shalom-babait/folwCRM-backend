@@ -1,3 +1,4 @@
+import organizationsRoutes from './modules/organizations/organizations.routes.js';
 import express from 'express';
 import cors from 'cors';
 // import usersRouter from './modules/users/user.routes.js';
@@ -93,7 +94,7 @@ app.use('/api/reports', reportsRoutes);
 app.use('/api/patient-problems', patientProblemsRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/treatmentTypes', treatmentTypesRoutes);
-
+app.use('/api/organizations', organizationsRoutes);
 // ✅ Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
