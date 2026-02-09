@@ -15,13 +15,14 @@ export async function getAllOrganizationsController(req, res) {
 // יצירת ארגון
 export async function createOrganizationController(req, res) {
 	try {
-		const orgData = req.body;
-		const { error } = validateOrganization(orgData);
+		const payload = req.body; // { organization, person, user }
+		// Validate organization only (person/user validation can be added if needed)
+		const { error } = validateOrganization(payload.organization);
 		if (error) {
 			return res.status(400).json({ success: false, message: error.details[0].message });
 		}
-		const newOrg = await createOrganizationService(orgData);
-		res.status(201).json({ success: true, data: newOrg });
+		const result = await createOrganizationService(payload);
+		res.status(201).json({ success: true, data: result });
 	} catch (err) {
 		res.status(500).json({ success: false, message: err.message });
 	}

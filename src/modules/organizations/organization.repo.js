@@ -1,10 +1,11 @@
+import pool from '../../services/database.js';
+
 // שליפת כל הארגונים
 export async function getAllOrganizations() {
 	const sql = 'SELECT * FROM organizations ORDER BY organization_name';
 	const [rows] = await pool.query(sql);
 	return rows;
 }
-import pool from '../../services/database.js';
 
 // הוספת ארגון
 export async function createOrganization(orgData) {
