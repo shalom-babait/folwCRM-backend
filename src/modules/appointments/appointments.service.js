@@ -1,17 +1,17 @@
 import { getAppointmentsByGroupId, getAppointmentsByTherapist, create, checkTimeConflict, getAppointmentsByPatientAndTherapist, deleteFromAppointments, updateToAppointments, getAppointmentsByRoom ,getAppointmentsByPatientId, updateAppointmentRepo } from "./appointments.repo.js";
 import pool from "../../services/database.js";
 
-export async function fetchAppointmentsByGroupId(groupId) {
-  return await getAppointmentsByGroupId(groupId);
+export async function fetchAppointmentsByGroupId(groupId, organizationId = null) {
+  return await getAppointmentsByGroupId(groupId, organizationId);
 }
 
-export async function fetchAppointmentsByTherapist(therapistId) {  
+export async function fetchAppointmentsByTherapist(therapistId, organizationId = null) {  
 
-  return await getAppointmentsByTherapist(therapistId);
+  return await getAppointmentsByTherapist(therapistId, organizationId);
 }
 
-export async function fetchAppointmentsByRoom(roomId) {
-  return await getAppointmentsByRoom(roomId);
+export async function fetchAppointmentsByRoom(roomId, organizationId = null) {
+  return await getAppointmentsByRoom(roomId, organizationId);
 }
 
 export async function createAppointment(appointmentData) {
@@ -97,34 +97,44 @@ export async function createAppointment(appointmentData) {
 }
 
 
-export async function fetchAppointments(patientId, therapistId) {
-  return await getAppointmentsByPatientAndTherapist(patientId, therapistId);
+export async function fetchAppointments(patientId, therapistId, organizationId = null) {
+  return await getAppointmentsByPatientAndTherapist(patientId, therapistId, organizationId);
 }
 
-export async function deleteAppointment(appointmentId) {
+export async function deleteAppointment(appointmentId, organizationId = null) {
   try {
     // Check if appointment exists before deleting
-    const [appointment] = await pool.execute(
-      "SELECT * FROM appointments WHERE appointment_id = ?",
-      [appointmentId]
-    );
+    let sql = "SELECT * FROM appointments WHERE appointment_id = ?";
+    const params = [appointmentId];
+    
+    if (organizationId) {
+      sql += " AND organization_id = ?";
+      params.push(organizationId);
+    }
+    
+    const [appointment] = await pool.execute(sql, params);
     if (appointment.length === 0) {
       return false;
     }
 
-    return await deleteFromAppointments(appointmentId);
+    return await deleteFromAppointments(appointmentId, organizationId);
   } catch (error) {
     throw error;
   }
 }
 
-export async function updateAppointment(appointmentId, updateData) {
+export async function updateAppointment(appointmentId, updateData, organizationId = null) {
   try {
     // Check if appointment exists
-    const [appointment] = await pool.execute(
-      "SELECT * FROM appointments WHERE appointment_id = ?",
-      [appointmentId]
-    );
+    let sql = "SELECT * FROM appointments WHERE appointment_id = ?";
+    const params = [appointmentId];
+    
+    if (organizationId) {
+      sql += " AND organization_id = ?";
+      params.push(organizationId);
+    }
+    
+    const [appointment] = await pool.execute(sql, params);
     if (appointment.length === 0) {
       return false;
     }
@@ -154,12 +164,12 @@ export async function updateAppointment(appointmentId, updateData) {
     }
 
     // שימוש בפונקציה החדשה
-    return await updateAppointmentRepo(Number(appointmentId), updateData);
+    return await updateAppointmentRepo(Number(appointmentId), updateData, organizationId);
   } catch (error) {
     throw error;
   }
 }
 
-export async function getAppointmentsByPatientIdService(patient_id) {
-  return await getAppointmentsByPatientId(patient_id);
+export async function getAppointmentsByPatientIdService(patient_id, organizationId = null) {
+  return await getAppointmentsByPatientId(patient_id, organizationId);
 }

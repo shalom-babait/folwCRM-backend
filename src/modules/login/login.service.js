@@ -85,6 +85,7 @@ export async function loginService(user_name, password) {
     therapist_id,
     patient_id,
     secretary_id,
+    organization_id: user.organization_id || null, // הוספת organization_id
     message: loginMessage
   };
 }

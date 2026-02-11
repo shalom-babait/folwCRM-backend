@@ -6,7 +6,8 @@ export async function updateProspectWithCategoriesController(req, res) {
 	try {
 		const { prospectId } = req.params;
 		const updateData = req.body;
-		const result = await updateProspectWithCategoriesService(prospectId, updateData);
+		const organizationId = req.organization_id;
+		const result = await updateProspectWithCategoriesService(prospectId, updateData, organizationId);
 		res.json(result);
 	} catch (error) {
 		res.status(500).json({ error: error.message || 'Failed to update prospect with categories' });
@@ -20,7 +21,8 @@ export async function updateProspectController(req, res) {
 	try {
 		const { prospectId } = req.params;
 		const updateData = req.body;
-		const result = await updateProspectService(prospectId, updateData);
+		const organizationId = req.organization_id;
+		const result = await updateProspectService(prospectId, updateData, organizationId);
 		if (result.affectedRows > 0) {
 			res.json({ success: true });
 		} else {
@@ -37,7 +39,8 @@ import { getAllProspectsService } from "./prospects.service.js";
  */
 export async function getAllProspectsController(req, res) {
 	try {
-		const prospects = await getAllProspectsService();
+		const organizationId = req.organization_id;
+		const prospects = await getAllProspectsService(organizationId);
 		res.json(prospects);
 	} catch (error) {
 		res.status(500).json({ error: error.message || "Failed to get prospects" });
@@ -51,7 +54,8 @@ import { createProspectService } from "./prospects.service.js";
 export async function createProspectController(req, res) {
 	try {
 		const prospectData = req.body;
-		const newProspect = await createProspectService(prospectData);
+		const organizationId = req.organization_id;
+		const newProspect = await createProspectService(prospectData, organizationId);
 		res.status(201).json(newProspect);
 	} catch (error) {
 		res.status(500).json({ error: error.message || "Failed to create prospect" });

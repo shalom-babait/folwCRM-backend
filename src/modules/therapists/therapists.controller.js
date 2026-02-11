@@ -2,10 +2,11 @@ import { getTherapistMonthlyStatsService } from "./therapists.service.js";
 export async function getTherapistMonthlyStatsController(req, res) {
   try {
     const { therapistId } = req.params;
+    const organizationId = req.organization_id;
     if (!therapistId || isNaN(therapistId)) {
       return res.status(400).json({ success: false, message: "Invalid therapist ID" });
     }
-    const stats = await getTherapistMonthlyStatsService(Number(therapistId));
+    const stats = await getTherapistMonthlyStatsService(Number(therapistId), organizationId);
     res.json({ success: true, data: stats });
   } catch (error) {
     console.error(error);
@@ -17,7 +18,8 @@ import { fetchTherapistIdByUserId } from "./therapists.service.js";
 export async function getTherapistIdByUserIdController(req, res) {
   try {
     const user_id = req.params.user_id;
-    const therapist_id = await fetchTherapistIdByUserId(user_id);
+    const organizationId = req.organization_id;
+    const therapist_id = await fetchTherapistIdByUserId(user_id, organizationId);
     if (therapist_id) {
       res.json({ therapist_id });
     } else {
@@ -33,7 +35,12 @@ import {
 
 export async function createTherapistController(req, res) {
   try {
-    const { user, therapist,selectedDepartments  } = req.body;
+    const organizationId = req.organization_id;
+    const therapistData = {
+      ...req.body,
+      organization_id: organizationId
+    };
+    const { user, therapist,selectedDepartments  } = therapistData;
     // שלב 1: בדיקת ייבוא סכמות
     try {
       const { userSchema } = await import('../../models/user.model.js');
@@ -49,7 +56,7 @@ export async function createTherapistController(req, res) {
       }
       // שלב 3: יצירת מטפל
       try {
-        const newTherapist = await createTherapist({ user, therapist, selectedDepartments });
+        const newTherapist = await createTherapist({ user, therapist, selectedDepartments, organization_id: organizationId });
         res.status(201).json({ success: true, data: newTherapist });
       } catch (serviceError) {
         res.status(500).json({ success: false, message: serviceError.message || 'Error in createTherapist' });
@@ -65,7 +72,8 @@ export async function createTherapistController(req, res) {
 export async function getTherapistController(req, res) {
   try {
     console.log("In getTherapistController");
-    const therapists = await fetchTherapists();
+    const organizationId = req.organization_id;
+    const therapists = await fetchTherapists(organizationId);
     res.json(therapists);
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -75,6 +83,7 @@ export async function getTherapistController(req, res) {
 export async function updateTherapistController(req, res) {
   try {
     const { id } = req.params;
+    const organizationId = req.organization_id;
     const updateData = req.body;
 
     if (!id || isNaN(id)) {
@@ -90,7 +99,7 @@ export async function updateTherapistController(req, res) {
       });
     }
 
-    const result = await updateTherapist(id, updateData);
+    const result = await updateTherapist(id, updateData, organizationId);
     if (result) {
       res.json({
         success: true,

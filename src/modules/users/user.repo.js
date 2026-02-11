@@ -65,7 +65,11 @@ export async function create(userData) {
 // מחזיר את כל פרטי המשתמש לפי user_name כולל פרטי person
 export async function findByUserName(user_name) {
   const query = `
-    SELECT u.*, p.*
+    SELECT u.user_id, u.organization_id, u.user_name, u.password, u.created_at, 
+           u.agree, u.role, u.person_id, u.google_id, u.auth_provider,
+           u.temp_password, u.temp_password_expires_at, u.first_login_with_temp,
+           p.first_name, p.last_name, p.teudat_zehut, p.phone, p.city, 
+           p.address, p.birth_date, p.gender, p.email, p.mother_name
     FROM users u
     LEFT JOIN person p ON u.person_id = p.person_id
     WHERE u.user_name = ?
@@ -80,7 +84,11 @@ export async function findByUserName(user_name) {
 
 export async function findByTeudatZehut(teudat_zehut) {
   const query = `
-    SELECT u.*, p.*
+    SELECT u.user_id, u.organization_id, u.user_name, u.password, u.created_at, 
+           u.agree, u.role, u.person_id, u.google_id, u.auth_provider,
+           u.temp_password, u.temp_password_expires_at, u.first_login_with_temp,
+           p.first_name, p.last_name, p.teudat_zehut, p.phone, p.city, 
+           p.address, p.birth_date, p.gender, p.email, p.mother_name
     FROM users u
     LEFT JOIN person p ON u.person_id = p.person_id
     WHERE p.teudat_zehut = ?
@@ -95,7 +103,11 @@ export async function findByTeudatZehut(teudat_zehut) {
 
 export async function findByPhone(phone) {
   const query = `
-    SELECT u.*, p.*
+    SELECT u.user_id, u.organization_id, u.user_name, u.password, u.created_at, 
+           u.agree, u.role, u.person_id, u.google_id, u.auth_provider,
+           u.temp_password, u.temp_password_expires_at, u.first_login_with_temp,
+           p.first_name, p.last_name, p.teudat_zehut, p.phone, p.city, 
+           p.address, p.birth_date, p.gender, p.email, p.mother_name
     FROM users u
     LEFT JOIN person p ON u.person_id = p.person_id
     WHERE p.phone = ?
