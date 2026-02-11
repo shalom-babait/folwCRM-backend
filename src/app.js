@@ -19,6 +19,7 @@ import pdfRoutes from './modules/reports/pdf.routes.js';
 import reportsRoutes from './modules/reports/reports.routes.js';
 import patientProblemsRoutes from './modules/patientProblems/patientProblems.routes.js';
 import treatmentTypesRoutes from './modules/treatmentTypes/treatmentType.routes.js';
+import { startReminderScheduler } from './services/scheduler.js';
 const app = express();
 
 // ✅ רשימת דומיינים מורשים
@@ -97,6 +98,9 @@ app.use('/api/treatmentTypes', treatmentTypesRoutes);
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
+  
+  // הפעלת תזמון שליחת תזכורות אוטומטי
+  startReminderScheduler();
 });
 
 export default app;

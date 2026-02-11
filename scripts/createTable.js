@@ -535,7 +535,7 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
 // ALTER TABLE tasks
 // DROP COLUMN assigned_to_user_id;
 
-// הוספתי שרי
+//  1הוספתי שרי
 
 // ALTER TABLE treatment_types
 // ADD type_description TEXT;
@@ -607,7 +607,221 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
 //     REFERENCES template_questions(question_id)
 //     ON DELETE CASCADE
 // );
+// הוספתי שרי 2
+
+// ALTER TABLE users 
+// ADD COLUMN temp_password VARCHAR(512) NULL,
+// ADD COLUMN temp_password_expires_at DATETIME NULL,
+// ADD COLUMN first_login_with_temp BOOLEAN DEFAULT FALSE;
+
 // הוספתי 10
 //ALTER TABLE followups
 //RENAME COLUMN created_by_user_id TO created_by_user_id;
+//הוספתי 11
+// -- ======================================
+// -- יצירת טבלת organizations
+// -- ======================================
 
+// CREATE TABLE organizations (
+//     organization_id INT AUTO_INCREMENT PRIMARY KEY,
+//     organization_name VARCHAR(150) NOT NULL,
+//     owner_user_id INT NULL,
+//     organization_type ENUM('company','clinic','personal') NOT NULL DEFAULT 'company',
+//     contact_name VARCHAR(100) NULL,
+//     contact_phone VARCHAR(20) NULL,
+//     contact_email VARCHAR(100) NULL,
+//     status ENUM('active','inactive') NOT NULL DEFAULT 'active',
+//     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+// );
+
+// -- הוספת אינדקס על owner_user_id לשאילתות מהירות
+// CREATE INDEX idx_owner_user ON organizations(owner_user_id);
+// -- ======================================
+// -- יצירת טבלת user_organizations
+// -- ======================================
+
+// CREATE TABLE user_organizations (
+//     id INT AUTO_INCREMENT PRIMARY KEY,
+//     user_id INT NOT NULL,
+//     organization_id INT NOT NULL,
+//     role ENUM('therapist','secretary','manager') NOT NULL,
+//     permissions JSON NULL,  -- אפשרות לשמור הרשאות מיוחדות כ-JSON
+//     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+//     UNIQUE KEY uq_user_org (user_id, organization_id),
+//     FOREIGN KEY (organization_id) REFERENCES organizations(organization_id) ON DELETE CASCADE
+//     -- שימי לב: כדאי גם להוסיף FOREIGN KEY ל-users(user_id) אם קיימת טבלת Users
+// );
+
+// -- הוספת אינדקסים לעבודה מהירה עם שאילתות
+// CREATE INDEX idx_user_id ON user_organizations(user_id);
+// CREATE INDEX idx_org_id ON user_organizations(organization_id);
+// -- 1. users
+// ALTER TABLE users
+// ADD COLUMN organization_id INT NULL AFTER user_id,
+// ADD INDEX idx_users_org (organization_id),
+// ADD CONSTRAINT fk_users_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// -- 2. therapists
+// ALTER TABLE therapists
+// ADD COLUMN organization_id INT NULL AFTER therapist_id,
+// ADD INDEX idx_therapists_org (organization_id),
+// ADD CONSTRAINT fk_therapists_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// -- 3. userdepartments
+// ALTER TABLE userdepartments
+// ADD COLUMN organization_id INT NULL AFTER person_id,
+// ADD INDEX idx_userdepartments_org (organization_id),
+// ADD CONSTRAINT fk_userdepartments_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// -- 4. appointments
+// ALTER TABLE appointments
+// ADD COLUMN organization_id INT NULL AFTER appointment_id,
+// ADD INDEX idx_appointments_org (organization_id),
+// ADD CONSTRAINT fk_appointments_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// -- 5. payments
+// ALTER TABLE payments
+// ADD COLUMN organization_id INT NULL AFTER payment_id,
+// ADD INDEX idx_payments_org (organization_id),
+// ADD CONSTRAINT fk_payments_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// -- 6. invoices
+// ALTER TABLE invoices
+// ADD COLUMN organization_id INT NULL AFTER invoice_id,
+// ADD INDEX idx_invoices_org (organization_id),
+// ADD CONSTRAINT fk_invoices_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// --7
+// ALTER TABLE payment_status_history
+// ADD COLUMN organization_id INT NULL,
+// ADD INDEX idx_payment_status_history_org (organization_id),
+// ADD CONSTRAINT fk_payment_status_history_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// -- 8. patients
+// ALTER TABLE patients
+// ADD COLUMN organization_id INT NULL AFTER patient_id,
+// ADD INDEX idx_patients_org (organization_id),
+// ADD CONSTRAINT fk_patients_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// --9
+// ALTER TABLE patient_contacts
+// ADD COLUMN organization_id INT NULL,
+// ADD INDEX idx_patient_contacts_org (organization_id),
+// ADD CONSTRAINT fk_patient_contacts_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// --10
+// ALTER TABLE patient_problems
+// ADD COLUMN organization_id INT NULL,
+// ADD INDEX idx_patient_problems_org (organization_id),
+// ADD CONSTRAINT fk_patient_problems_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// --11
+// ALTER TABLE patient_problem_ratings
+// ADD COLUMN organization_id INT NULL,
+// ADD INDEX idx_patient_problem_ratings_org (organization_id),
+// ADD CONSTRAINT fk_patient_problem_ratings_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// -- 12. patientcategories
+// ALTER TABLE patientcategories
+// ADD COLUMN organization_id INT NULL AFTER category_id,
+// ADD INDEX idx_patientcategories_org (organization_id),
+// ADD CONSTRAINT fk_patientcategories_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// -- 13. departments
+// ALTER TABLE departments
+// ADD COLUMN organization_id INT NULL AFTER department_id,
+// ADD INDEX idx_departments_org (organization_id),
+// ADD CONSTRAINT fk_departments_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// -- 14. rooms
+// ALTER TABLE rooms
+// ADD COLUMN organization_id INT NULL AFTER room_id,
+// ADD INDEX idx_rooms_org (organization_id),
+// ADD CONSTRAINT fk_rooms_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// -- 15. room_availability
+// ALTER TABLE room_availability
+// ADD COLUMN organization_id INT NULL AFTER availability_id,
+// ADD INDEX idx_room_availability_org (organization_id),
+// ADD CONSTRAINT fk_room_availability_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// -- 16. group_list
+// ALTER TABLE group_list
+// ADD COLUMN organization_id INT NULL AFTER group_id,
+// ADD INDEX idx_group_list_org (organization_id),
+// ADD CONSTRAINT fk_group_list_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// -- 17. template_questions
+// ALTER TABLE template_questions
+// ADD COLUMN organization_id INT NULL AFTER question_id,
+// ADD INDEX idx_template_questions_org (organization_id),
+// ADD CONSTRAINT fk_template_questions_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// -- 18. template_answers
+// ALTER TABLE template_answers
+// ADD COLUMN organization_id INT NULL AFTER answer_id,
+// ADD INDEX idx_template_answers_org (organization_id),
+// ADD CONSTRAINT fk_template_answers_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// -- 19. categories
+// ALTER TABLE categories
+// ADD COLUMN organization_id INT NULL AFTER category_id,
+// ADD INDEX idx_categories_org (organization_id),
+// ADD CONSTRAINT fk_categories_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// -- 20. prospect_categories
+// ALTER TABLE prospect_categories
+// ADD COLUMN organization_id INT NULL AFTER category_id,
+// ADD INDEX idx_prospect_categories_org (organization_id),
+// ADD CONSTRAINT fk_prospect_categories_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// -- 21. prospects
+// ALTER TABLE prospects
+// ADD COLUMN organization_id INT NULL AFTER prospect_id,
+// ADD INDEX idx_prospects_org (organization_id),
+// ADD CONSTRAINT fk_prospects_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// --22
+// ALTER TABLE usercategories
+// ADD COLUMN organization_id INT NULL,
+// ADD INDEX idx_usercategories_org (organization_id),
+// ADD CONSTRAINT fk_usercategories_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// --23
+// ALTER TABLE user_groups
+// ADD COLUMN organization_id INT NULL,
+// ADD INDEX idx_user_groups_org (organization_id),
+// ADD CONSTRAINT fk_user_groups_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;
+// -- 24. person
+// ALTER TABLE person
+// ADD COLUMN organization_id INT NULL AFTER person_id,
+// ADD INDEX idx_person_org (organization_id),
+// ADD CONSTRAINT fk_person_organization
+// FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+// ON DELETE SET NULL;

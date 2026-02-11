@@ -1,11 +1,29 @@
+import pool from '../../services/database.js';
+
 // קבלת רשימת משימות לפי מזהה מטפל
 export async function getTasksByUserId(user_id) {
-	const sql = `SELECT * FROM tasks WHERE created_by_user_id = ? ORDER BY due_date DESC, created_at DESC`;
+	const sql = `
+		SELECT 
+			tasks.*, 
+			CONCAT(person.first_name, ' ', person.last_name) AS patientName
+		FROM 
+			tasks
+		LEFT JOIN 
+			patients ON tasks.patient_id = patients.patient_id
+		LEFT JOIN 
+			person ON patients.person_id = person.person_id
+		WHERE 
+			tasks.created_by_user_id = ?
+		ORDER BY 
+			tasks.due_date DESC, tasks.created_at DESC;
+	`;
 	const [rows] = await pool.query(sql, [user_id]);
 	// הוספת מערך שיוכים לכל משימה
 	for (const task of rows) {
 		task.assignments = await getAssignmentsByTaskId(task.task_id);
 	}
+	console.log("rows in task.repo", rows);
+
 	return rows;
 }
 // קבלת רשימת שיוכים לפי מזהה משימה
@@ -13,8 +31,6 @@ export async function getAssignmentsByTaskId(task_id) {
 	const [rows] = await pool.query('SELECT entity_id, entity_type, role, created_at FROM task_assignments WHERE task_id = ?', [task_id]);
 	return rows;
 }
-
-import pool from '../../services/database.js';
 
 // פונקציה לעיבוד תאריכים לפורמט YYYY-MM-DD
 function toDateOnly(dateStr) {
@@ -38,7 +54,10 @@ function toDateTime(dateStr) {
 
 // הוספת משימה
 export async function addTask(task) {
+	console.log(task, "tassssskkkkkkkk");
+
 	const sql = `INSERT INTO tasks (title, description, patient_id, created_by_user_id, assigned_to_user_id, status, priority, due_date, completed_at, color) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
 	const [result] = await pool.query(sql, [
 		task.title,
 		task.description || null,
@@ -56,6 +75,8 @@ export async function addTask(task) {
 	if (Array.isArray(task.assignments) && task.assignments.length > 0) {
 		await insertTaskAssignments(newTask.task_id, task.assignments);
 	}
+	console.log(newTask, "new taskkkkkkkkkk");
+
 	return newTask;
 }
 
@@ -73,7 +94,16 @@ export async function updateTask(task_id, updateData) {
 	// עדכון אוטומטי של updated_at
 	const now = new Date();
 	for (const key in updateData) {
-		if (key === 'assignmentTherapist' || key === 'assignmentPatient' || key === 'assignments' || key === 'updated_at') continue;
+		// התעלמות משדות שאינם קיימים בטבלה
+		if (
+			key === 'assignmentTherapist' ||
+			key === 'assignmentPatient' ||
+			key === 'assignments' ||
+			key === 'updated_at' ||
+			key === 'patientName' // התעלמות מ-patientName
+		) {
+			continue;
+		}
 		let value = updateData[key];
 		if (key === 'due_date') {
 			value = toDateOnly(value);
@@ -102,9 +132,23 @@ async function deleteTaskAssignments(task_id) {
 // הוספת שיוכים חדשים (תמיד עובד גם לשיוך בודד)
 async function insertTaskAssignments(task_id, assignments) {
 	if (!Array.isArray(assignments) || assignments.length === 0) return;
-	const sql = `INSERT INTO task_assignments (task_id, entity_id, entity_type, role, created_at) VALUES (?, ?, ?, ?, ?)`;
+
+	const seen = new Set();
+	const uniqueAssignments = assignments.filter(a => {
+		const key = `${a.entity_type}:${a.entity_id}`;
+		if (seen.has(key)) return false;
+		seen.add(key);
+		return true;
+	});
+
+	const sql = `
+    INSERT INTO task_assignments
+    (task_id, entity_id, entity_type, role, created_at)
+    VALUES (?, ?, ?, ?, ?)
+  `;
+
 	const now = new Date();
-	for (const a of assignments) {
+	for (const a of uniqueAssignments) {
 		await pool.query(sql, [
 			task_id,
 			a.entity_id || null,
@@ -114,6 +158,7 @@ async function insertTaskAssignments(task_id, assignments) {
 		]);
 	}
 }
+
 
 // קבלת השיוכים הקיימים למשימה
 async function getTaskAssignments(task_id) {

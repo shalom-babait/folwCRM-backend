@@ -62,29 +62,29 @@ export async function updateAppointment(appointmentId, updateData) {
 export async function getAppointmentsByGroupId(groupId) {
   const sql = `
     SELECT
-  A.appointment_id,
-  A.appointment_date,
-  A.start_time,
-  A.end_time,
-  A.total_minutes,
-  A.status,
-  A.notes,
-  GL.group_name AS group_name,
-  R.room_name AS room,
-  A.patient_id,
-  A.therapist_id,
-  CONCAT(P.first_name, ' ', P.last_name) AS therapist_name
-FROM
-  appointments AS A
-LEFT JOIN group_list AS GL ON A.treatment_type_id = GL.group_id
-LEFT JOIN rooms AS R ON A.room_id = R.room_id
-LEFT JOIN therapists AS T ON A.therapist_id = T.therapist_id
-LEFT JOIN users AS U ON T.user_id = U.user_id
-LEFT JOIN person AS P ON U.person_id = P.person_id
-WHERE
-  A.treatment_type_id = ?
-ORDER BY
-  A.appointment_date, A.start_time;
+      A.appointment_id,
+      A.appointment_date,
+      A.start_time,
+      A.end_time,
+      A.total_minutes,
+      A.status,
+      A.notes,
+      GL.group_name AS group_name,
+      R.room_name AS room,
+      A.patient_id,
+      A.therapist_id,
+      CONCAT(P.first_name, ' ', P.last_name) AS therapist_name
+    FROM
+      appointments AS A
+      LEFT JOIN group_list AS GL ON A.treatment_type_id = GL.group_id
+      LEFT JOIN rooms AS R ON A.room_id = R.room_id
+      LEFT JOIN therapists AS T ON A.therapist_id = T.therapist_id
+      LEFT JOIN users AS U ON T.user_id = U.user_id
+      LEFT JOIN person AS P ON U.person_id = P.person_id
+    WHERE
+      A.treatment_type_id = ?
+    ORDER BY
+      A.appointment_date, A.start_time;
   `;
   const [rows] = await pool.query(sql, [groupId]);
   return rows;
@@ -266,10 +266,10 @@ export async function getAppointmentsByPatientAndTherapist(patientId, therapistI
     ORDER BY
       A.appointment_date, A.start_time;
   `;
-  console.log('[getAppointmentsByPatientAndTherapist] SQL:', sql);
-  console.log('[getAppointmentsByPatientAndTherapist] params:', { patientId, therapistId });
+  // console.log('[getAppointmentsByPatientAndTherapist] SQL:', sql);
+  // console.log('[getAppointmentsByPatientAndTherapist] params:', { patientId, therapistId });
   const [rows] = await pool.query(sql, [patientId, therapistId]);
-  console.log('[getAppointmentsByPatientAndTherapist] rows:', rows);
+  // console.log('[getAppointmentsByPatientAndTherapist] rows:', rows);
   return rows;
 }
 
@@ -312,6 +312,69 @@ export async function getAppointmentsByPatientId(patient_id) {
 
   const [rows] = await pool.query(sql, [patient_id]);
   return rows;
+}
+
+/**
+ * שליפת פגישות שמתקיימות בעוד 24 שעות (עם פרטי מטפל ומטופל)
+ * @returns {Promise<Array>} רשימת פגישות עם פרטי קשר
+ */
+export async function getAppointmentsForReminders() {
+  const sql = `
+    SELECT
+      A.appointment_id,
+      A.appointment_date,
+      A.start_time,
+      A.end_time,
+      A.status,
+      A.notes,
+      
+      -- פרטי המטפל
+      A.therapist_id,
+      CONCAT(PT.first_name, ' ', PT.last_name) AS therapist_name,
+      PT.email AS therapist_email,
+      PT.phone AS therapist_phone,
+      
+      -- פרטי המטופל
+      A.patient_id,
+      CONCAT(PP.first_name, ' ', PP.last_name) AS patient_name,
+      PP.email AS patient_email,
+      PP.phone AS patient_phone,
+      
+      -- פרטים נוספים
+      R.room_name,
+      GL.group_name,
+      TT.type_name
+      
+    FROM appointments AS A
+    
+    -- חיבור למטפל
+    LEFT JOIN therapists AS T ON A.therapist_id = T.therapist_id
+    LEFT JOIN users AS UT ON T.user_id = UT.user_id
+    LEFT JOIN person AS PT ON UT.person_id = PT.person_id
+    
+    -- חיבור למטופל
+    LEFT JOIN patients AS PAT ON A.patient_id = PAT.patient_id
+    LEFT JOIN person AS PP ON PAT.person_id = PP.person_id
+    
+    -- פרטים נוספים
+    LEFT JOIN rooms AS R ON A.room_id = R.room_id
+    LEFT JOIN group_list AS GL ON A.treatment_type_id = GL.group_id
+    LEFT JOIN treatment_types AS TT ON A.treatment_type_id = TT.treatment_type_id
+    
+    WHERE 
+      A.status IN ('מתוזמנת', 'מאושרת')
+      AND TIMESTAMPDIFF(HOUR, NOW(), CONCAT(A.appointment_date, ' ', A.start_time)) BETWEEN 12 AND 36
+      
+    ORDER BY A.appointment_date, A.start_time;
+  `;
+
+  try {
+    const [rows] = await pool.query(sql);
+    return rows;
+  } catch (err) {
+    console.error('Error fetching appointments for reminders:', err);
+    throw err;
+  }
 }
 
 
