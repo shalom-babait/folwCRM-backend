@@ -825,3 +825,16 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
 // ADD CONSTRAINT fk_person_organization
 // FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
 // ON DELETE SET NULL;
+
+
+// הוספתי שרי 3
+
+
+// ALTER TABLE users 
+// ADD COLUMN google_id VARCHAR(255) NULL UNIQUE AFTER person_id,
+// ADD INDEX idx_google_id (google_id);
+
+// ALTER TABLE users 
+// ADD COLUMN auth_provider VARCHAR(20) DEFAULT 'local' NOT NULL AFTER google_id;
+
+
