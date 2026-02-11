@@ -1,7 +1,7 @@
 /**
  * עדכון prospect כולל עדכון קטגוריות
  */
-export async function updateProspectWithCategories(prospectId, updateData) {
+export async function updateProspectWithCategories(prospectId, updateData, organizationId = null) {
   // 1. עדכון שדות בסיסיים
   const allowedFields = [
     'first_name','last_name','phone','phone_alt','email','city','referral_source','reason_for_visit','notes','status','converted_to_patient_id'
@@ -15,8 +15,14 @@ export async function updateProspectWithCategories(prospectId, updateData) {
     }
   }
   if (fields.length) {
+    let sql = `UPDATE prospects SET ${fields.join(', ')} WHERE prospect_id = ?`;
     values.push(prospectId);
-    const sql = `UPDATE prospects SET ${fields.join(', ')} WHERE prospect_id = ?`;
+    
+    if (organizationId) {
+      sql += ' AND organization_id = ?';
+      values.push(organizationId);
+    }
+    
     await pool.query(sql, values);
   }
 
@@ -39,7 +45,7 @@ export async function updateProspectWithCategories(prospectId, updateData) {
 /**
  * עדכון prospect קיים
  */
-export async function updateProspect(prospectId, updateData) {
+export async function updateProspect(prospectId, updateData, organizationId = null) {
   // בנה דינמית את הסט של השדות לעדכון
   const allowedFields = [
     'first_name','last_name','phone','phone_alt','email','city','referral_source','reason_for_visit','notes','status','converted_to_patient_id'
@@ -53,8 +59,15 @@ export async function updateProspect(prospectId, updateData) {
     }
   }
   if (!fields.length) return { affectedRows: 0 };
+  
+  let sql = `UPDATE prospects SET ${fields.join(', ')} WHERE prospect_id = ?`;
   values.push(prospectId);
-  const sql = `UPDATE prospects SET ${fields.join(', ')} WHERE prospect_id = ?`;
+  
+  if (organizationId) {
+    sql += ' AND organization_id = ?';
+    values.push(organizationId);
+  }
+  
   const [result] = await pool.query(sql, values);
   return result;
 }
@@ -63,9 +76,19 @@ import pool from "../../services/database.js";
 /**
  * שליפת כל המתעניינים
  */
-export async function getAllProspects() {
+export async function getAllProspects(organizationId = null) {
   // שלב 1: שליפת כל המתעניינים
-  const [prospects] = await pool.query("SELECT * FROM prospects ORDER BY created_at DESC");
+  let sql = "SELECT * FROM prospects";
+  const params = [];
+  
+  if (organizationId) {
+    sql += " WHERE organization_id = ?";
+    params.push(organizationId);
+  }
+  
+  sql += " ORDER BY created_at DESC";
+  
+  const [prospects] = await pool.query(sql, params);
   if (!prospects.length) return [];
 
   // שלב 2: שליפת כל השיוכים prospect_id -> קטגוריות
@@ -105,7 +128,7 @@ export async function getAllProspects() {
 /**
  * יצירת prospect חדש בטבלת Prospects
  */
-export async function createProspect(prospectData) {
+export async function createProspect(prospectData, organizationId = null) {
   // console.log('Creating prospect with data:', prospectData);
   const {
     first_name,
@@ -123,8 +146,8 @@ export async function createProspect(prospectData) {
   } = prospectData;
   const sql = `
     INSERT INTO prospects (
-      first_name, last_name, phone, phone_alt, email, city, referral_source, reason_for_visit, notes, status, converted_to_patient_id
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      first_name, last_name, phone, phone_alt, email, city, referral_source, reason_for_visit, notes, status, converted_to_patient_id, organization_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   const values = [
     first_name,
@@ -137,7 +160,8 @@ export async function createProspect(prospectData) {
     reason_for_visit || null,
     notes || null,
     status || 'new',
-    converted_to_patient_id || null
+    converted_to_patient_id || null,
+    organizationId || null
   ];
   try {
     const [result] = await pool.execute(sql, values);

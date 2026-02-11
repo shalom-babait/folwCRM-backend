@@ -45,6 +45,7 @@ export function prepareAuthResponse(user, token, roleIds) {
     success: true,
     token,
     user: userWithoutPassword,
+    organization_id: user.organization_id || null, // הוספת organization_id
     message: 'התחברות מוצלחת דרך Google'
   };
 

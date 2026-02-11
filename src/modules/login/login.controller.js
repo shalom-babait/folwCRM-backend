@@ -12,6 +12,7 @@ export async function loginController(req, res) {
       success: true,
       token: result.token,
       user: result.user,
+      organization_id: result.organization_id, // הוספת organization_id
       message: result.message
     };
     // אם יש מידע אישי מהטבלה Person, נחזיר אותו

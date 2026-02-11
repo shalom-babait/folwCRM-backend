@@ -27,9 +27,10 @@ export function configureGoogleAuth() {
           // בדיקה אם המשתמש כבר קיים במערכת
           // חיפוש לפי google_id (אם כבר התחבר בעבר) או לפי email בטבלת person
           const [existingUsers] = await pool.query(
-            `SELECT u.*, p.first_name, p.last_name, p.phone, p.email, 
-                    p.teudat_zehut, p.city, p.address, p.birth_date, p.gender,
-                    p.organization_id as person_org_id
+            `SELECT u.user_id, u.organization_id, u.user_name, u.created_at, u.agree, 
+                    u.role, u.person_id, u.google_id, u.auth_provider,
+                    p.first_name, p.last_name, p.phone, p.email, 
+                    p.teudat_zehut, p.city, p.address, p.birth_date, p.gender
              FROM users u
              INNER JOIN person p ON u.person_id = p.person_id
              WHERE u.google_id = ? OR p.email = ?`,

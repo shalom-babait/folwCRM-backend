@@ -24,6 +24,9 @@ import reportsRoutes from './modules/reports/reports.routes.js';
 import patientProblemsRoutes from './modules/patientProblems/patientProblems.routes.js';
 import treatmentTypesRoutes from './modules/treatmentTypes/treatmentType.routes.js';
 import { startReminderScheduler } from './services/scheduler.js';
+import { authenticate } from './middlewares/auth.middleware.js';
+import { addOrganizationId } from './middlewares/organization.middleware.js';
+
 const app = express();
 
 // ✅ רשימת דומיינים מורשים
@@ -45,6 +48,7 @@ const allowedOrigins = [
 //   methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
 //   allowedHeaders: ['Content-Type','Authorization']
 // }));
+
 app.use(cors({
   origin: function(origin, callback) {
     // אפשרי ללא origin (למשל curl, Postman)
@@ -91,26 +95,27 @@ configureGoogleAuth();
 // route בסיסי ל־`/` כדי למנוע 502
 app.get('/', (req, res) => res.send('Server is running'));
 
-// ✅ Routes
-// app.use('/api/users', usersRouter);
-app.use('/api/auth', authRoutes);
-app.use('/api/email', emailRoutes);
-app.use('/api/therapists', therapistRoutes);
-app.use('/api/patients', patientRoutes);
-app.use('/api/appointments', appointmentRoutes);
-app.use('/api/rooms', roomsRoutes);
-app.use('/api/types', typesRoutes);
-app.use('/api/departments', departmentsRoutes);
+// ✅ Routes שלא דורשות אימות
 app.use('/api/login', loginRoutes);
-app.use('/api/groups', groupsRoutes);
-app.use('/api/prospects', prospectsRoutes);
-app.use('/api/categories', categoriesRoutes);
-app.use('/api/payments', paymentsRoutes);
-app.use('/api/followups', followUpsRoutes);
-app.use('/api/reports', reportsRoutes);
-app.use('/api/patient-problems', patientProblemsRoutes);
-app.use('/api/tasks', taskRoutes);
-app.use('/api/treatmentTypes', treatmentTypesRoutes);
+app.use('/api/auth', authRoutes);
+
+// ✅ Protected Routes - נתיבים מוגנים (עם אימות וזיהוי ארגון)
+app.use('/api/email', authenticate, addOrganizationId, emailRoutes);
+app.use('/api/therapists', authenticate, addOrganizationId, therapistRoutes);
+app.use('/api/patients', authenticate, addOrganizationId, patientRoutes);
+app.use('/api/appointments', authenticate, addOrganizationId, appointmentRoutes);
+app.use('/api/rooms', authenticate, addOrganizationId, roomsRoutes);
+app.use('/api/types', authenticate, addOrganizationId, typesRoutes);
+app.use('/api/departments', authenticate, addOrganizationId, departmentsRoutes);
+app.use('/api/groups', authenticate, addOrganizationId, groupsRoutes);
+app.use('/api/prospects', authenticate, addOrganizationId, prospectsRoutes);
+app.use('/api/categories', authenticate, addOrganizationId, categoriesRoutes);
+app.use('/api/payments', authenticate, addOrganizationId, paymentsRoutes);
+app.use('/api/followups', authenticate, addOrganizationId, followUpsRoutes);
+app.use('/api/reports', authenticate, addOrganizationId, reportsRoutes);
+app.use('/api/patient-problems', authenticate, addOrganizationId, patientProblemsRoutes);
+app.use('/api/tasks', authenticate, addOrganizationId, taskRoutes);
+app.use('/api/treatmentTypes', authenticate, addOrganizationId, treatmentTypesRoutes);
 
 // ✅ Start server
 const PORT = process.env.PORT || 3000;

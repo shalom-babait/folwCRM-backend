@@ -1,11 +1,11 @@
 import { getTherapistMonthlyStats } from "./therapists.repo.js";
-export async function getTherapistMonthlyStatsService(therapistId) {
-  return await getTherapistMonthlyStats(therapistId);
+export async function getTherapistMonthlyStatsService(therapistId, organizationId = null) {
+  return await getTherapistMonthlyStats(therapistId, organizationId);
 }
 import { getTherapistIdByUserId } from "./therapists.repo.js";
 // שירות שמחזיר therapist_id לפי user_id
-export async function fetchTherapistIdByUserId(user_id) {
-  return await getTherapistIdByUserId(user_id);
+export async function fetchTherapistIdByUserId(user_id, organizationId = null) {
+  return await getTherapistIdByUserId(user_id, organizationId);
 }
 import { 
   create, 
@@ -43,23 +43,28 @@ export async function createTherapist(therapistData) {
   }
 }
 
-export const fetchTherapists = async () => {
+export const fetchTherapists = async (organizationId = null) => {
   console.log("In therapists.service.js - fetchTherapists function");
-    const therapists = await getTherapists();
+    const therapists = await getTherapists(organizationId);
     return therapists;
 };
 
 
-export async function updateTherapist(id, updateData) {
+export async function updateTherapist(id, updateData, organizationId = null) {
   try {
-    const [existing] = await pool.execute(
-      "SELECT * FROM therapists WHERE therapist_id = ?",
-      [id]
-    );
+    let sql = "SELECT * FROM therapists WHERE therapist_id = ?";
+    const params = [id];
+    
+    if (organizationId) {
+      sql += " AND organization_id = ?";
+      params.push(organizationId);
+    }
+    
+    const [existing] = await pool.execute(sql, params);
     if (existing.length === 0) {
       return false;
     }
-    return await updateToTherapists(id, updateData);
+    return await updateToTherapists(id, updateData, organizationId);
   } catch (error) {
     throw error;
   }

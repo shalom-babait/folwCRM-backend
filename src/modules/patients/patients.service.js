@@ -21,39 +21,39 @@ import {
 } from "./patients.repo.js";
 import { updatePerson } from "../person/person.repo.js";
 // שליפת נתוני מטופל בלבד
-export const fetchPatientOnly = async (patientId) => {
-    const patient = await getPatientOnly(patientId);
+export const fetchPatientOnly = async (patientId, organizationId = null) => {
+    const patient = await getPatientOnly(patientId, organizationId);
     return patient;
 };
 
 
-export async function fetchPatientsByTherapist(therapistId) {
+export async function fetchPatientsByTherapist(therapistId, organizationId = null) {
     // אפשר להוסיף לוגיקה נוספת, למשל פורמט תאריכים
-    const patients = await getPatientsByTherapist(therapistId);
+    const patients = await getPatientsByTherapist(therapistId, organizationId);
     
     return patients;
 }
 
-export async function fetchAllPatients() {
-    const allPatients = await getAllPatients();
+export async function fetchAllPatients(organizationId = null) {
+    const allPatients = await getAllPatients(organizationId);
     return allPatients.map(item => ({
         ...item,
         selectedDepartments: []
     }));
 }
 
-export const fetchPatientDetails = async (patientId) => {
-    return await getPatientFullData(patientId);
+export const fetchPatientDetails = async (patientId, organizationId = null) => {
+    return await getPatientFullData(patientId, organizationId);
 };
 
-export async function deletePatientFull(patientId) {
-  return await deletePatientCascade(patientId);
+export async function deletePatientFull(patientId, organizationId = null) {
+  return await deletePatientCascade(patientId, organizationId);
 }
 
-export async function updatePatient(patientId, updateData) {
+export async function updatePatient(patientId, updateData, organizationId = null) {
     try {
         // Check if patient exists
-        const patient = await getPatientOnly(patientId);
+        const patient = await getPatientOnly(patientId, organizationId);
         if (!patient) {
             return false;
         }
@@ -100,7 +100,7 @@ export async function updatePatient(patientId, updateData) {
         }
         // Update Patients table
         if (Object.keys(patientUpdate).length > 0) {
-            patientUpdateResult = await updateToPatients(patientId, patientUpdate);
+            patientUpdateResult = await updateToPatients(patientId, patientUpdate, organizationId);
         }
         return { personUpdateResult, patientUpdateResult };
     } catch (error) {
@@ -108,7 +108,7 @@ export async function updatePatient(patientId, updateData) {
     }
 };
 
-export const fetchPatientStats = async (patientId) => {
-    const stats = await getPatientStats(patientId);
+export const fetchPatientStats = async (patientId, organizationId = null) => {
+    const stats = await getPatientStats(patientId, organizationId);
     return stats;
 };

@@ -21,7 +21,8 @@ export async function createPersonController(req, res) {
     if (personData.address) personData.address = personData.address.trim();
     if (personData.teudat_zehut) personData.teudat_zehut = personData.teudat_zehut.trim();
 
-    const newPerson = await personService.createPersonService(personData);
+    const organizationId = req.organization_id;
+    const newPerson = await personService.createPersonService(personData, organizationId);
     res.status(201).json({ success: true, data: newPerson });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -30,7 +31,8 @@ export async function createPersonController(req, res) {
 
 export async function getAllPersonsController(req, res) {
   try {
-    const persons = await personService.getAllPersonsService();
+    const organizationId = req.organization_id;
+    const persons = await personService.getAllPersonsService(organizationId);
     res.json({ success: true, data: persons });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -39,7 +41,8 @@ export async function getAllPersonsController(req, res) {
 
 export async function getPersonByIdController(req, res) {
   try {
-    const person = await personService.getPersonByIdService(req.params.person_id);
+    const organizationId = req.organization_id;
+    const person = await personService.getPersonByIdService(req.params.person_id, organizationId);
     if (!person) return res.status(404).json({ success: false, error: 'Person not found' });
     res.json({ success: true, data: person });
   } catch (err) {
@@ -49,7 +52,8 @@ export async function getPersonByIdController(req, res) {
 
 export async function updatePersonController(req, res) {
   try {
-    const updated = await personService.updatePersonService(req.params.person_id, req.body);
+    const organizationId = req.organization_id;
+    const updated = await personService.updatePersonService(req.params.person_id, req.body, organizationId);
     if (!updated) return res.status(404).json({ success: false, error: 'Person not found or no changes made' });
     res.json({ success: true, data: updated });
   } catch (err) {
@@ -59,7 +63,8 @@ export async function updatePersonController(req, res) {
 
 export async function deletePersonController(req, res) {
   try {
-    const deleted = await personService.deletePersonService(req.params.person_id);
+    const organizationId = req.organization_id;
+    const deleted = await personService.deletePersonService(req.params.person_id, organizationId);
     if (!deleted) return res.status(404).json({ success: false, error: 'Person not found' });
     res.json({ success: true, message: 'Person deleted successfully' });
   } catch (err) {

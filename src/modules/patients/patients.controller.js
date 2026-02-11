@@ -12,7 +12,8 @@ import {
 export const getPatientOnlyController = async (req, res) => {
   try {
     const { patientId } = req.params;
-    const patient = await fetchPatientOnly(patientId);
+    const organizationId = req.organization_id;
+    const patient = await fetchPatientOnly(patientId, organizationId);
     if (!patient) {
       return res.status(404).json({ message: "Patient not found" });
     }
@@ -25,7 +26,11 @@ export const getPatientOnlyController = async (req, res) => {
 
 export async function createPatientController(req, res) {
   try {
-  const patientData = req.body;
+  const organizationId = req.organization_id;
+  const patientData = {
+    ...req.body,
+    organization_id: organizationId
+  };
   console.log('Received patientData from frontend:', JSON.stringify(patientData, null, 2));
     // בדיקת חובה רק לשם פרטי ושם משפחה בפרסון
     if (!patientData.person || !patientData.person.first_name || !patientData.person.last_name) {
@@ -73,8 +78,9 @@ export async function createPatientController(req, res) {
 export async function getPatientsByTherapistController(req, res) {
   try {
     const { therapistId } = req.params;
+    const organizationId = req.organization_id;
     // השתמשי בפונקציה מתוך patientService
-    const patients = await fetchPatientsByTherapist(therapistId);
+    const patients = await fetchPatientsByTherapist(therapistId, organizationId);
     res.json(patients);
   } catch (err) {
     console.error(err);
@@ -84,7 +90,8 @@ export async function getPatientsByTherapistController(req, res) {
 
 export async function getAllPatientsController(req, res) {
   try {
-    const allPatients = await fetchAllPatients();
+    const organizationId = req.organization_id;
+    const allPatients = await fetchAllPatients(organizationId);
     // console.log(allPatients);
     
     res.json({ success: true, data: allPatients });
@@ -98,7 +105,8 @@ export async function getAllPatientsController(req, res) {
 export const getPatientDetailsController = async (req, res) => {
   try {
     const { patientId } = req.params;
-    const details = await fetchPatientDetails(patientId);
+    const organizationId = req.organization_id;
+    const details = await fetchPatientDetails(patientId, organizationId);
     res.json(details);
   } catch (error) {
     console.error(error);
@@ -109,7 +117,8 @@ export const getPatientDetailsController = async (req, res) => {
 export const getPatientStatsController = async (req, res) => {
   try {
     const { patientId } = req.params;
-    const stats = await fetchPatientStats(patientId);
+    const organizationId = req.organization_id;
+    const stats = await fetchPatientStats(patientId, organizationId);
     res.json(stats);
   } catch (error) {
     console.error(error);
@@ -120,10 +129,11 @@ export const getPatientStatsController = async (req, res) => {
 export async function deletePatientFullController(req, res) {
   try {
     const { patientId } = req.params;
+    const organizationId = req.organization_id;
     if (!patientId || isNaN(patientId)) {
       return res.status(400).json({ success: false, message: "Invalid patient ID" });
     }
-    const result = await deletePatientFull(patientId);
+    const result = await deletePatientFull(patientId, organizationId);
     if (result) {
       res.json({ success: true, message: "Patient and all related data deleted successfully" });
     } else {
@@ -139,6 +149,7 @@ export async function updatePatientController(req, res) {
   // console.log('Update patientId:', req.params.patientId, 'Update data:', req.body);
   try {
     const { patientId } = req.params;
+    const organizationId = req.organization_id;
     const updateData = req.body;
 
     // Validate patientId
@@ -167,7 +178,7 @@ export async function updatePatientController(req, res) {
         });
       }
     }
-    const result = await updatePatient(patientId, updateData);
+    const result = await updatePatient(patientId, updateData, organizationId);
     if (result && (result.userUpdateResult || result.patientUpdateResult)) {
       res.json({
         success: true,
