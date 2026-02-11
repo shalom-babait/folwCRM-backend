@@ -1,5 +1,8 @@
 import express from 'express';
 import cors from 'cors';
+import passport from 'passport';
+import session from 'express-session';
+import { configureGoogleAuth } from './config/passport.js';
 // import usersRouter from './modules/users/user.routes.js';
 import emailRoutes from './modules/email/email.routes.js';
 import therapistRoutes from './modules/therapists/therapists.routes.js';
@@ -8,6 +11,7 @@ import appointmentRoutes from './modules/appointments/appointments.routes.js';
 import roomsRoutes from './modules/rooms/rooms.routes.js';
 import typesRoutes from './modules/types/types.routes.js';
 import loginRoutes from './modules/login/login.routes.js';
+import authRoutes from './modules/auth/auth.routes.js';
 import departmentsRoutes from './modules/departments/departments.routes.js';
 import groupsRoutes from './modules/groups/groups.routes.js';
 import prospectsRoutes from './modules/prospects/prospects.routes.js';
@@ -71,11 +75,25 @@ app.use(cors({
 // ✅ Body parser
 app.use(express.json());
 
+// ✅ Session configuration (נדרש ל-Passport)
+app.use(session({
+  secret: process.env.JWT_SECRET || 'yourSecretKey',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false } // במידה ויש HTTPS, להחליף ל-true
+}));
+
+// ✅ Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
+configureGoogleAuth();
+
 // route בסיסי ל־`/` כדי למנוע 502
 app.get('/', (req, res) => res.send('Server is running'));
 
 // ✅ Routes
 // app.use('/api/users', usersRouter);
+app.use('/api/auth', authRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/therapists', therapistRoutes);
 app.use('/api/patients', patientRoutes);
