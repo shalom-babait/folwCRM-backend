@@ -1,9 +1,9 @@
 import { create, deleteFromRooms, getRooms, updateToRooms,fetchRoomAvailability, upsertRoomAvailability} from "./rooms.repo.js";
 import pool from "../../services/database.js";
 
-export const fetchRooms = async () => {
+export const fetchRooms = async (organizationId = null) => {
     try {
-        const therapists = await getRooms();
+        const therapists = await getRooms(organizationId);
         return therapists;
     } catch (error) {
         throw error;
@@ -20,31 +20,41 @@ export async function createRoom(roomData) {
     }
 }
 
-export async function deleteRoom(id) {
+export async function deleteRoom(id, organizationId = null) {
   try {
-    const [existing] = await pool.execute(
-      "SELECT * FROM rooms WHERE room_id = ?",
-      [id]
-    );
+    let sql = "SELECT * FROM rooms WHERE room_id = ?";
+    const params = [id];
+    
+    if (organizationId) {
+      sql += " AND organization_id = ?";
+      params.push(organizationId);
+    }
+    
+    const [existing] = await pool.execute(sql, params);
     if (existing.length === 0) {
       return false;
     }
-    return await deleteFromRooms(id);
+    return await deleteFromRooms(id, organizationId);
   } catch (error) {
     throw error;
   }
 }
 
-export async function updateRoom(id, updateData) {
+export async function updateRoom(id, updateData, organizationId = null) {
   try {
-    const [existing] = await pool.execute(
-      "SELECT * FROM rooms WHERE room_id = ?",
-      [id]
-    );
+    let sql = "SELECT * FROM rooms WHERE room_id = ?";
+    const params = [id];
+    
+    if (organizationId) {
+      sql += " AND organization_id = ?";
+      params.push(organizationId);
+    }
+    
+    const [existing] = await pool.execute(sql, params);
     if (existing.length === 0) {
       return false;
     }
-    return await updateToRooms(id, updateData);
+    return await updateToRooms(id, updateData, organizationId);
   } catch (error) {
     throw error;
   }

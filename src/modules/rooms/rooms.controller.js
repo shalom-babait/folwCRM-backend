@@ -2,7 +2,8 @@ import { createRoom, deleteRoom, fetchRooms, updateRoom, saveRoomAvailability, g
 
 export async function getRoomsController(req, res) {
   try {
-    const rooms = await fetchRooms();
+    const organizationId = req.organization_id;
+    const rooms = await fetchRooms(organizationId);
     res.json(rooms);
   } catch (err) {
     console.error(err);
@@ -12,11 +13,13 @@ export async function getRoomsController(req, res) {
 
 export async function createRoomController(req, res) {
   try {
+    const organizationId = req.organization_id;
     let roomData = req.body;
     // אם נשלח { room: { ... } } קח את הפנימי
     if (roomData.room && typeof roomData.room === 'object') {
       roomData = roomData.room;
     }
+    roomData.organization_id = organizationId;
     const newRoom = await createRoom(roomData);
     res.status(201).json({
       success: true,
@@ -33,13 +36,14 @@ export async function createRoomController(req, res) {
 export async function deleteRoomController(req, res) {
   try {
     const { id } = req.params;
+    const organizationId = req.organization_id;
     if (!id || isNaN(id)) {
       return res.status(400).json({
         success: false,
         message: "Invalid ID"
       });
     }
-    const result = await deleteRoom(id);
+    const result = await deleteRoom(id, organizationId);
     if (result) {
       res.json({
         success: true,
@@ -62,6 +66,7 @@ export async function deleteRoomController(req, res) {
 export async function updateRoomController(req, res) {
   try {
     const { id } = req.params;
+    const organizationId = req.organization_id;
     const updateData = req.body;
     if (!id || isNaN(id)) {
       return res.status(400).json({
@@ -75,7 +80,7 @@ export async function updateRoomController(req, res) {
         message: "No update data provided"
       });
     }
-    const result = await updateRoom(id, updateData);
+    const result = await updateRoom(id, updateData, organizationId);
     if (result) {
       res.json({
         success: true,

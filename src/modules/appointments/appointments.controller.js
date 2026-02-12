@@ -4,7 +4,8 @@ export async function getAppointmentsByGroupId(req, res) {
 
   try {
     const { groupId } = req.params;
-    const appointments = await fetchAppointmentsByGroupId(groupId);
+    const organizationId = req.organization_id;
+    const appointments = await fetchAppointmentsByGroupId(groupId, organizationId);
     res.json({ success: true, data: appointments });
   } catch (err) {
     console.error('[getAppointmentsByGroupId] Error:', err);
@@ -16,7 +17,8 @@ export async function getAppointmentsByGroupId(req, res) {
 export async function getAppointmentsByTherapist(req, res) {
   try {
     const { therapistId } = req.params;
-    const appointments = await fetchAppointmentsByTherapist(therapistId);
+    const organizationId = req.organization_id;
+    const appointments = await fetchAppointmentsByTherapist(therapistId, organizationId);
     res.json({ success: true, data: appointments });
   } catch (err) {
     console.error('[getAppointmentsByTherapist] Error:', err);
@@ -26,7 +28,8 @@ export async function getAppointmentsByTherapist(req, res) {
 export async function getAppointmentsByRoom(req, res) {
   try {
     const { roomId } = req.params;
-    const appointments = await fetchAppointmentsByRoom(roomId);
+    const organizationId = req.organization_id;
+    const appointments = await fetchAppointmentsByRoom(roomId, organizationId);
     res.json({ success: true, data: appointments });
   } catch (err) {
     console.error('[getAppointmentsByRoom] Error:', err);
@@ -36,8 +39,10 @@ export async function getAppointmentsByRoom(req, res) {
 
 export async function createAppointmentController(req, res) {
   try {
+    const organizationId = req.organization_id;
     const appointmentData = {
       ...req.body,
+      organization_id: organizationId,
       room_id: req.body.room_id === undefined || req.body.room_id === 0 ? null : req.body.room_id,
       treatment_type_id: req.body.treatment_type_id === undefined || req.body.treatment_type_id === 0 ? null : req.body.treatment_type_id
     };
@@ -108,7 +113,8 @@ export async function createAppointmentController(req, res) {
 export async function getAppointments(req, res) {
   try {
     const { patientId, therapistId } = req.params;
-    const appointments = await fetchAppointments(patientId, therapistId);
+    const organizationId = req.organization_id;
+    const appointments = await fetchAppointments(patientId, therapistId, organizationId);
     res.json(appointments);
   } catch (err) {
     console.error('[getAppointments] Error:', err);
@@ -119,6 +125,7 @@ export async function getAppointments(req, res) {
 export async function deleteAppointmentController(req, res) {
   try {
     const { appointmentId } = req.params;
+    const organizationId = req.organization_id;
     // Validate appointmentId
     if (!appointmentId || isNaN(appointmentId)) {
       return res.status(400).json({
@@ -126,7 +133,7 @@ export async function deleteAppointmentController(req, res) {
         message: "Invalid appointment ID"
       });
     }
-    const result = await deleteAppointment(appointmentId);
+    const result = await deleteAppointment(appointmentId, organizationId);
     if (result) {
       res.json({
         success: true,
@@ -150,6 +157,7 @@ export async function deleteAppointmentController(req, res) {
 export async function updateAppointmentController(req, res) {
   try {
     const { appointmentId } = req.params;
+    const organizationId = req.organization_id;
     // נרמול שדות אופציונליים
     const updateData = {
       ...req.body,
@@ -204,7 +212,7 @@ export async function updateAppointmentController(req, res) {
         });
       }
     }
-    const result = await updateAppointment(appointmentId, updateData);
+    const result = await updateAppointment(appointmentId, updateData, organizationId);
     if (result) {
       res.json({
         success: true,
@@ -228,7 +236,8 @@ export async function updateAppointmentController(req, res) {
 
 export async function getAppointmentsByPatientIdController(req, res) {
   try {
-    const rows = await getAppointmentsByPatientIdService(req.params.patientId);   
+    const organizationId = req.organization_id;
+    const rows = await getAppointmentsByPatientIdService(req.params.patientId, organizationId);   
     res.status(200).json(rows);
   } catch (err) {
     console.error('[getAppointmentsByPatientIdController] Error:', err);
