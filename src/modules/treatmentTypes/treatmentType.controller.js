@@ -8,7 +8,8 @@ import {
 // הוספה
 export async function createTreatmentTypeController(req, res) {
 	try {
-		const newType = await createTreatmentTypeService(req.body);
+		const organizationId = req.organization_id;
+		const newType = await createTreatmentTypeService(req.body, organizationId);
 		res.status(201).json({ success: true, data: newType });
 	} catch (error) {
 		res.status(500).json({ success: false, message: error.message });
@@ -22,7 +23,8 @@ export async function deleteTreatmentTypeController(req, res) {
 		if (!id || isNaN(id)) {
 			return res.status(400).json({ success: false, message: 'Invalid ID' });
 		}
-		const result = await deleteTreatmentTypeService(id);
+		const organizationId = req.organization_id;
+		const result = await deleteTreatmentTypeService(id, organizationId);
 		if (result) {
 			res.json({ success: true, message: 'Treatment type deleted successfully' });
 		} else {
@@ -44,7 +46,8 @@ export async function updateTreatmentTypeController(req, res) {
 		if (Object.keys(updateData).length === 0) {
 			return res.status(400).json({ success: false, message: 'No update data provided' });
 		}
-		const result = await updateTreatmentTypeService(id, updateData);
+		const organizationId = req.organization_id;
+		const result = await updateTreatmentTypeService(id, updateData, organizationId);
 		if (result) {
 			res.json({ success: true, message: 'Treatment type updated successfully' });
 		} else {
@@ -59,7 +62,8 @@ export async function updateTreatmentTypeController(req, res) {
 export async function getAllTreatmentTypesController(req, res) {
 	try {
 		const { therapist_id } = req.query;
-		const treatmentTypes = await getAllTreatmentTypesService(therapist_id ? Number(therapist_id) : null);
+		const organizationId = req.organization_id;
+		const treatmentTypes = await getAllTreatmentTypesService(therapist_id ? Number(therapist_id) : null, organizationId);
 		if (!Array.isArray(treatmentTypes)) {
 			return res.status(500).json({ error: 'Data is not an array' });
 		}

@@ -82,7 +82,8 @@ import * as patientProblemModel from './patientProblem.model.js';
 
 export async function createPatientProblem(req, res) {
     try {
-        const problem = await patientProblemModel.createPatientProblem(req.body);
+        const organizationId = req.organization_id;
+        const problem = await patientProblemModel.createPatientProblem(req.body, organizationId);
         res.status(201).json(problem);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -92,7 +93,8 @@ export async function createPatientProblem(req, res) {
 export async function getPatientProblemsByPatient(req, res) {
     try {
         const { patient_id } = req.params;
-        const problems = await patientProblemModel.getPatientProblemsByPatient(patient_id);
+        const organizationId = req.organization_id;
+        const problems = await patientProblemModel.getPatientProblemsByPatient(patient_id, organizationId);
         res.json(problems);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -113,7 +115,8 @@ export async function getPatientProblemById(req, res) {
 export async function updatePatientProblem(req, res) {
     try {
         const { patient_problem_id } = req.params;
-        const updated = await patientProblemModel.updatePatientProblem(patient_problem_id, req.body);
+        const organizationId = req.organization_id;
+        const updated = await patientProblemModel.updatePatientProblem(patient_problem_id, req.body, organizationId);
         if (!updated) {
             return res.status(404).json({ error: 'Not found or no changes' });
         }
@@ -126,8 +129,9 @@ export async function updatePatientProblem(req, res) {
 export async function deletePatientProblem(req, res) {
     try {
         const { patient_problem_id } = req.params;
+        const organizationId = req.organization_id;
         console.log(`[deletePatientProblem] מחיקת בעיה: patient_problem_id=${patient_problem_id}`);
-        await patientProblemModel.deletePatientProblem(patient_problem_id);
+        await patientProblemModel.deletePatientProblem(patient_problem_id, organizationId);
         console.log(`[deletePatientProblem] בעיה נמחקה בהצלחה: patient_problem_id=${patient_problem_id}`);
         res.json({ success: true });
     } catch (err) {

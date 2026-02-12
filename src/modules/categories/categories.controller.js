@@ -15,29 +15,33 @@ class CategoriesController {
   // ================= Categories CRUD =================
   getAllCategories = (req, res, next) =>
     this.handleRequest(res, next, async () => {
-      const categories = await categoriesService.getAllCategories();
+      const organizationId = req.organization_id;
+      const categories = await categoriesService.getAllCategories(organizationId);
       res.json({ success: true, data: categories });
     });
 
   getCategoriesByType = (req, res, next) =>
     this.handleRequest(res, next, async () => {
       const { type } = req.params;
-      const categories = await categoriesService.getCategoriesByType(type);
+      const organizationId = req.organization_id;
+      const categories = await categoriesService.getCategoriesByType(type, organizationId);
       res.json({ success: true, data: categories });
     });
 
   getCategoryById = (req, res, next) =>
     this.handleRequest(res, next, async () => {
       const id = req.params.id || req.params.categoryId;
-      const category = await categoriesService.getCategoryById(id);
+      const organizationId = req.organization_id;
+      const category = await categoriesService.getCategoryById(id, organizationId);
       res.json({ success: true, data: category });
     });
 
   createCategory = (req, res, next) =>
     this.handleRequest(res, next, async () => {
       console.log('Creating category with data:', req.body);
-      const categoryId = await categoriesService.createCategory(req.body);
-      const category = await categoriesService.getCategoryById(categoryId);
+      const organizationId = req.organization_id;
+      const categoryId = await categoriesService.createCategory(req.body, organizationId);
+      const category = await categoriesService.getCategoryById(categoryId, organizationId);
       res.status(201).json({
         success: true,
         message: 'Category created successfully',
@@ -48,8 +52,9 @@ class CategoriesController {
   updateCategory = (req, res, next) =>
     this.handleRequest(res, next, async () => {
       const id = req.params.id || req.params.categoryId;
-      await categoriesService.updateCategory(id, req.body);
-      const category = await categoriesService.getCategoryById(id);
+      const organizationId = req.organization_id;
+      await categoriesService.updateCategory(id, req.body, organizationId);
+      const category = await categoriesService.getCategoryById(id, organizationId);
       res.json({
         success: true,
         message: 'Category updated successfully',
@@ -60,7 +65,8 @@ class CategoriesController {
   deleteCategory = (req, res, next) =>
     this.handleRequest(res, next, async () => {
       const id = req.params.id || req.params.categoryId;
-      await categoriesService.deleteCategory(id);
+      const organizationId = req.organization_id;
+      await categoriesService.deleteCategory(id, organizationId);
       res.json({ success: true, message: 'Category deleted successfully' });
     });
 
@@ -75,12 +81,13 @@ class CategoriesController {
       const entityId = this.getEntityIdFromReq(req);
       const categoryId = req.body.categoryId || req.body.category_id;
       const userId = req.user?.user_id;
+      const organizationId = req.organization_id;
 
       if (!entityId) return res.status(400).json({ success: false, message: 'entityId is required' });
       if (!categoryId) return res.status(400).json({ success: false, message: 'categoryId is required' });
 
       // delegate to service (service/repo should handle DB-level validation and FK checks)
-      await categoriesService.assignCategory(entityType, entityId, categoryId, userId);
+      await categoriesService.assignCategory(entityType, entityId, categoryId, userId, organizationId);
       res.status(201).json({ success: true, message: `Category assigned to ${entityType} successfully` });
     });
 
@@ -88,11 +95,12 @@ class CategoriesController {
     this.handleRequest(res, next, async () => {
       const entityId = this.getEntityIdFromReq(req);
       const categoryId = req.params.categoryId || req.body.categoryId || req.body.category_id;
+      const organizationId = req.organization_id;
 
       if (!entityId) return res.status(400).json({ success: false, message: 'entityId is required' });
       if (!categoryId) return res.status(400).json({ success: false, message: 'categoryId is required' });
 
-      await categoriesService.removeCategory(entityType, entityId, categoryId);
+      await categoriesService.removeCategory(entityType, entityId, categoryId, organizationId);
       res.json({ success: true, message: `Category removed from ${entityType} successfully` });
     });
 
@@ -101,7 +109,8 @@ class CategoriesController {
       const entityId = this.getEntityIdFromReq(req);
       if (!entityId) return res.status(400).json({ success: false, message: 'entityId is required' });
 
-      const categories = await categoriesService.getCategories(entityType, entityId);
+      const organizationId = req.organization_id;
+      const categories = await categoriesService.getCategories(entityType, entityId, organizationId);
       res.json({ success: true, data: categories });
     });
 
@@ -113,7 +122,8 @@ class CategoriesController {
       // Optional query param: includePerson=true to indicate caller wants personal fields included.
       // NOTE: the service/repo must support returning person data; if not, this flag will be ignored.
       const includePerson = req.query.includePerson === 'true';
-      const entities = await categoriesService.getEntitiesByCategory(entityType, categoryId, { includePerson });
+      const organizationId = req.organization_id;
+      const entities = await categoriesService.getEntitiesByCategory(entityType, categoryId, { includePerson }, organizationId);
       res.json({ success: true, data: entities });
     });
 

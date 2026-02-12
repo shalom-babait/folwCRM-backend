@@ -2,9 +2,10 @@
  * עדכון פגישה בטבלת appointments לפי מזהה
  * @param {number} appointmentId - מזהה הפגישה
  * @param {object} updateData - אובייקט עם השדות לעדכון
+ * @param {number} organizationId - מזהה ארגון
  * @returns {Promise<object>} תוצאת העדכון
  */
-export async function updateAppointmentRepo(appointmentId, updateData) {
+export async function updateAppointmentRepo(appointmentId, updateData, organizationId = null) {
   if (!appointmentId || typeof appointmentId !== 'number') {
     throw new Error('Invalid appointmentId');
   }
@@ -18,7 +19,13 @@ export async function updateAppointmentRepo(appointmentId, updateData) {
   const values = fields.map(field => updateData[field]);
   values.push(appointmentId);
 
-  const sql = `UPDATE appointments SET ${setClause} WHERE appointment_id = ?`;
+  let sql = `UPDATE appointments SET ${setClause} WHERE appointment_id = ?`;
+  
+  if (organizationId) {
+    sql += ' AND organization_id = ?';
+    values.push(organizationId);
+  }
+  
   try {
     const [result] = await pool.query(sql, values);
     return result;
@@ -59,8 +66,8 @@ export async function updateAppointment(appointmentId, updateData) {
 }
 
 // שליפת כל הפגישות של קבוצה מסוימת
-export async function getAppointmentsByGroupId(groupId) {
-  const sql = `
+export async function getAppointmentsByGroupId(groupId, organizationId = null) {
+  let sql = `
     SELECT
       A.appointment_id,
       A.appointment_date,
@@ -82,11 +89,18 @@ export async function getAppointmentsByGroupId(groupId) {
       LEFT JOIN users AS U ON T.user_id = U.user_id
       LEFT JOIN person AS P ON U.person_id = P.person_id
     WHERE
-      A.treatment_type_id = ?
-    ORDER BY
-      A.appointment_date, A.start_time;
-  `;
-  const [rows] = await pool.query(sql, [groupId]);
+      A.treatment_type_id = ?`;
+  
+  const params = [groupId];
+  
+  if (organizationId) {
+    sql += ' AND A.organization_id = ?';
+    params.push(organizationId);
+  }
+  
+  sql += ' ORDER BY A.appointment_date, A.start_time;';
+  
+  const [rows] = await pool.query(sql, params);
   return rows;
 }
 // SELECT
@@ -112,9 +126,8 @@ export async function getAppointmentsByGroupId(groupId) {
 //     ORDER BY
 //       A.appointment_date, A.start_time;
 // שליפת כל הפגישות של מטפל בלבד
-
-export async function getAppointmentsByTherapist(therapistId) {
-  const sql = `
+export async function getAppointmentsByTherapist(therapistId, organizationId = null) {
+  let sql = `
     SELECT
       A.appointment_id,
       A.appointment_date,
@@ -136,12 +149,19 @@ export async function getAppointmentsByTherapist(therapistId) {
       ON PA.patient_id = A.patient_id
     LEFT JOIN person AS P
       ON P.person_id = PA.person_id
-    WHERE A.therapist_id = ?
-    ORDER BY A.appointment_date, A.start_time;
-  `;
+    WHERE A.therapist_id = ?`;
+  
+  const params = [therapistId];
+  
+  if (organizationId) {
+    sql += ' AND A.organization_id = ?';
+    params.push(organizationId);
+  }
+  
+  sql += ' ORDER BY A.appointment_date, A.start_time;';
 
   try {
-    const [rows] = await pool.query(sql, [therapistId]);
+    const [rows] = await pool.query(sql, params);
     return rows;
   } catch (err) {
     console.error('SQL ERROR:', err);
@@ -149,18 +169,26 @@ export async function getAppointmentsByTherapist(therapistId) {
   }
 }
 
-export async function getAppointmentsByRoom(roomId) {
-  const sql = `
+export async function getAppointmentsByRoom(roomId, organizationId = null) {
+  let sql = `
     SELECT
       A.*, CONCAT(P.first_name, ' ', P.last_name) AS therapist_name
     FROM appointments AS A
     JOIN therapists AS T ON A.therapist_id = T.therapist_id
     JOIN users AS U ON T.user_id = U.user_id
     JOIN person AS P ON U.person_id = P.person_id
-    WHERE A.room_id = ?
-    ORDER BY A.appointment_date, A.start_time;
-  `;
-  const [rows] = await pool.query(sql, [roomId]);
+    WHERE A.room_id = ?`;
+  
+  const params = [roomId];
+  
+  if (organizationId) {
+    sql += ' AND A.organization_id = ?';
+    params.push(organizationId);
+  }
+  
+  sql += ' ORDER BY A.appointment_date, A.start_time;';
+  
+  const [rows] = await pool.query(sql, params);
   return rows;
 }
 
@@ -172,7 +200,8 @@ export async function create(appointmentData) {
     start_time,
     end_time,
     status,
-    notes
+    notes,
+    organization_id
   } = appointmentData;
   // אם treatment_type_id ריק או לא קיים, נכניס null
   const treatment_type_id = appointmentData.treatment_type_id ? appointmentData.treatment_type_id : null;
@@ -181,8 +210,8 @@ export async function create(appointmentData) {
 
   const query = `
     INSERT INTO appointments 
-    (therapist_id, patient_id, treatment_type_id, room_id, appointment_date, start_time, end_time, status, notes)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (therapist_id, patient_id, treatment_type_id, room_id, appointment_date, start_time, end_time, status, notes, organization_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   try {
@@ -195,7 +224,8 @@ export async function create(appointmentData) {
       start_time,
       end_time,
       status || 'מתוזמנת',
-      notes || null
+      notes || null,
+      organization_id || null
     ]);
 
     return {
@@ -217,7 +247,7 @@ export async function create(appointmentData) {
 }
 
 // ניתן להעביר appointmentId כדי לא לכלול את הפגישה הנוכחית בבדיקת חפיפה
-export async function checkTimeConflict(therapist_id, room_id, appointment_date, start_time, end_time, appointmentIdToExclude = null) {
+export async function checkTimeConflict(therapist_id, room_id, appointment_date, start_time, end_time, appointmentIdToExclude = null, organizationId = null) {
   let query = `
     SELECT appointment_id FROM appointments 
     WHERE (therapist_id = ? OR room_id = ?) 
@@ -234,6 +264,12 @@ export async function checkTimeConflict(therapist_id, room_id, appointment_date,
     end_time, end_time,
     start_time, end_time
   ];
+  
+  if (organizationId) {
+    query += ' AND organization_id = ?';
+    params.push(organizationId);
+  }
+  
   if (appointmentIdToExclude) {
     query += ' AND appointment_id != ?';
     params.push(appointmentIdToExclude);
@@ -247,8 +283,8 @@ export async function checkTimeConflict(therapist_id, room_id, appointment_date,
 }
 
 
-export async function getAppointmentsByPatientAndTherapist(patientId, therapistId) {
-  const sql = `
+export async function getAppointmentsByPatientAndTherapist(patientId, therapistId, organizationId = null) {
+  let sql = `
     SELECT
       A.appointment_id,
       A.appointment_date,
@@ -262,18 +298,27 @@ export async function getAppointmentsByPatientAndTherapist(patientId, therapistI
       appointments AS A
     LEFT JOIN group_list AS GL ON A.treatment_type_id = GL.group_id
     WHERE
-      A.patient_id = ? AND A.therapist_id = ?
-    ORDER BY
-      A.appointment_date, A.start_time;
-  `;
-  // console.log('[getAppointmentsByPatientAndTherapist] SQL:', sql);
-  // console.log('[getAppointmentsByPatientAndTherapist] params:', { patientId, therapistId });
-  const [rows] = await pool.query(sql, [patientId, therapistId]);
-  // console.log('[getAppointmentsByPatientAndTherapist] rows:', rows);
+      A.patient_id = ? AND A.therapist_id = ?`;
+  
+  const params = [patientId, therapistId];
+  
+  if (organizationId) {
+    sql += ' AND A.organization_id = ?';
+    params.push(organizationId);
+  }
+  
+  sql += ' ORDER BY A.appointment_date, A.start_time;';
+  
+  const [rows] = await pool.query(sql, params);
   return rows;
 }
 
-export async function deleteFromAppointments(appointmentId) {
+export async function deleteFromAppointments(appointmentId, organizationId = null) {
+  if (organizationId) {
+    const sql = 'DELETE FROM appointments WHERE appointment_id = ? AND organization_id = ?';
+    const [result] = await pool.query(sql, [appointmentId, organizationId]);
+    return result;
+  }
   return deleteFromTable('appointments', { appointment_id: appointmentId });
 }
 
@@ -281,8 +326,8 @@ export async function updateToAppointments(appointmentId, updateData) {
   return updateTable('appointments', updateData, { appointment_id: appointmentId });
 }
 
-export async function getAppointmentsByPatientId(patient_id) {
-  const sql = `
+export async function getAppointmentsByPatientId(patient_id, organizationId = null) {
+  let sql = `
     SELECT
       A.appointment_id,
       DATE_FORMAT(A.appointment_date, '%Y-%m-%d') AS appointment_date,
@@ -306,11 +351,18 @@ export async function getAppointmentsByPatientId(patient_id) {
     LEFT JOIN therapists AS T ON A.therapist_id = T.therapist_id
     LEFT JOIN users AS U ON T.user_id = U.user_id
     LEFT JOIN person AS P ON U.person_id = P.person_id
-    WHERE A.patient_id = ?
-    ORDER BY A.appointment_date DESC, A.start_time DESC;
-  `;
+    WHERE A.patient_id = ?`;
+  
+  const params = [patient_id];
+  
+  if (organizationId) {
+    sql += ' AND A.organization_id = ?';
+    params.push(organizationId);
+  }
+  
+  sql += ' ORDER BY A.appointment_date DESC, A.start_time DESC;';
 
-  const [rows] = await pool.query(sql, [patient_id]);
+  const [rows] = await pool.query(sql, params);
   return rows;
 }
 

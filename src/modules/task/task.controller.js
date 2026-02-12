@@ -2,7 +2,8 @@
 // קבלת רשימת משימות לפי מזהה יוזר
 export async function getTasksByUserId(req, res) {
 	try {
-		const tasks = await getTasksByUserIdService(req.params.user_id);
+		const organizationId = req.organization_id;
+		const tasks = await getTasksByUserIdService(req.params.user_id, organizationId);
 		res.json(tasks);
 	} catch (err) {
 		console.error('[controller] שגיאה בשליפת משימות לפי יוזר:', err);
@@ -14,7 +15,8 @@ import { addTaskService, deleteTaskService, updateTaskService, getTasksByPatient
 // הוספת משימה
 export async function addTask(req, res) {
 	try {
-		const task = await addTaskService(req.body);
+		const organizationId = req.organization_id;
+		const task = await addTaskService(req.body, organizationId);
 		res.status(201).json(task);
 	} catch (err) {
 		console.error('שגיאה בהוספת משימה:', err);
@@ -26,7 +28,8 @@ export async function addTask(req, res) {
 export async function deleteTask(req, res) {
 	try {
 		const { task_id } = req.params;
-		await deleteTaskService(task_id);
+		const organizationId = req.organization_id;
+		await deleteTaskService(task_id, organizationId);
 		res.json({ success: true });
 	} catch (err) {
 		res.status(500).json({ error: err.message });
@@ -37,7 +40,8 @@ export async function deleteTask(req, res) {
 export async function updateTask(req, res) {
 	try {
 		const { task_id } = req.params;
-		const updated = await updateTaskService(task_id, req.body);
+		const organizationId = req.organization_id;
+		const updated = await updateTaskService(task_id, req.body, organizationId);
 		if (!updated) {
 			return res.status(404).json({ error: 'Not found or no changes' });
 		}
@@ -52,7 +56,8 @@ export async function updateTask(req, res) {
 export async function getTasksByPatientId(req, res) {
 	try {
 		const { patient_id } = req.params;
-		const tasks = await getTasksByPatientIdService(patient_id);
+		const organizationId = req.organization_id;
+		const tasks = await getTasksByPatientIdService(patient_id, organizationId);
 		res.json(tasks);
 	} catch (err) {
 		res.status(500).json({ error: err.message });

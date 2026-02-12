@@ -13,7 +13,7 @@ function toMysqlLocalDatetime(date) {
 
 export async function createPayment(paymentData) {
   console.log('createPayment - received from frontend:', paymentData);
-  let { appointment_id, amount, payment_date, method, status, transaction_type, person_id, therapist_id } = paymentData;
+  let { appointment_id, amount, payment_date, method, status, transaction_type, person_id, therapist_id, organization_id } = paymentData;
 
   if (!person_id) {
     throw new Error('person_id is required');
@@ -23,8 +23,8 @@ export async function createPayment(paymentData) {
 
   const sql = `
     INSERT INTO payments 
-      (appointment_id, amount, payment_date, method, status, transaction_type, person_id, therapist_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      (appointment_id, amount, payment_date, method, status, transaction_type, person_id, therapist_id, organization_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const params = [
@@ -35,7 +35,8 @@ export async function createPayment(paymentData) {
     status || 'pending',
     transaction_type,
     person_id,
-    therapist_id
+    therapist_id,
+    organization_id || null
   ];
 
   const [result] = await pool.query(sql, params);
@@ -44,52 +45,95 @@ export async function createPayment(paymentData) {
 
 // --- שליפות CRUD ---
 
-export async function getAllPayments() {
-  const [rows] = await pool.query(`SELECT * FROM payments`);
+export async function getAllPayments(organizationId = null) {
+  let sql = `SELECT * FROM payments`;
+  const params = [];
+  
+  if (organizationId) {
+    sql += ' WHERE organization_id = ?';
+    params.push(organizationId);
+  }
+  
+  const [rows] = await pool.query(sql, params);
   return rows;
 }
 
-export async function getPaymentById(payment_id) {
-  const [rows] = await pool.query(`SELECT * FROM payments WHERE payment_id = ?`, [payment_id]);
+export async function getPaymentById(payment_id, organizationId = null) {
+  let sql = `SELECT * FROM payments WHERE payment_id = ?`;
+  const params = [payment_id];
+  
+  if (organizationId) {
+    sql += ' AND organization_id = ?';
+    params.push(organizationId);
+  }
+  
+  const [rows] = await pool.query(sql, params);
   return rows[0];
 }
 
-export async function getPaymentByPatientId(patient_id) {
-  const sql = `
+export async function getPaymentByPatientId(patient_id, organizationId = null) {
+  let sql = `
     SELECT p.*
     FROM payments p
     JOIN patients pa ON p.person_id = pa.person_id
-    WHERE pa.patient_id = ?
-    ORDER BY p.payment_date DESC
-  `;
-
-  const [rows] = await pool.query(sql, [patient_id]);
+    WHERE pa.patient_id = ?`;
+  
+  const params = [patient_id];
+  
+  if (organizationId) {
+    sql += ' AND p.organization_id = ?';
+    params.push(organizationId);
+  }
+  
+  sql += ' ORDER BY p.payment_date DESC';
+  const [rows] = await pool.query(sql, params);
   return rows;
 }
 
-export async function updatePayment(payment_id, paymentData) {
+export async function updatePayment(payment_id, paymentData, organizationId = null) {
   const fields = Object.keys(paymentData)
     .map(key => `${key} = ?`)
     .join(', ');
 
   const values = Object.values(paymentData);
-  await pool.query(
-    `UPDATE payments SET ${fields} WHERE payment_id = ?`,
-    [...values, payment_id]
-  );
   
+  let sql = `UPDATE payments SET ${fields} WHERE payment_id = ?`;
+  const params = [...values, payment_id];
+  
+  if (organizationId) {
+    sql += ' AND organization_id = ?';
+    params.push(organizationId);
+  }
+  
+  await pool.query(sql, params);
 }
 
-export async function deletePayment(payment_id) {
-  await pool.query(`DELETE FROM payments WHERE payment_id = ?`, [payment_id]);
+export async function deletePayment(payment_id, organizationId = null) {
+  let sql = `DELETE FROM payments WHERE payment_id = ?`;
+  const params = [payment_id];
+  
+  if (organizationId) {
+    sql += ' AND organization_id = ?';
+    params.push(organizationId);
+  }
+  
+  await pool.query(sql, params);
 }
 
 /**
  * מוחק תשלום לפי מזהה
  * @param {number} payment_id
  */
-export async function deletePaymentById(payment_id) {
-  await pool.query(`DELETE FROM payments WHERE payment_id = ?`, [payment_id]);
+export async function deletePaymentById(payment_id, organizationId = null) {
+  let sql = `DELETE FROM payments WHERE payment_id = ?`;
+  const params = [payment_id];
+  
+  if (organizationId) {
+    sql += ' AND organization_id = ?';
+    params.push(organizationId);
+  }
+  
+  await pool.query(sql, params);
 }
 
 /**
@@ -117,26 +161,42 @@ export async function getTherapistPaymentsSumByMonth(therapistId, month, year) {
  * @param {number} therapistId
  * @returns {Promise<Array<{patient_name: string, total_payments: number}>>}
  */
-export async function getTherapistMonthlyPaymentsList(therapistId) {
+export async function getTherapistMonthlyPaymentsList(therapistId, organizationId = null) {
   // console.log('getTherapistMonthlyPaymentsList therapistId:', therapistId);
   // 1. כל התשלומים של המטפל החודש
-  const [payments] = await pool.query(`
+  let sql1 = `
     SELECT * FROM payments
     WHERE therapist_id = ?
       AND MONTH(payment_date) = MONTH(CURRENT_DATE())
       AND YEAR(payment_date) = YEAR(CURRENT_DATE())
-      AND status = 'paid'
-  `, [therapistId]);
+      AND status = 'paid'`;
+  
+  const params1 = [therapistId];
+  
+  if (organizationId) {
+    sql1 += ' AND organization_id = ?';
+    params1.push(organizationId);
+  }
+  
+  const [payments] = await pool.query(sql1, params1);
   // console.log('שלב 1 - payments:', payments);
 
   // 2. כל הפציינטים של המטפל שיש להם תשלום החודש
-  const [patients] = await pool.query(`
+  let sql2 = `
     SELECT DISTINCT person_id FROM payments
     WHERE therapist_id = ?
       AND MONTH(payment_date) = MONTH(CURRENT_DATE())
       AND YEAR(payment_date) = YEAR(CURRENT_DATE())
-      AND status = 'paid'
-  `, [therapistId]);
+      AND status = 'paid'`;
+  
+  const params2 = [therapistId];
+  
+  if (organizationId) {
+    sql2 += ' AND organization_id = ?';
+    params2.push(organizationId);
+  }
+  
+  const [patients] = await pool.query(sql2, params2);
   // console.log('שלב 2 - patients:', patients);
 
   // 3. שמות הפציינטים

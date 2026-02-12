@@ -1,11 +1,16 @@
 import pool, { deleteFromTable, updateTable } from "../../services/database.js";
 
-export async function getRooms() {
+export async function getRooms(organizationId = null) {
   try {
-    const rooms_sql = `
-        SELECT room_id, room_name, color FROM rooms
-      `;
-    const [rows] = await pool.execute(rooms_sql);
+    let rooms_sql = `SELECT room_id, room_name, color FROM rooms`;
+    const params = [];
+    
+    if (organizationId) {
+      rooms_sql += ' WHERE organization_id = ?';
+      params.push(organizationId);
+    }
+    
+    const [rows] = await pool.execute(rooms_sql, params);
     return rows;
   } catch (error) {
     throw new Error(`Database error: ${error.message}`);
@@ -13,15 +18,15 @@ export async function getRooms() {
 } 
 
 export async function create(roomData) {
-  const { room_name, color } = roomData;
+  const { room_name, color, organization_id } = roomData;
 
   const rooms_query = `
-    INSERT INTO rooms (room_name, color)
-    VALUES (?, ?)
+    INSERT INTO rooms (room_name, color, organization_id)
+    VALUES (?, ?, ?)
   `;
 
   try {
-    const [result] = await pool.execute(rooms_query, [room_name, color || null]);
+    const [result] = await pool.execute(rooms_query, [room_name, color || null, organization_id || null]);
     return {
       room_id: result.insertId,
       room_name,
@@ -33,11 +38,20 @@ export async function create(roomData) {
   }
 }
 
-export async function deleteFromRooms(roomId) {
+export async function deleteFromRooms(roomId, organizationId = null) {
+  if (organizationId) {
+    const sql = 'DELETE FROM rooms WHERE room_id = ? AND organization_id = ?';
+    const [result] = await pool.query(sql, [roomId, organizationId]);
+    return result;
+  }
   return deleteFromTable('rooms', { room_id: roomId });
 }
 
-export async function updateToRooms(roomId, updateData) {
+export async function updateToRooms(roomId, updateData, organizationId = null) {
+  if (organizationId) {
+    const where = { room_id: roomId, organization_id: organizationId };
+    return updateTable('rooms', updateData, where);
+  }
   return updateTable('rooms', updateData, { room_id: roomId });
 }
 

@@ -3,9 +3,9 @@
  * @param {number} therapistId
  * @returns {Promise<{total_hours: number, total_appointments: number, total_payments: number}>}
  */
-export async function getTherapistMonthlyStats(therapistId) {
+export async function getTherapistMonthlyStats(therapistId, organizationId = null) {
   // סכום שעות וסך פגישות
-  const sqlAppointments = `
+  let sqlAppointments = `
     SELECT
       IFNULL(SUM(TIMESTAMPDIFF(MINUTE, start_time, end_time))/60, 0) AS total_hours,
       COUNT(appointment_id) AS total_appointments
@@ -13,20 +13,34 @@ export async function getTherapistMonthlyStats(therapistId) {
     WHERE therapist_id = ?
       AND MONTH(appointment_date) = MONTH(CURRENT_DATE())
       AND YEAR(appointment_date) = YEAR(CURRENT_DATE())
-      AND status != 'בוטלה'
-  `;
-  const [appointmentsRows] = await pool.query(sqlAppointments, [therapistId]);
+      AND status != 'בוטלה'`;
+  
+  const appointParams = [therapistId];
+  
+  if (organizationId) {
+    sqlAppointments += ' AND organization_id = ?';
+    appointParams.push(organizationId);
+  }
+  
+  const [appointmentsRows] = await pool.query(sqlAppointments, appointParams);
 
   // סכום תשלומים ישירות מטבלת payments לפי תאריך התשלום
-  const sqlPayments = `
+  let sqlPayments = `
     SELECT IFNULL(SUM(amount), 0) AS total_payments
     FROM payments
     WHERE therapist_id = ?
       AND MONTH(payment_date) = MONTH(CURRENT_DATE())
       AND YEAR(payment_date) = YEAR(CURRENT_DATE())
-      AND status = 'paid'
-  `;
-  const [paymentsRows] = await pool.query(sqlPayments, [therapistId]);
+      AND status = 'paid'`;
+  
+  const payParams = [therapistId];
+  
+  if (organizationId) {
+    sqlPayments += ' AND organization_id = ?';
+    payParams.push(organizationId);
+  }
+  
+  const [paymentsRows] = await pool.query(sqlPayments, payParams);
   const total_payments = paymentsRows[0].total_payments;
 
   return {
@@ -44,9 +58,17 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // מחזיר therapist_id לפי user_id
-export async function getTherapistIdByUserId(user_id) {
-  const query = `SELECT therapist_id FROM therapists WHERE user_id = ? LIMIT 1`;
-  const [rows] = await pool.execute(query, [user_id]);
+export async function getTherapistIdByUserId(user_id, organizationId = null) {
+  let query = `SELECT therapist_id FROM therapists WHERE user_id = ?`;
+  const params = [user_id];
+  
+  if (organizationId) {
+    query += ' AND organization_id = ?';
+    params.push(organizationId);
+  }
+  
+  query += ' LIMIT 1';
+  const [rows] = await pool.execute(query, params);
   if (rows.length > 0) {
     return rows[0].therapist_id;
   }
@@ -54,19 +76,19 @@ export async function getTherapistIdByUserId(user_id) {
 }
 // therapistData: { user: { ...userData }, therapist: { ...otherTherapistData } }
 export async function create(TherapistCreationData) {
-  const { user, therapist } = TherapistCreationData;
+  const { user, therapist, organization_id } = TherapistCreationData;
 
   try {
     // יצירת משתמש חדש
-    const userResult = await createUser(user);
+    const userResult = await createUser({ ...user, organization_id });
     const user_id = userResult.user_id;
 
     // יצירת מטפל עם user_id שנוצר
     const query = `
-      INSERT INTO therapists (user_id)
-      VALUES (?)
+      INSERT INTO therapists (user_id, organization_id)
+      VALUES (?, ?)
     `;
-    const [result] = await pool.execute(query, [user_id]);
+    const [result] = await pool.execute(query, [user_id, organization_id || null]);
 
     return {
       therapist_id: result.insertId,
@@ -79,8 +101,8 @@ export async function create(TherapistCreationData) {
   }
 }
 
-export async function getTherapists() {
-  const query = `
+export async function getTherapists(organizationId = null) {
+  let query = `
     SELECT 
       t.therapist_id,
       t.user_id,
@@ -102,10 +124,17 @@ export async function getTherapists() {
     FROM therapists t
     INNER JOIN users u ON t.user_id = u.user_id
     LEFT JOIN person p ON u.person_id = p.person_id
-    WHERE u.role = 'therapist'
-    ORDER BY p.first_name, p.last_name
-  `;
-  const [rows] = await pool.execute(query);
+    WHERE u.role = 'therapist'`;
+  
+  const params = [];
+  
+  if (organizationId) {
+    query += ' AND t.organization_id = ?';
+    params.push(organizationId);
+  }
+  
+  query += ' ORDER BY p.first_name, p.last_name';
+  const [rows] = await pool.execute(query, params);
   return rows.map(row => ({
     user: {
       user_id: row.user_id,
@@ -141,7 +170,11 @@ export async function deleteFromTherapists(therapistId) {
 }
 
 
-export async function updateToTherapists(therapistId, updateData) {
+export async function updateToTherapists(therapistId, updateData, organizationId = null) {
+  if (organizationId) {
+    const where = { therapist_id: therapistId, organization_id: organizationId };
+    return updateTable('therapists', updateData, where);
+  }
   return updateTable('therapists', updateData, { therapist_id: therapistId });
 }
 
