@@ -1,4 +1,5 @@
 import organizationsRoutes from './modules/organizations/organizations.routes.js';
+import expensesRoutes from './modules/expenses/expenses.routes.js';
 import express from 'express';
 import cors from 'cors';
 // import usersRouter from './modules/users/user.routes.js';
@@ -60,6 +61,7 @@ app.use(cors({
   methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization']
 }));
+
 // // ✅ טיפול בבקשות OPTIONS (preflight)
 // app.options('*', cors({
 //   origin: allowedOrigins,
@@ -95,11 +97,12 @@ app.use('/api/patient-problems', patientProblemsRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/treatmentTypes', treatmentTypesRoutes);
 app.use('/api/organizations', organizationsRoutes);
+app.use('/api/expenses', expensesRoutes);
+
 // ✅ Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
-  
   // הפעלת תזמון שליחת תזכורות אוטומטי
   startReminderScheduler();
 });

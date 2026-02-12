@@ -825,3 +825,58 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
 // ADD CONSTRAINT fk_person_organization
 // FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
 // ON DELETE SET NULL;
+
+
+// CREATE TABLE expense_categories (
+//     expense_category_id INT AUTO_INCREMENT PRIMARY KEY,
+//     organization_id INT NOT NULL,
+//     category_name VARCHAR(100) NOT NULL,
+//     description VARCHAR(255),
+//     is_active TINYINT(1) DEFAULT 1,
+//     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+//     CONSTRAINT fk_expense_categories_org
+//     FOREIGN KEY (organization_id)
+//     REFERENCES organizations(organization_id)
+//     ON DELETE CASCADE
+// );
+
+// CREATE TABLE expenses (
+//     expense_id INT AUTO_INCREMENT PRIMARY KEY,
+//     organization_id INT NOT NULL,
+//     expense_category_id INT NOT NULL,
+//     person_id INT NULL,
+
+//     amount DECIMAL(10,2) NOT NULL,
+//     payment_date DATE NOT NULL,
+//     payment_method ENUM('cash','credit_card','bank_transfer','check','other') DEFAULT 'other',
+
+//     reference_number VARCHAR(100),
+//     notes TEXT,
+
+//     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+//     CONSTRAINT fk_expenses_org
+//     FOREIGN KEY (organization_id)
+//     REFERENCES organizations(organization_id)
+//     ON DELETE CASCADE,
+
+//     CONSTRAINT fk_expenses_category
+//     FOREIGN KEY (expense_category_id)
+//     REFERENCES expense_categories(expense_category_id)
+//     ON DELETE RESTRICT,
+
+//     CONSTRAINT fk_expenses_person
+//     FOREIGN KEY (person_id)
+//     REFERENCES person(person_id)
+//     ON DELETE SET NULL
+// );
+
+// CREATE INDEX idx_expenses_org 
+// ON expenses(organization_id);
+
+// CREATE INDEX idx_expenses_category 
+// ON expenses(expense_category_id);
+
+// CREATE INDEX idx_expenses_date 
+// ON expenses(payment_date);
