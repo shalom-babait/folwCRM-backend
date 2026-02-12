@@ -827,7 +827,15 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
 // ON DELETE SET NULL;
 
 
-<<<<<<< HEAD
+// הוספתי שרי 3
+
+
+// ALTER TABLE users 
+// ADD COLUMN google_id VARCHAR(255) NULL UNIQUE AFTER person_id,
+// ADD INDEX idx_google_id (google_id);
+
+// ALTER TABLE users 
+// ADD COLUMN auth_provider VARCHAR(20) DEFAULT 'local' NOT NULL AFTER google_id;
 // CREATE TABLE expense_categories (
 //     expense_category_id INT AUTO_INCREMENT PRIMARY KEY,
 //     organization_id INT NOT NULL,
@@ -881,16 +889,3 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
 
 // CREATE INDEX idx_expenses_date 
 // ON expenses(payment_date);
-=======
-// הוספתי שרי 3
-
-
-// ALTER TABLE users 
-// ADD COLUMN google_id VARCHAR(255) NULL UNIQUE AFTER person_id,
-// ADD INDEX idx_google_id (google_id);
-
-// ALTER TABLE users 
-// ADD COLUMN auth_provider VARCHAR(20) DEFAULT 'local' NOT NULL AFTER google_id;
-
-
->>>>>>> d62f8bea37e228a42f3e5fc0a9a19955a2117f17
