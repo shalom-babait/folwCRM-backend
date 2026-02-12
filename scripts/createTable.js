@@ -880,3 +880,14 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
 
 // CREATE INDEX idx_expenses_date 
 // ON expenses(payment_date);
+// הוספתי שרי 3
+
+
+// ALTER TABLE users 
+// ADD COLUMN google_id VARCHAR(255) NULL UNIQUE AFTER person_id,
+// ADD INDEX idx_google_id (google_id);
+
+// ALTER TABLE users 
+// ADD COLUMN auth_provider VARCHAR(20) DEFAULT 'local' NOT NULL AFTER google_id;
+
+

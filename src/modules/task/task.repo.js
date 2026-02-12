@@ -1,8 +1,8 @@
 import pool from '../../services/database.js';
 
 // קבלת רשימת משימות לפי מזהה מטפל
-export async function getTasksByUserId(user_id) {
-	const sql = `
+export async function getTasksByUserId(user_id, organizationId = null) {
+	let sql = `
 		SELECT 
 			tasks.*, 
 			CONCAT(person.first_name, ' ', person.last_name) AS patientName
@@ -14,10 +14,17 @@ export async function getTasksByUserId(user_id) {
 			person ON patients.person_id = person.person_id
 		WHERE 
 			tasks.created_by_user_id = ?
-		ORDER BY 
-			tasks.due_date DESC, tasks.created_at DESC;
 	`;
-	const [rows] = await pool.query(sql, [user_id]);
+	const params = [user_id];
+	
+	if (organizationId) {
+		sql += ' AND tasks.organization_id = ?';
+		params.push(organizationId);
+	}
+	
+	sql += ' ORDER BY tasks.due_date DESC, tasks.created_at DESC';
+	
+	const [rows] = await pool.query(sql, params);
 	// הוספת מערך שיוכים לכל משימה
 	for (const task of rows) {
 		task.assignments = await getAssignmentsByTaskId(task.task_id);
@@ -53,10 +60,10 @@ function toDateTime(dateStr) {
 }
 
 // הוספת משימה
-export async function addTask(task) {
+export async function addTask(task, organizationId = null) {
 	console.log(task, "tassssskkkkkkkk");
 
-	const sql = `INSERT INTO tasks (title, description, patient_id, created_by_user_id, assigned_to_user_id, status, priority, due_date, completed_at, color) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+	const sql = `INSERT INTO tasks (title, description, patient_id, created_by_user_id, assigned_to_user_id, status, priority, due_date, completed_at, color, organization_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
 	const [result] = await pool.query(sql, [
 		task.title,
@@ -68,7 +75,8 @@ export async function addTask(task) {
 		task.priority || null,
 		toDateOnly(task.due_date) || null,
 		toDateTime(task.completed_at) || null,
-		task.color || null
+		task.color || null,
+		organizationId || null
 	]);
 	const newTask = { ...task, task_id: result.insertId };
 	// הוספת שיוכים אם קיימים
@@ -81,14 +89,21 @@ export async function addTask(task) {
 }
 
 // מחיקת משימה
-export async function deleteTask(task_id) {
-	const sql = `DELETE FROM tasks WHERE task_id = ?`;
-	await pool.query(sql, [task_id]);
+export async function deleteTask(task_id, organizationId = null) {
+	let sql = `DELETE FROM tasks WHERE task_id = ?`;
+	const params = [task_id];
+	
+	if (organizationId) {
+		sql += ' AND organization_id = ?';
+		params.push(organizationId);
+	}
+	
+	await pool.query(sql, params);
 	return true;
 }
 
 // עדכון משימה (ללא assignmentTherapist/assignmentPatient/assignments)
-export async function updateTask(task_id, updateData) {
+export async function updateTask(task_id, updateData, organizationId = null) {
 	const fields = [];
 	const values = [];
 	// עדכון אוטומטי של updated_at
@@ -118,8 +133,15 @@ export async function updateTask(task_id, updateData) {
 	fields.push('updated_at = ?');
 	values.push(toDateTime(now));
 	if (fields.length === 0) return false;
+	
+	let sql = `UPDATE tasks SET ${fields.join(', ')} WHERE task_id = ?`;
 	values.push(task_id);
-	const sql = `UPDATE tasks SET ${fields.join(', ')} WHERE task_id = ?`;
+	
+	if (organizationId) {
+		sql += ' AND organization_id = ?';
+		values.push(organizationId);
+	}
+	
 	const [result] = await pool.query(sql, values);
 	return result.affectedRows > 0;
 }
@@ -167,8 +189,8 @@ async function getTaskAssignments(task_id) {
 }
 
 // עדכון משימה כולל סנכרון שיוכים
-export async function updateTaskWithAssignments(task_id, updateData) {
-	await updateTask(task_id, updateData);
+export async function updateTaskWithAssignments(task_id, updateData, organizationId = null) {
+	await updateTask(task_id, updateData, organizationId);
 	if (!Array.isArray(updateData.assignments)) return true;
 
 	// שליפת השיוכים הקיימים
@@ -195,9 +217,18 @@ export async function updateTaskWithAssignments(task_id, updateData) {
 }
 
 // קבלת רשימת משימות לפי מזהה מטופל
-export async function getTasksByPatientId(patient_id) {
-	const sql = `SELECT * FROM tasks WHERE patient_id = ? ORDER BY due_date DESC, created_at DESC`;
-	const [rows] = await pool.query(sql, [patient_id]);
+export async function getTasksByPatientId(patient_id, organizationId = null) {
+	let sql = `SELECT * FROM tasks WHERE patient_id = ?`;
+	const params = [patient_id];
+	
+	if (organizationId) {
+		sql += ' AND organization_id = ?';
+		params.push(organizationId);
+	}
+	
+	sql += ' ORDER BY due_date DESC, created_at DESC';
+	
+	const [rows] = await pool.query(sql, params);
 	// הוספת מערך שיוכים לכל משימה
 	for (const task of rows) {
 		task.assignments = await getAssignmentsByTaskId(task.task_id);

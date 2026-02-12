@@ -3,7 +3,12 @@ import * as paymentsService from './payments.service.js';
 // --- יצירת תשלום ---
 export async function createPaymentController(req, res) {
   try {
-    const payment = await paymentsService.createPaymentService(req.body);
+    const organizationId = req.organization_id;
+    const paymentData = {
+      ...req.body,
+      organization_id: organizationId
+    };
+    const payment = await paymentsService.createPaymentService(paymentData);
     res.status(201).json(payment);
   } catch (err) {
     console.error("SERVER ERROR:", err);
@@ -14,7 +19,8 @@ export async function createPaymentController(req, res) {
 // --- שליפה של כל התשלומים ---
 export async function getAllPaymentsController(req, res) {
   try {
-    const payments = await paymentsService.getAllPaymentsService();
+    const organizationId = req.organization_id;
+    const payments = await paymentsService.getAllPaymentsService(organizationId);
     res.json(payments);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -24,7 +30,8 @@ export async function getAllPaymentsController(req, res) {
 // --- שליפה לפי תשלום ID ---
 export async function getPaymentByIdController(req, res) {
   try {
-    const payment = await paymentsService.getPaymentByIdService(req.params.payment_id);
+    const organizationId = req.organization_id;
+    const payment = await paymentsService.getPaymentByIdService(req.params.payment_id, organizationId);
     if (!payment) return res.status(404).json({ error: 'Payment not found' });
     res.json(payment);
   } catch (err) {
@@ -35,9 +42,11 @@ export async function getPaymentByIdController(req, res) {
 // --- עדכון תשלום ---
 export async function updatePaymentController(req, res) {
   try {
+    const organizationId = req.organization_id;
     const updated = await paymentsService.updatePaymentService(
       req.params.payment_id,
-      req.body
+      req.body,
+      organizationId
     );
     res.json(updated);
   } catch (err) {
@@ -50,7 +59,8 @@ export async function updatePaymentController(req, res) {
 // --- מחיקת תשלום ---
 export async function deletePaymentController(req, res) {
   try {
-    await paymentsService.deletePaymentService(req.params.payment_id);
+    const organizationId = req.organization_id;
+    await paymentsService.deletePaymentService(req.params.payment_id, organizationId);
     res.status(204).end();
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -60,7 +70,8 @@ export async function deletePaymentController(req, res) {
 // --- מחיקת תשלום לפי מזהה ---
 export async function deletePaymentByIdController(req, res) {
   try {
-    await paymentsService.deletePaymentByIdService(req.params.payment_id);
+    const organizationId = req.organization_id;
+    await paymentsService.deletePaymentByIdService(req.params.payment_id, organizationId);
     res.status(204).end();
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -70,7 +81,8 @@ export async function deletePaymentByIdController(req, res) {
 // --- שליפה לפי patient_id ---
 export async function getAllPatientPaymentsController(req, res) {
   try {
-    const payments = await paymentsService.getPaymentByPatientIdService(req.params.patient_id);
+    const organizationId = req.organization_id;
+    const payments = await paymentsService.getPaymentByPatientIdService(req.params.patient_id, organizationId);
     res.status(200).json(payments);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -81,7 +93,8 @@ export async function getAllPatientPaymentsController(req, res) {
 export async function getTherapistMonthlyPaymentsListController(req, res) {
   try {
     const therapistId = req.params.therapist_id;
-    const paymentsList = await paymentsService.getTherapistMonthlyPaymentsListService(therapistId);
+    const organizationId = req.organization_id;
+    const paymentsList = await paymentsService.getTherapistMonthlyPaymentsListService(therapistId, organizationId);
     res.json(paymentsList);
   } catch (err) {
     res.status(500).json({ error: err.message });

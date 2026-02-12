@@ -4,7 +4,8 @@ export async function getUpcomingFollowUpsByCreator(req, res) {
             
     try {
         const { created_by_user_id } = req.params;
-        const followUps = await getUpcomingFollowUpsByCreatorModel(created_by_user_id);
+        const organizationId = req.organization_id;
+        const followUps = await getUpcomingFollowUpsByCreatorModel(created_by_user_id, organizationId);
         console.log("followUps"  ,followUps);
         
         res.json(followUps);
@@ -18,7 +19,8 @@ export async function createFollowUp(req, res) {
     try {
         console.log('Request Body:', req.body); // לוג של גוף הבקשה
         // ודא שמעבירים גם created_by_user_id
-        const followUp = await followUpModel.createFollowUp(req.body);
+        const organizationId = req.organization_id;
+        const followUp = await followUpModel.createFollowUp(req.body, organizationId);
         res.status(201).json(followUp);
     } catch (err) {
         console.error('Error creating follow up:', err);
@@ -34,7 +36,8 @@ export async function getFollowUpsByPerson(req, res) {
 
     try {
         const { person_id } = req.params;
-        const followUps = await followUpModel.getFollowUpsByPerson(person_id);
+        const organizationId = req.organization_id;
+        const followUps = await followUpModel.getFollowUpsByPerson(person_id, organizationId);
         res.json(followUps);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -46,7 +49,8 @@ export async function getFollowUpById(req, res) {
     
     try {
         const { followup_id } = req.params;
-        const followUp = await followUpModel.getFollowUpById(followup_id);
+        const organizationId = req.organization_id;
+        const followUp = await followUpModel.getFollowUpById(followup_id, organizationId);
         if (!followUp) return res.status(404).json({ error: 'Not found' });
         res.json(followUp);
     } catch (err) {
@@ -59,7 +63,8 @@ export async function updateFollowUp(req, res) {
         console.log('Update FollowUp - params:', req.params);
         console.log('Update FollowUp - body:', req.body);
         const { followup_id } = req.params;
-        const updated = await followUpModel.updateFollowUp(followup_id, req.body);
+        const organizationId = req.organization_id;
+        const updated = await followUpModel.updateFollowUp(followup_id, req.body, organizationId);
         if (!updated) {
             console.log('Update FollowUp - not found or no changes');
             return res.status(404).json({ error: 'Not found or no changes' });
@@ -75,7 +80,8 @@ export async function updateFollowUp(req, res) {
 export async function deleteFollowUp(req, res) {
     try {
         const { followup_id } = req.params;
-        const deleted = await followUpModel.deleteFollowUp(followup_id);
+        const organizationId = req.organization_id;
+        const deleted = await followUpModel.deleteFollowUp(followup_id, organizationId);
         if (!deleted) return res.status(404).json({ error: 'Not found' });
         res.json({ success: true });
     } catch (err) {
