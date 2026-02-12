@@ -1,3 +1,5 @@
+import organizationsRoutes from './modules/organizations/organizations.routes.js';
+import expensesRoutes from './modules/expenses/expenses.routes.js';
 import express from 'express';
 import cors from 'cors';
 import passport from 'passport';
@@ -67,6 +69,7 @@ app.use(cors({
   methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization']
 }));
+
 // // ✅ טיפול בבקשות OPTIONS (preflight)
 // app.options('*', cors({
 //   origin: allowedOrigins,
@@ -97,7 +100,6 @@ app.get('/', (req, res) => res.send('Server is running'));
 
 // ✅ Routes שלא דורשות אימות
 app.use('/api/login', loginRoutes);
-app.use('/api/auth', authRoutes);
 
 // ✅ Protected Routes - נתיבים מוגנים (עם אימות וזיהוי ארגון)
 app.use('/api/email', authenticate, addOrganizationId, emailRoutes);
@@ -116,12 +118,14 @@ app.use('/api/reports', authenticate, addOrganizationId, reportsRoutes);
 app.use('/api/patient-problems', authenticate, addOrganizationId, patientProblemsRoutes);
 app.use('/api/tasks', authenticate, addOrganizationId, taskRoutes);
 app.use('/api/treatmentTypes', authenticate, addOrganizationId, treatmentTypesRoutes);
+app.use('/api/organizations', organizationsRoutes);
+app.use('/api/expenses', expensesRoutes);
+
 
 // ✅ Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
-  
   // הפעלת תזמון שליחת תזכורות אוטומטי
   startReminderScheduler();
 });
