@@ -62,9 +62,25 @@ CREATE TABLE IF NOT EXISTS users (
   agree TINYINT(1) DEFAULT 0,
   role ENUM('company_manager','admin','therapist','patient','secretary') NOT NULL DEFAULT 'patient',
   person_id INT,
+  temp_password VARCHAR(512) NULL,
+  temp_password_expires_at DATETIME NULL,
+  first_login_with_temp BOOLEAN DEFAULT FALSE,
+  auth_provider VARCHAR(20) DEFAULT 'local' NOT NULL,
   FOREIGN KEY (person_id) REFERENCES person(person_id)
+); `;
+
+const expenseCategoriesTableSQL = `
+CREATE TABLE expense_categories (
+  expense_category_id INT AUTO_INCREMENT PRIMARY KEY,
+  organization_id INT NOT NULL,
+  category_name VARCHAR(100) NOT NULL,
+  description VARCHAR(255),
+  is_active TINYINT(1) DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_expense_categories_org FOREIGN KEY (organization_id) REFERENCES organizations(organization_id) ON DELETE CASCADE
 );
 `;
+
 const personTableSQL = `CREATE TABLE IF NOT EXISTS Person (
    person_id INT AUTO_INCREMENT PRIMARY KEY,
    first_name VARCHAR(15) NOT NULL,
@@ -84,7 +100,12 @@ const personTableSQL = `CREATE TABLE IF NOT EXISTS Person (
 const treatmentTypesTableSQL = `
 CREATE TABLE IF NOT EXISTS treatment_types (
   treatment_type_id INT AUTO_INCREMENT PRIMARY KEY,
-  type_name VARCHAR(50) NOT NULL
+  type_name VARCHAR(50) NOT NULL,
+  type_description TEXT,
+  therapist_id INT,
+  price_default DECIMAL(10,2) NULL,
+  color VARCHAR(20) NULL,
+  CONSTRAINT fk_therapist_id FOREIGN KEY (therapist_id) REFERENCES therapists(therapist_id)
 );
 `;
 
@@ -345,13 +366,20 @@ CREATE TABLE IF NOT EXISTS PatientCategories (
    שיוך קטגוריות למשתמשים
 ============================ */
 const userCategoriesTableSQL = `
-CREATE TABLE IF NOT EXISTS UserCategories (
+CREATE TABLE IF NOT EXISTS user_categories (
   user_category_id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   category_id INT NOT NULL,
   assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-  FOREIGN KEY (category_id) REFERENCES Categories(category_id) ON DELETE CASCADE,
+
+  FOREIGN KEY (user_id)
+    REFERENCES users(user_id)
+    ON DELETE CASCADE,
+
+  FOREIGN KEY (category_id)
+    REFERENCES categories(category_id)
+    ON DELETE CASCADE,
+
   UNIQUE KEY unique_user_category (user_id, category_id)
 );
 `;
@@ -359,12 +387,13 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
    followup_id INT AUTO_INCREMENT PRIMARY KEY,
 
    person_id INT NOT NULL,                  -- מי שהמעקב שייך לו
-   created_by_user_id INT NOT NULL,       -- מי שהוסיף את המעק
+   created_by_user_id INT NOT NULL,       -- מי שהוסיף את המעקב
    follow_date DATE NOT NULL,               -- תאריך המעקב
    follow_time TIME NULL,                   -- שעה (לא חובה)
    remind BOOLEAN DEFAULT FALSE,            -- האם לתזכר
-   notes VARCHAR(500),                      -- הערו
-   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- תאריך יציר
+   notes VARCHAR(500),                      -- הערות
+   status ENUM('open', 'completed', 'cancelled', 'snoozed') NOT NULL DEFAULT 'open',
+   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- תאריך יצירה
    FOREIGN KEY (person_id) REFERENCES person(person_id) ON DELETE CASCADE,
    FOREIGN KEY (created_by_user_id) REFERENCES person(person_id)
  );`;
@@ -392,7 +421,136 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
        ON DELETE CASCADE,
    UNIQUE (patient_id, contact_person_id)
 ; `;
+const room_availabilityTableSQL = ` CREATE TABLE room_availability (
+    availability_id INT AUTO_INCREMENT PRIMARY KEY,
+    company_id INT NOT NULL,
+    room_id INT NOT NULL,
+    day_of_week TINYINT NOT NULL,
+     start_time TIME NOT NULL,
+     end_time TIME NOT NULL,
+     CONSTRAINT fk_availability_room
+         FOREIGN KEY (room_id)
+         REFERENCES rooms(room_id)
+         ON DELETE CASCADE,
+     CONSTRAINT fk_availability_company
+         FOREIGN KEY (company_id)
+         REFERENCES companies(company_id)
+         ON DELETE CASCADE
+ );`;
+ const patient_problemsTableSQL = ` CREATE TABLE patient_problems (
+     patient_problem_id INT AUTO_INCREMENT PRIMARY KEY,
+     patient_id INT NOT NULL,
+     title VARCHAR(255) NOT NULL,
+     description TEXT,
+     status ENUM('active', 'resolved') DEFAULT 'active',
+     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+     closed_at DATETIME NULL,
+     CONSTRAINT fk_patient_problems_patient
+         FOREIGN KEY (patient_id)
+         REFERENCES patients(patient_id)
+         ON DELETE CASCADE
+ );`;
+ const patient_problem_ratingsTableSQL = `
+ CREATE TABLE patient_problem_ratings (
+     patient_problem_rating_id INT AUTO_INCREMENT PRIMARY KEY,
+     patient_problem_id INT NOT NULL,
+     rating_date DATE NOT NULL,
+     score TINYINT NOT NULL CHECK (score BETWEEN 1 AND 10),
+     notes TEXT,
+     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+     CONSTRAINT fk_problem_ratings_problem
+         FOREIGN KEY (patient_problem_id)
+         REFERENCES patient_problems(patient_problem_id)
+         ON DELETE CASCADE,
+     CONSTRAINT uq_problem_date
+         UNIQUE (patient_problem_id, rating_date)
+ ); `; 
+const tasksTableSQL = ` 
+ CREATE TABLE tasks (
+   task_id SERIAL PRIMARY KEY,
+   title VARCHAR(255) NOT NULL,
+   description TEXT NULL,
+   patient_id INTEGER NULL,
+   created_by_user_id INTEGER NOT NULL,
+   status VARCHAR(20) NOT NULL DEFAULT 'open',
+   priority VARCHAR(20) NULL,
+   due_date DATE NULL,
+   completed_at TIMESTAMP NULL,
+   color VARCHAR(20) NULL,
+   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+   updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+   CONSTRAINT fk_tasks_patient
+     FOREIGN KEY (patient_id)
+     REFERENCES patients(patient_id),
+   CONSTRAINT fk_tasks_created_by
+     FOREIGN KEY (created_by_user_id)
+     REFERENCES users(user_id)
+ ); `;
 
+ const task_assignmentsTableSQL = `
+  CREATE TABLE task_assignments (
+   task_assignments_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+   task_id BIGINT UNSIGNED NOT NULL,
+   entity_id INT NOT NULL,
+   entity_type ENUM('patient', 'therapist', 'staff', 'secretary', 'manager', 'admin') NOT NULL,
+   role VARCHAR(30) DEFAULT 'participant',
+   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+   CONSTRAINT fk_task_assignments_task
+     FOREIGN KEY (task_id)
+     REFERENCES tasks(task_id)
+     ON DELETE CASCADE
+ ); `;
+ const treatment_templatesTableSQL = `
+ CREATE TABLE treatment_templates (
+   template_id INT AUTO_INCREMENT PRIMARY KEY,
+   treatment_type_id INT NOT NULL,
+   name VARCHAR(100) NOT NULL,
+   description TEXT,
+   template_type ENUM('protocol', 'questionnaire') NOT NULL,
+   version VARCHAR(20),
+   is_active TINYINT(1) DEFAULT 1,
+   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+   CONSTRAINT fk_template_treatment_type
+     FOREIGN KEY (treatment_type_id)
+     REFERENCES treatment_types(treatment_type_id)
+     ON DELETE CASCADE
+ ); `;
+
+ const template_questionsTableSQL = `
+ CREATE TABLE template_questions (
+   question_id INT AUTO_INCREMENT PRIMARY KEY,
+   template_id INT NOT NULL,
+   question_text TEXT NOT NULL,
+   question_type ENUM(
+     'static_text',   -- טקסט לקריאה בלבד (פרוטוקול)
+     'text',          -- טקסט חופשי
+     'number',
+     'scale',
+     'boolean',
+     'select'
+   ) NOT NULL,
+   is_required TINYINT(1) DEFAULT 0,
+   order_index INT DEFAULT 0,
+   visible_to ENUM('therapist', 'patient', 'both') DEFAULT 'therapist',
+   CONSTRAINT fk_question_template
+     FOREIGN KEY (template_id)
+     REFERENCES treatment_templates(template_id)
+     ON DELETE CASCADE
+ ); `;
+
+ const template_answersTableSQL = `
+ CREATE TABLE template_answers (
+   answer_id INT AUTO_INCREMENT PRIMARY KEY,
+   question_id INT NOT NULL,
+   patient_id INT NOT NULL,
+   treatment_session_id INT NULL,
+   answer_text TEXT,
+   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+   CONSTRAINT fk_answer_question
+     FOREIGN KEY (question_id)
+     REFERENCES template_questions(question_id)
+     ON DELETE CASCADE
+ ); `;
 
 /* ============================
    הרצה בפועל
@@ -421,192 +579,15 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
 //  createTable(followupsTableSQL);
 // createTable(companiesTableSQL);
 // createTable(patient_contactsTableSQL);
+// createTable(room_availabilityTableSQL);
+// createTable(patient_problemsTableSQL);
+// createTable(patient_problem_ratingsTableSQL);
+// createTable(tasksTableSQL);
+// createTable(task_assignmentsTableSQL);
+// createTable(treatment_templatesTableSQL);
+// createTable(template_questionsTableSQL);
+// createTable(template_answersTableSQL);
 
-//הוספתי 5
-// CREATE TABLE room_availability (
-//     availability_id INT AUTO_INCREMENT PRIMARY KEY,
-//     company_id INT NOT NULL,
-//     room_id INT NOT NULL,
-//     day_of_week TINYINT NOT NULL,
-//     start_time TIME NOT NULL,
-//     end_time TIME NOT NULL,
-
-//     CONSTRAINT fk_availability_room
-//         FOREIGN KEY (room_id)
-//         REFERENCES rooms(room_id)
-//         ON DELETE CASCADE,
-
-//     CONSTRAINT fk_availability_company
-//         FOREIGN KEY (company_id)
-//         REFERENCES companies(company_id)
-//         ON DELETE CASCADE
-// );
-
-//הוספתי 6
-// CREATE TABLE patient_problems (
-//     patient_problem_id INT AUTO_INCREMENT PRIMARY KEY,
-//     patient_id INT NOT NULL,
-//     title VARCHAR(255) NOT NULL,
-//     description TEXT,
-//     status ENUM('active', 'resolved') DEFAULT 'active',
-//     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-//     closed_at DATETIME NULL,
-
-//     CONSTRAINT fk_patient_problems_patient
-//         FOREIGN KEY (patient_id)
-//         REFERENCES patients(patient_id)
-//         ON DELETE CASCADE
-// );
-
-// CREATE TABLE patient_problem_ratings (
-//     patient_problem_rating_id INT AUTO_INCREMENT PRIMARY KEY,
-//     patient_problem_id INT NOT NULL,
-//     rating_date DATE NOT NULL,
-//     score TINYINT NOT NULL CHECK (score BETWEEN 1 AND 10),
-//     notes TEXT,
-//     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-//     CONSTRAINT fk_problem_ratings_problem
-//         FOREIGN KEY (patient_problem_id)
-//         REFERENCES patient_problems(patient_problem_id)
-//         ON DELETE CASCADE,
-
-//     CONSTRAINT uq_problem_date
-//         UNIQUE (patient_problem_id, rating_date)
-// );
-// CREATE TABLE tasks (
-//   task_id SERIAL PRIMARY KEY,
-
-//   title VARCHAR(255) NOT NULL,
-//   description TEXT NULL,
-
-//   patient_id INTEGER NULL,
-
-//   created_by_user_id INTEGER NOT NULL,
-//   assigned_to_user_id INTEGER NULL,
-
-//   status VARCHAR(20) NOT NULL DEFAULT 'open',
-//   priority VARCHAR(20) NULL,
-
-//   due_date DATE NULL,
-//   completed_at TIMESTAMP NULL,
-
-//   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-//   updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-
-//   CONSTRAINT fk_tasks_patient
-//     FOREIGN KEY (patient_id)
-//     REFERENCES patients(patient_id),
-
-//   CONSTRAINT fk_tasks_created_by
-//     FOREIGN KEY (created_by_user_id)
-//     REFERENCES users(user_id),
-
-//   CONSTRAINT fk_tasks_assigned_to
-//     FOREIGN KEY (assigned_to_user_id)
-//     REFERENCES users(user_id)
-// );
-// ALTER TABLE tasks ADD COLUMN color VARCHAR(20) NULL;
-
-// הוספתי 7
-// ALTER TABLE followups
-// ADD COLUMN status ENUM('open', 'completed', 'cancelled', 'snoozed')
-// NOT NULL DEFAULT 'open';
-
-// UPDATE followups
-// SET status = 'open'
-// WHERE status IS NULL;
-
-//הוספתי 8
-// CREATE TABLE task_assignments (
-//   task_assignments_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-//   task_id BIGINT UNSIGNED NOT NULL,
-//   entity_id INT NOT NULL,
-//   entity_type ENUM('patient', 'therapist', 'staff', 'secretary', 'manager', 'admin') NOT NULL,
-//   role VARCHAR(30) DEFAULT 'participant',
-//   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-//   CONSTRAINT fk_task_assignments_task
-//     FOREIGN KEY (task_id)
-//     REFERENCES tasks(task_id)
-//     ON DELETE CASCADE
-// );
-
-
-// ALTER TABLE tasks
-// DROP COLUMN assigned_to_user_id;
-
-//  1הוספתי שרי
-
-// ALTER TABLE treatment_types
-// ADD type_description TEXT;
-
-// ALTER TABLE appointments
-// ADD CONSTRAINT fk_treatment_type
-// FOREIGN KEY (treatment_type_id) REFERENCES treatment_types(treatment_type_id);
-
-// ALTER TABLE treatment_types
-// ADD COLUMN therapist_id INT;
-
-// ALTER TABLE treatment_types
-// ADD CONSTRAINT fk_therapist_id
-// FOREIGN KEY (therapist_id) REFERENCES therapists(therapist_id);
-
-//הוספתי 9
-//  ALTER TABLE treatment_types
-// ADD COLUMN price_default DECIMAL(10,2) NULL,
-// ADD COLUMN color VARCHAR(20) NULL;
-
-// CREATE TABLE treatment_templates (
-//   template_id INT AUTO_INCREMENT PRIMARY KEY,
-//   treatment_type_id INT NOT NULL,
-//   name VARCHAR(100) NOT NULL,
-//   description TEXT,
-//   template_type ENUM('protocol', 'questionnaire') NOT NULL,
-//   version VARCHAR(20),
-//   is_active TINYINT(1) DEFAULT 1,
-//   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-//   CONSTRAINT fk_template_treatment_type
-//     FOREIGN KEY (treatment_type_id)
-//     REFERENCES treatment_types(treatment_type_id)
-//     ON DELETE CASCADE
-// );
-
-// CREATE TABLE template_questions (
-//   question_id INT AUTO_INCREMENT PRIMARY KEY,
-//   template_id INT NOT NULL,
-//   question_text TEXT NOT NULL,
-//   question_type ENUM(
-//     'static_text',   -- טקסט לקריאה בלבד (פרוטוקול)
-//     'text',          -- טקסט חופשי
-//     'number',
-//     'scale',
-//     'boolean',
-//     'select'
-//   ) NOT NULL,
-//   is_required TINYINT(1) DEFAULT 0,
-//   order_index INT DEFAULT 0,
-//   visible_to ENUM('therapist', 'patient', 'both') DEFAULT 'therapist',
-
-//   CONSTRAINT fk_question_template
-//     FOREIGN KEY (template_id)
-//     REFERENCES treatment_templates(template_id)
-//     ON DELETE CASCADE
-// );
-
-// CREATE TABLE template_answers (
-//   answer_id INT AUTO_INCREMENT PRIMARY KEY,
-//   question_id INT NOT NULL,
-//   patient_id INT NOT NULL,
-//   treatment_session_id INT NULL,
-//   answer_text TEXT,
-//   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-//   CONSTRAINT fk_answer_question
-//     FOREIGN KEY (question_id)
-//     REFERENCES template_questions(question_id)
-//     ON DELETE CASCADE
-// );
 // הוספתי שרי 2
 
 // ALTER TABLE users 
@@ -829,11 +810,6 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
 
 // הוספתי שרי 3
 
-
-// ALTER TABLE users 
-// ADD COLUMN google_id VARCHAR(255) NULL UNIQUE AFTER person_id,
-// ADD INDEX idx_google_id (google_id);
-
 // ALTER TABLE users 
 // ADD COLUMN auth_provider VARCHAR(20) DEFAULT 'local' NOT NULL AFTER google_id;
 // CREATE TABLE expense_categories (
@@ -850,6 +826,7 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
 //     ON DELETE CASCADE
 // );
 
+//הןספתי 12
 // CREATE TABLE expenses (
 //     expense_id INT AUTO_INCREMENT PRIMARY KEY,
 //     organization_id INT NOT NULL,
@@ -889,3 +866,43 @@ const followupsTableSQL = `CREATE TABLE IF NOT EXISTS followups (
 
 // CREATE INDEX idx_expenses_date 
 // ON expenses(payment_date);
+
+// הוספתי 13
+// START TRANSACTION;
+// UPDATE appointments SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE categories SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE departments SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE expense_categories SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE expenses SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE followups SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE group_list SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE invoices SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE organizations SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE patient_contacts SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE patient_problem_ratings SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE patient_problems SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE patientcategories SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE patients SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE payment_status_history SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE payments SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE person SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE prospect_categories SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE prospects SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE room_availability SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE rooms SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE tasks SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE template_answers SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE template_questions SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE therapists SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE user_groups SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE user_organizations SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE usercategories SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE userdepartments SET organization_id = 1 WHERE organization_id IS NULL;
+// UPDATE users SET organization_id = 1 WHERE organization_id IS NULL;
+// COMMIT;
+
+// ALTER TABLE expenses
+// ADD COLUMN other_category_name VARCHAR(50) NULL
+// AFTER expense_category_id;
+
+// ALTER TABLE expenses MODIFY expense_category_id INT NULL;
