@@ -2,10 +2,10 @@ import pool from '../../services/database.js';
 
 // יצירת הוצאה
 export async function createExpense(expenseData) {
-  const sql = `INSERT INTO expenses (organization_id, expense_category_id, person_id, amount, payment_date, payment_method, reference_number, notes, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`;
-  const { organization_id, expense_category_id, person_id, amount, payment_date, payment_method, reference_number, notes } = expenseData;
-  const [result] = await pool.query(sql, [organization_id, expense_category_id, person_id, amount, payment_date, payment_method, reference_number, notes]);
+  const sql = `INSERT INTO expenses (organization_id, expense_category_id, person_id, amount, payment_date, payment_method, reference_number, notes, other_category_name, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`;
+  const { organization_id, expense_category_id, person_id, amount, payment_date, payment_method, reference_number, notes, other_category_name } = expenseData;
+  const [result] = await pool.query(sql, [organization_id, expense_category_id, person_id, amount, payment_date, payment_method, reference_number, notes, other_category_name]);
   return { expense_id: result.insertId, ...expenseData };
 }
 
