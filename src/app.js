@@ -100,7 +100,6 @@ app.get('/', (req, res) => res.send('Server is running'));
 
 // ✅ Routes שלא דורשות אימות
 app.use('/api/login', loginRoutes);
-
 // ✅ Protected Routes - נתיבים מוגנים (עם אימות וזיהוי ארגון)
 app.use('/api/email', authenticate, addOrganizationId, emailRoutes);
 app.use('/api/therapists', authenticate, addOrganizationId, therapistRoutes);
@@ -120,7 +119,7 @@ app.use('/api/tasks', authenticate, addOrganizationId, taskRoutes);
 app.use('/api/treatmentTypes', authenticate, addOrganizationId, treatmentTypesRoutes);
 app.use('/api/organizations', organizationsRoutes);
 app.use('/api/expenses', expensesRoutes);
-
+app.use('/api/auth', authRoutes);
 
 // ✅ Start server
 const PORT = process.env.PORT || 3000;
