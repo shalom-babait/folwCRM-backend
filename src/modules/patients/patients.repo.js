@@ -6,20 +6,15 @@ import { createPerson } from "../person/person.repo.js";
  * מקבל אובייקט: { person, patient, selectedDepartments }
  */
 export async function createPatient({ person, patient, selectedDepartments, organization_id }) {
-
   const connection = await pool.getConnection();
   try {
-    console.log('--- יצירת מטופל חדש ---');
-    console.log('קלט מהפרונט:', JSON.stringify({ person, patient, selectedDepartments }, null, 2));
     await connection.beginTransaction();
 
-    // 1. יצירת Person דרך הפונקציה הכללית (כולל טרנזקציה)
-    const personResult = await createPerson({ ...person, organization_id }, connection);
-    // תומך גם במקרה ש-createPerson מחזיר אובייקט וגם מספר
+    // 1. יצירת Person - מעבירים personData, organization_id בלבד
+    const personResult = await createPerson(person, organization_id);
     const person_id = typeof personResult === 'object' && personResult !== null && 'person_id' in personResult
       ? personResult.person_id
       : personResult;
-    console.log('נוצר person_id:', person_id);
 
     // 2. יצירת פציינט
     const patientFields = [
@@ -30,26 +25,22 @@ export async function createPatient({ person, patient, selectedDepartments, orga
       person_id,
       organization_id || null
     ];
-    console.log('patientFields:', patientFields);
     const [patientResult] = await connection.execute(
       `INSERT INTO patients (user_id, therapist_id, status, history_notes, person_id, organization_id)
        VALUES (?, ?, ?, ?, ?, ?)`,
       patientFields
     );
     const patient_id = patientResult.insertId;
-    console.log('נוצר patient_id:', patient_id);
 
     // 3. שיוך מחלקות וקבוצות
     if (Array.isArray(selectedDepartments)) {
       for (const dep of selectedDepartments) {
-        console.log('שיוך למחלקה:', dep.department_id);
         await connection.execute(
           `INSERT INTO userdepartments (person_id, department_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE department_id = VALUES(department_id)`,
           [person_id, dep.department_id]
         );
         if (Array.isArray(dep.group_ids)) {
           for (const groupId of dep.group_ids) {
-            console.log('שיוך לקבוצה:', groupId, 'במחלקה', dep.department_id);
             await connection.execute(
               `INSERT INTO user_groups (person_id, group_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE group_id = VALUES(group_id)`,
               [person_id, groupId]
@@ -60,8 +51,6 @@ export async function createPatient({ person, patient, selectedDepartments, orga
     }
 
     await connection.commit();
-    console.log('הוספת מטופל הסתיימה בהצלחה');
-    // מבנה PatientCreationData
     return {
       person: {
         person_id,

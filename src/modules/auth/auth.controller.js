@@ -21,24 +21,16 @@ export function handleGoogleAuth(req, res, next) {
   }, (err, user, info) => {
     // טיפול בשגיאה
     if (err) {
-      console.error('שגיאה באימות Google:', err.message);
-      
-      if (err.message.includes('אינו רשום במערכת')) {
-        console.log('מפנה למשתמש לא רשום...');
+      console.error('שגיאה באימות Google:', err);
+      if (err.message && err.message.includes('אינו רשום במערכת')) {
         return res.redirect(`${process.env.FRONTEND_URL}?error=user_not_registered`);
       }
-      
-      console.log('מפנה לשגיאת אימות...');
       return res.redirect(`${process.env.FRONTEND_URL}?error=auth_error`);
     }
     
     if (!user) {
-      console.log('אין משתמש, מפנה לשגיאה...');
       return res.redirect(`${process.env.FRONTEND_URL}?error=no_user`);
     }
-    
-    // המשך התהליך הרגיל
-    console.log('משתמש נמצא, ממשיך לטיפול...', user.email);
     req.user = user;
     next();
   })(req, res, next);
@@ -52,11 +44,8 @@ export async function googleCallbackController(req, res) {
     const user = req.user;
     
     if (!user) {
-      console.log('אין user ב-req, מפנה לשגיאה...');
       return res.redirect(`${process.env.FRONTEND_URL}?error=no_user`);
     }
-
-    console.log('יוצר token למשתמש:', user.email, 'תפקיד:', user.role);
 
     // יצירת JWT Token
     const token = createAuthToken(user.user_id, user.role);
@@ -70,8 +59,6 @@ export async function googleCallbackController(req, res) {
     // המרת הנתונים ל-Base64 להעברה ב-URL
     const encodedData = Buffer.from(JSON.stringify(responseData)).toString('base64');
 
-    console.log('מפנה חזרה עם נתונים, תפקיד:', user.role);
-    
     // ניתוב למסך ההתחברות עם הנתונים
     res.redirect(`${process.env.FRONTEND_URL}?googleAuth=${encodedData}`);
   } catch (error) {

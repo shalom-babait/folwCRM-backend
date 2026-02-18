@@ -31,7 +31,7 @@ export async function createPatientController(req, res) {
     ...req.body,
     organization_id: organizationId
   };
-  console.log('Received patientData from frontend:', JSON.stringify(patientData, null, 2));
+  // console.log('Received patientData from frontend:', JSON.stringify(patientData, null, 2));
     // בדיקת חובה רק לשם פרטי ושם משפחה בפרסון
     if (!patientData.person || !patientData.person.first_name || !patientData.person.last_name) {
       return res.status(400).json({
