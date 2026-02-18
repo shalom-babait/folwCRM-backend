@@ -9,7 +9,6 @@ export async function addOrganizationId(req, res, next) {
   try {
     // בדיקה אם יש משתמש מחובר (מגיע מה-authenticate middleware)
     if (!req.user || !req.user.id) {
-      console.log('[organization.middleware] No authenticated user found');
       return next();
     }
 
@@ -23,9 +22,6 @@ export async function addOrganizationId(req, res, next) {
 
     if (rows && rows[0] && rows[0].organization_id) {
       req.organization_id = rows[0].organization_id;
-      console.log(`[organization.middleware] Set organization_id=${req.organization_id} for user_id=${userId}`);
-    } else {
-      console.log(`[organization.middleware] No organization_id found for user_id=${userId}`);
     }
 
     next();

@@ -51,18 +51,26 @@ const allowedOrigins = [
 //   allowedHeaders: ['Content-Type','Authorization']
 // }));
 
+
+// CORS middleware לכל הבקשות
 app.use(cors({
   origin: function(origin, callback) {
-    // אפשרי ללא origin (למשל curl, Postman)
     if (!origin) return callback(null, true);
-
-    // אפשרי כל localhost בפיתוח
     if (origin.startsWith('http://localhost')) return callback(null, true);
-
-    // אפשרי דומיינים מורשים
     if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
+}));
 
-    // חסום כל השאר
+// טיפול גלובלי בבקשות OPTIONS (preflight)
+app.options(/.*/, cors({
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (origin.startsWith('http://localhost')) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
