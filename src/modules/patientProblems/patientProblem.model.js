@@ -23,10 +23,10 @@ export async function getRatingsByProblemId(patient_problem_id) {
     return rows;
 }
 
-export async function addProblemRating({ patient_problem_id, rating_date, score, notes = '' }) {
-    const sql = `INSERT INTO patient_problem_ratings (patient_problem_id, rating_date, score, notes) VALUES (?, ?, ?, ?)`;
-    const [result] = await pool.query(sql, [patient_problem_id, rating_date, score, notes]);
-    return { patient_problem_rating_id: result.insertId, patient_problem_id, rating_date, score, notes };
+export async function addProblemRating({ patient_problem_id, rating_date, score, notes = '', organization_id }) {
+    const sql = `INSERT INTO patient_problem_ratings (patient_problem_id, rating_date, score, notes, organization_id) VALUES (?, ?, ?, ?, ?)`;
+    const [result] = await pool.query(sql, [patient_problem_id, rating_date, score, notes, organization_id]);
+    return { patient_problem_rating_id: result.insertId, patient_problem_id, rating_date, score, notes, organization_id };
 }
 
 export async function deleteProblemRating(patient_problem_rating_id) {

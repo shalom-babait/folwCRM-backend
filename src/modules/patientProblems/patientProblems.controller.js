@@ -55,15 +55,21 @@ export async function getRatingsByProblemId(req, res) {
 export async function addProblemRating(req, res) {
     try {
         const { patient_problem_id } = req.params;
-        const { rating_date, score, notes } = req.body;
+        const { rating_date, score, notes, organization_id: orgFromBody } = req.body;
+        const organization_id = req.organization_id || orgFromBody;
+        console.log('[addProblemRating] req.params:', req.params);
+        console.log('[addProblemRating] req.body:', req.body);
         const rating = await addProblemRatingService({
             patient_problem_id,
             rating_date,
             score,
-            notes
+            notes,
+            organization_id
         });
+        console.log('[addProblemRating] rating:', rating);
         res.status(201).json(rating);
     } catch (err) {
+        console.error('[addProblemRating] error:', err);
         res.status(500).json({ error: err.message });
     }
 }
