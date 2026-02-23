@@ -3,11 +3,11 @@ import { getMonthlyIncomeLast12Service } from './reports.service.js';
 // דוח הכנסות 12 חודשים אחורה עד חודש ושנה
 export async function getMonthlyIncomeLast12Controller(req, res) {
   try {
-    const { year, month } = req.body;
+    const { year, month, organization_id } = req.body;
     if (typeof year !== 'number' || typeof month !== 'number' || month < 1 || month > 12) {
       return res.status(400).json({ success: false, message: 'year and month (1-12) are required' });
     }
-    const result = await getMonthlyIncomeLast12Service({ year, month });
+    const result = await getMonthlyIncomeLast12Service({ year, month, organization_id });
     res.json({ success: true, data: result });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -18,7 +18,7 @@ import { getIncomeReportByMonthsAndYearService } from './reports.service.js';
 // דוח הכנסות לפי חודשים ושנה
 export async function getIncomeReportByMonthsAndYearController(req, res) {
   try {
-    const { year, months } = req.body;
+    const { year, months, organization_id } = req.body;
     if (typeof year !== 'number' || !Array.isArray(months) || months.length === 0 || months.some(m => typeof m !== 'number')) {
       return res.status(400).json({
         success: false,
@@ -26,7 +26,7 @@ export async function getIncomeReportByMonthsAndYearController(req, res) {
         received: req.body
       });
     }
-    const report = await getIncomeReportByMonthsAndYearService({ year, months });
+    const report = await getIncomeReportByMonthsAndYearService({ year, months, organization_id });
     res.json({ success: true, data: report });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
