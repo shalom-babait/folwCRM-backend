@@ -17,10 +17,11 @@ export async function getMonthlyIncomeLast12({ year, month }) {
     FROM payments
     WHERE payment_date >= ? AND payment_date < DATE_ADD(?, INTERVAL 1 MONTH)
       AND status = 'paid'
+      AND organization_id = ?
     GROUP BY y, m
     ORDER BY y, m
   `;
-  const [rows] = await pool.query(sql, [start, end]);
+  const [rows] = await pool.query(sql, [start, end, organization_id]);
   // בנה מערך 12 חודשים אחורה
   const monthlyIncome = [];
   let cur = new Date(startDate);
@@ -54,10 +55,11 @@ export async function getIncomeReportByMonthsAndYear({ year, months }) {
       WHERE YEAR(payment_date) = ?
         AND MONTH(payment_date) IN (${placeholders})
         AND pay.status = 'paid'
+        AND pay.organization_id = ?
       GROUP BY MONTH(payment_date), p.person_id
       ORDER BY month, client_name
     `;
-    const params = [year, ...months.map(m => m + 1)];
+    const params = [year, ...months.map(m => m + 1), organization_id];
     const [rows] = await pool.query(sql, params);
     // שלב 2: ארגן את התוצאות למבנה נוח
     const result = [];

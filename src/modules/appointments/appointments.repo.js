@@ -137,13 +137,14 @@ export async function getAppointmentsByTherapist(therapistId, organizationId = n
       A.status,
       A.notes,
       GL.group_name AS group_name,
+      A.room_id,
       R.room_name AS room,
       A.patient_id,
       CONCAT(P.first_name, ' ', P.last_name) AS patient_name
     FROM appointments AS A
     LEFT JOIN group_list AS GL
       ON A.treatment_type_id = GL.group_id
-    JOIN rooms AS R
+    LEFT JOIN rooms AS R
       ON A.room_id = R.room_id
     LEFT JOIN patients AS PA
       ON PA.patient_id = A.patient_id
