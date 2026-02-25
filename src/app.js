@@ -28,7 +28,7 @@ import treatmentTypesRoutes from './modules/treatmentTypes/treatmentType.routes.
 import { startReminderScheduler } from './services/scheduler.js';
 import { authenticate } from './middlewares/auth.middleware.js';
 import { addOrganizationId } from './middlewares/organization.middleware.js';
-
+import sessionsRoutes from './modules/sessions/sessions.routes.js';
 const app = express();
 
 // ✅ רשימת דומיינים מורשים
@@ -54,28 +54,28 @@ const allowedOrigins = [
 
 // CORS middleware לכל הבקשות
 app.use(cors({
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
     if (!origin) return callback(null, true);
     if (origin.startsWith('http://localhost')) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
-  methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // טיפול גלובלי בבקשות OPTIONS (preflight)
 app.options(/.*/, cors({
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
     if (!origin) return callback(null, true);
     if (origin.startsWith('http://localhost')) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
-  methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // // ✅ טיפול בבקשות OPTIONS (preflight)
@@ -128,7 +128,7 @@ app.use('/api/treatmentTypes', authenticate, addOrganizationId, treatmentTypesRo
 app.use('/api/organizations', organizationsRoutes);
 app.use('/api/expenses', expensesRoutes);
 app.use('/api/auth', authRoutes);
-
+app.use('/api/sessions', sessionsRoutes);
 // ✅ Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
