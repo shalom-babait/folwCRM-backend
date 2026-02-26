@@ -33,6 +33,7 @@ const app = express();
 
 // ✅ רשימת דומיינים מורשים
 const allowedOrigins = [
+  'https://shalombabait-backend-production.up.railway.app',
   'https://folwcrm.up.railway.app',
   'http://localhost:4200' // לפיתוח מקומי
 ];
