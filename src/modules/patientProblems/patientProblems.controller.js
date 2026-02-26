@@ -57,8 +57,8 @@ export async function addProblemRating(req, res) {
         const { patient_problem_id } = req.params;
         const { rating_date, score, notes, organization_id: orgFromBody } = req.body;
         const organization_id = req.organization_id || orgFromBody;
-        console.log('[addProblemRating] req.params:', req.params);
-        console.log('[addProblemRating] req.body:', req.body);
+        // console.log('[addProblemRating] req.params:', req.params);
+        // console.log('[addProblemRating] req.body:', req.body);
         const rating = await addProblemRatingService({
             patient_problem_id,
             rating_date,
@@ -66,7 +66,7 @@ export async function addProblemRating(req, res) {
             notes,
             organization_id
         });
-        console.log('[addProblemRating] rating:', rating);
+        // console.log('[addProblemRating] rating:', rating);
         res.status(201).json(rating);
     } catch (err) {
         console.error('[addProblemRating] error:', err);
@@ -136,9 +136,9 @@ export async function deletePatientProblem(req, res) {
     try {
         const { patient_problem_id } = req.params;
         const organizationId = req.organization_id;
-        console.log(`[deletePatientProblem] מחיקת בעיה: patient_problem_id=${patient_problem_id}`);
+        // console.log(`[deletePatientProblem] מחיקת בעיה: patient_problem_id=${patient_problem_id}`);
         await patientProblemModel.deletePatientProblem(patient_problem_id, organizationId);
-        console.log(`[deletePatientProblem] בעיה נמחקה בהצלחה: patient_problem_id=${patient_problem_id}`);
+        // console.log(`[deletePatientProblem] בעיה נמחקה בהצלחה: patient_problem_id=${patient_problem_id}`);
         res.json({ success: true });
     } catch (err) {
         console.error(`[deletePatientProblem] שגיאה במחיקת בעיה:`, err);

@@ -38,7 +38,7 @@ class CategoriesController {
 
   createCategory = (req, res, next) =>
     this.handleRequest(res, next, async () => {
-      console.log('Creating category with data:', req.body);
+      // console.log('Creating category with data:', req.body);
       const organizationId = req.organization_id;
       const categoryId = await categoriesService.createCategory(req.body, organizationId);
       const category = await categoriesService.getCategoryById(categoryId, organizationId);
