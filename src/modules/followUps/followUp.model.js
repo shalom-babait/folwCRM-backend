@@ -1,6 +1,5 @@
 // שליפת כל המעקבים שנוצרו ע"י משתמש מסוים, תאריך היום ומעלה, כולל כל שדות המעקב וכל שדות הפרסון
 export async function getUpcomingFollowUpsByCreator(user_id, organizationId = null) {
-    console.log(user_id, "      user_id");
 
     let sql = `
       SELECT f.*, p.*
@@ -20,7 +19,6 @@ export async function getUpcomingFollowUpsByCreator(user_id, organizationId = nu
     sql += ' ORDER BY f.follow_date ASC, f.follow_time ASC';
     
     const [rows] = await pool.query(sql, params);
-    console.log("rows", rows);
 
 
 

@@ -12,7 +12,6 @@ function toMysqlLocalDatetime(date) {
 }
 
 export async function createPayment(paymentData) {
-  console.log('createPayment - received from frontend:', paymentData);
   let { appointment_id, amount, payment_date, method, status, transaction_type, person_id, therapist_id, organization_id } = paymentData;
 
   if (!person_id) {
@@ -179,7 +178,6 @@ export async function getTherapistMonthlyPaymentsList(therapistId, organizationI
   }
   
   const [payments] = await pool.query(sql1, params1);
-  // console.log('שלב 1 - payments:', payments);
 
   // 2. כל הפציינטים של המטפל שיש להם תשלום החודש
   let sql2 = `

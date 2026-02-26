@@ -1,5 +1,37 @@
-import { createAppointment, fetchAppointments, deleteAppointment, updateAppointment, fetchAppointmentsByRoom, fetchAppointmentsByGroupId, fetchAppointmentsByTherapist, getAppointmentsByPatientIdService } from "./appointments.service.js";
+import {updateAppointmentNotes, createAppointment, fetchAppointments, deleteAppointment, updateAppointment, fetchAppointmentsByRoom, fetchAppointmentsByGroupId, fetchAppointmentsByTherapist, getAppointmentsByPatientIdService } from "./appointments.service.js";
 
+export async function updateAppointmentNotesController(req, res) {
+  try {
+    const { appointmentId, notes } = req.body;
+
+    if (!appointmentId || isNaN(appointmentId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid appointmentId"
+      });
+    }
+
+    const result = await updateAppointmentNotes(appointmentId, notes);
+
+    if (!result || result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Appointment not found"
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Notes updated successfully"
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Server error"
+    });
+  }
+}
 export async function getAppointmentsByGroupId(req, res) {
 
   try {

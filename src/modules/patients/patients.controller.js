@@ -92,7 +92,6 @@ export async function getAllPatientsController(req, res) {
   try {
     const organizationId = req.organization_id;
     const allPatients = await fetchAllPatients(organizationId);
-    // console.log(allPatients);
     
     res.json({ success: true, data: allPatients });
   } catch (error) {
@@ -146,7 +145,6 @@ export async function deletePatientFullController(req, res) {
 }
 
 export async function updatePatientController(req, res) {
-  // console.log('Update patientId:', req.params.patientId, 'Update data:', req.body);
   try {
     const { patientId } = req.params;
     const organizationId = req.organization_id;

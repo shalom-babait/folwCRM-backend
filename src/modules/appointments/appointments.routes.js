@@ -7,12 +7,13 @@ import {
   getAppointmentsByRoom,
   getAppointmentsByTherapist,
   getAppointmentsByGroupId,
-  getAppointmentsByPatientIdController
+  getAppointmentsByPatientIdController,
+  updateAppointmentNotesController
 } from "./appointments.controller.js";
 const router = express.Router();
 
 
-
+router.put("/updateNotes", updateAppointmentNotesController);
 // שליפת כל הפגישות של מטפל בלבד
 router.get("/therapist/:therapistId", getAppointmentsByTherapist);
 
