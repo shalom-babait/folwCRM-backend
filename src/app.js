@@ -4,6 +4,8 @@ import express from 'express';
 import cors from 'cors';
 import passport from 'passport';
 import session from 'express-session';
+import _MySQLStore from 'express-mysql-session';
+const MySQLStore = _MySQLStore(session);
 import { configureGoogleAuth } from './config/passport.js';
 // import usersRouter from './modules/users/user.routes.js';
 import emailRoutes from './modules/email/email.routes.js';
@@ -32,6 +34,7 @@ const app = express();
 
 // ✅ רשימת דומיינים מורשים
 const allowedOrigins = [
+  'https://shalombabait-backend-production.up.railway.app',
   'https://folwcrm.up.railway.app',
   'http://localhost:4200' // לפיתוח מקומי
 ];
@@ -89,8 +92,18 @@ app.options(/.*/, cors({
 // ✅ Body parser
 app.use(express.json());
 
-// ✅ Session configuration (נדרש ל-Passport)
+
+// ✅ MySQL session store configuration
+const sessionStore = new MySQLStore({
+  host: 'mysql.railway.internal',
+  port: 32678,
+  user: 'root', // שנה לשם המשתמש שלך
+  password: 'MDyodxCezLQYabYUJIcPTLOWaKooQcfu', // שנה לסיסמה שלך
+  database: 'railway' // שנה לשם הדאטהבייס שלך
+});
+
 app.use(session({
+  store: sessionStore,
   secret: process.env.JWT_SECRET || 'yourSecretKey',
   resave: false,
   saveUninitialized: false,
