@@ -78,7 +78,6 @@ export async function getAllGroupsWithDepartment(organizationId = null) {
   sql += ' ORDER BY g.group_id';
   
   const [rows] = await pool.query(sql, params);
-  console.log('getAllGroupsWithDepartment rows:', rows);  
   return rows;
 }
 
@@ -98,7 +97,6 @@ export async function getDepartmentsWithGroups(organizationId = null) {
   sql += ' ORDER BY d.department_id, g.group_id';
   
   const [rows] = await pool.query(sql, params);
-  // console.log('getDepartmentsWithGroups rows:', rows);  
   // עיבוד התוצאה למבנה DepartmentWithGroups
   const departmentsMap = new Map();
   for (const row of rows) {
@@ -120,6 +118,5 @@ export async function getDepartmentsWithGroups(organizationId = null) {
       });
     }
   }
-  // console.log('Processed departmentsWithGroups:', Array.from(departmentsMap.values())); 
   return Array.from(departmentsMap.values());
 }

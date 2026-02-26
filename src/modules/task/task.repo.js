@@ -29,7 +29,6 @@ export async function getTasksByUserId(user_id, organizationId = null) {
 	for (const task of rows) {
 		task.assignments = await getAssignmentsByTaskId(task.task_id);
 	}
-	console.log("rows in task.repo", rows);
 
 	return rows;
 }
@@ -61,7 +60,6 @@ function toDateTime(dateStr) {
 
 // הוספת משימה
 export async function addTask(task, organizationId = null) {
-	console.log(task, "tassssskkkkkkkk");
 
 	const sql = `INSERT INTO tasks (title, description, patient_id, created_by_user_id, assigned_to_user_id, status, priority, due_date, completed_at, color, organization_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
@@ -83,7 +81,6 @@ export async function addTask(task, organizationId = null) {
 	if (Array.isArray(task.assignments) && task.assignments.length > 0) {
 		await insertTaskAssignments(newTask.task_id, task.assignments);
 	}
-	console.log(newTask, "new taskkkkkkkkkk");
 
 	return newTask;
 }

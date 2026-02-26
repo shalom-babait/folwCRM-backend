@@ -6,7 +6,6 @@ export async function getUpcomingFollowUpsByCreator(req, res) {
         const { created_by_user_id } = req.params;
         const organizationId = req.organization_id;
         const followUps = await getUpcomingFollowUpsByCreatorModel(created_by_user_id, organizationId);
-        console.log("followUps"  ,followUps);
         
         res.json(followUps);
     } catch (err) {

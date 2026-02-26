@@ -28,7 +28,6 @@ import treatmentTypesRoutes from './modules/treatmentTypes/treatmentType.routes.
 import { startReminderScheduler } from './services/scheduler.js';
 import { authenticate } from './middlewares/auth.middleware.js';
 import { addOrganizationId } from './middlewares/organization.middleware.js';
-import sessionsRoutes from './modules/sessions/sessions.routes.js';
 const app = express();
 
 // ✅ רשימת דומיינים מורשים
@@ -128,7 +127,6 @@ app.use('/api/treatmentTypes', authenticate, addOrganizationId, treatmentTypesRo
 app.use('/api/organizations', organizationsRoutes);
 app.use('/api/expenses', expensesRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/sessions', sessionsRoutes);
 // ✅ Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
