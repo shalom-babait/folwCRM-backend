@@ -1,3 +1,51 @@
+// דוח טיפולים חודשיים לפי מטפל וארגון
+export async function getMonthlyTreatmentsReport({ therapist_id, organization_id, year, month }) {
+  // שלב 1: שלוף את כל הפציינטים של המטפל והארגון
+  const patientsSql = `
+    SELECT pa.patient_id, pa.person_id, pe.*
+    FROM patients pa
+    JOIN person pe ON pa.person_id = pe.person_id
+    WHERE pa.therapist_id = ? AND pa.organization_id = ?
+  `;
+  const [patients] = await pool.query(patientsSql, [therapist_id, organization_id]);
+
+  // שלב 2: שלוף את כל הפגישות של המטפל והארגון בחודש המבוקש
+  const appointmentsSql = `
+    SELECT * FROM appointments
+    WHERE therapist_id = ? AND organization_id = ?
+      AND YEAR(appointment_date) = ? AND MONTH(appointment_date) = ?
+      AND status != 'בוטלה'
+    ORDER BY appointment_date, start_time
+  `;
+  const [appointments] = await pool.query(appointmentsSql, [therapist_id, organization_id, year, month]);
+
+  // שלב 3: ארגן את הפגישות לפי person_id
+  const appointmentsByPerson = {};
+  for (const app of appointments) {
+    if (!appointmentsByPerson[app.patient_id]) appointmentsByPerson[app.patient_id] = [];
+    appointmentsByPerson[app.patient_id].push(app);
+  }
+
+  // שלב 4: בנה את התוצאה
+  const result = patients.map(p => ({
+    person: {
+      person_id: p.person_id,
+      first_name: p.first_name,
+      last_name: p.last_name,
+      teudat_zehut: p.teudat_zehut,
+      phone: p.phone,
+      city: p.city,
+      address: p.address,
+      birth_date: p.birth_date,
+      gender: p.gender,
+      email: p.email,
+      mother_name: p.mother_name,
+      organization_id: p.organization_id
+    },
+    appointments: appointmentsByPerson[p.patient_id] || []
+  }));
+  return result;
+}
 // דוח הכנסות 12 חודשים אחורה עד חודש ושנה שנבחרו
 export async function getMonthlyIncomeLast12({ year, month, organization_id }) {
   // month: 1-12 (JS: 0-11, כאן 1-12)

@@ -1,3 +1,8 @@
+import { getMonthlyTreatmentsReport } from './reports.repo.js';
+
+export async function getMonthlyTreatmentsReportService(data) {
+  return await getMonthlyTreatmentsReport(data);
+}
 import { getMonthlyIncomeLast12 } from './reports.repo.js';
 
 export async function getMonthlyIncomeLast12Service(data) {
