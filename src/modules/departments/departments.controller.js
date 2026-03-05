@@ -76,7 +76,6 @@ export async function getAllGroupsWithDepartmentController(req, res) {
 
 export async function getDepartmentsWithGroupsController(req, res) {
   try {
-    console.log('Fetching departments with groups');
     const organizationId = req.organization_id;
     const departmentsWithGroups = await getDepartmentsWithGroups(organizationId);
     // הפונקציה מחזירה מערך של אובייקטים במבנה:
