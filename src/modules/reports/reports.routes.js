@@ -1,7 +1,9 @@
-import { getMonthlyIncomeLast12Controller } from './reports.controller.js';
-import { getIncomeReportByMonthsAndYearController } from './reports.controller.js';
+
 import express from 'express';
 import {
+  getMonthlyTreatmentsReportController,
+  getMonthlyIncomeLast12Controller,
+  getIncomeReportByMonthsAndYearController,
   createReportController,
   getAllReportsController,
   getReportByIdController,
@@ -10,8 +12,12 @@ import {
   getOpenDebtsByTherapistController
 } from './reports.controller.js';
 
+
 const router = express.Router();
 
+
+// דוח טיפולים חודשיים לפי מטפל וארגון
+router.post('/monthly-treatments', getMonthlyTreatmentsReportController);
 // דוח חובות פתוחים למטפל
 router.get('/open-debts/:therapist_id', getOpenDebtsByTherapistController);
 // דוח הכנסות לפי חודשים ושנה

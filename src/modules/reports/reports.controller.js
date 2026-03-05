@@ -1,3 +1,18 @@
+import { getMonthlyTreatmentsReportService } from './reports.service.js';
+
+// דוח טיפולים חודשיים לפי מטפל וארגון
+export async function getMonthlyTreatmentsReportController(req, res) {
+  try {
+  const { therapist_id, organization_id, year, month } = req.body;
+    if (!therapist_id || !organization_id || !year || !month) {
+      return res.status(400).json({ success: false, message: 'therapist_id, organization_id, year, and month are required' });
+    }
+  const report = await getMonthlyTreatmentsReportService({ therapist_id, organization_id, year, month });
+  res.json({ success: true, data: report });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+}
 import { getMonthlyIncomeLast12Service } from './reports.service.js';
 
 // דוח הכנסות 12 חודשים אחורה עד חודש ושנה
