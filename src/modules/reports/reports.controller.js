@@ -18,7 +18,7 @@ import { getIncomeReportByMonthsAndYearService } from './reports.service.js';
 // דוח הכנסות לפי חודשים ושנה
 export async function getIncomeReportByMonthsAndYearController(req, res) {
   try {
-    const { year, months, organization_id } = req.body;
+    const { year, months, organization_id, therapist_id } = req.body;
     if (typeof year !== 'number' || !Array.isArray(months) || months.length === 0 || months.some(m => typeof m !== 'number')) {
       return res.status(400).json({
         success: false,
@@ -26,7 +26,7 @@ export async function getIncomeReportByMonthsAndYearController(req, res) {
         received: req.body
       });
     }
-    const report = await getIncomeReportByMonthsAndYearService({ year, months, organization_id });
+    const report = await getIncomeReportByMonthsAndYearService({ year, months, organization_id, therapist_id });
     res.json({ success: true, data: report });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

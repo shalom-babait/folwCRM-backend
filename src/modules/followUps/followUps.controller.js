@@ -6,7 +6,7 @@ export async function getUpcomingFollowUpsByCreator(req, res) {
         const { created_by_user_id } = req.params;
         const organizationId = req.organization_id;
         const followUps = await getUpcomingFollowUpsByCreatorModel(created_by_user_id, organizationId);
-        console.log("followUps"  ,followUps);
+        // console.log("followUps"  ,followUps);
         
         res.json(followUps);
     } catch (err) {
@@ -17,7 +17,7 @@ import * as followUpModel from './followUp.model.js';
 
 export async function createFollowUp(req, res) {
     try {
-        console.log('Request Body:', req.body); // לוג של גוף הבקשה
+        // console.log('Request Body:', req.body); // לוג של גוף הבקשה
         // ודא שמעבירים גם created_by_user_id
         const organizationId = req.organization_id;
         const followUp = await followUpModel.createFollowUp(req.body, organizationId);
@@ -32,7 +32,7 @@ export async function createFollowUp(req, res) {
 }
 
 export async function getFollowUpsByPerson(req, res) {
-        console.log("getFollowUpsByPerson");
+        ("getFollowUpsByPerson");
 
     try {
         const { person_id } = req.params;
@@ -45,8 +45,7 @@ export async function getFollowUpsByPerson(req, res) {
 }
 
 export async function getFollowUpById(req, res) {
-    console.log("getFollowUpById");
-    
+    // console.log("getFollowUpById");
     try {
         const { followup_id } = req.params;
         const organizationId = req.organization_id;
@@ -60,16 +59,16 @@ export async function getFollowUpById(req, res) {
 
 export async function updateFollowUp(req, res) {
     try {
-        console.log('Update FollowUp - params:', req.params);
-        console.log('Update FollowUp - body:', req.body);
+        // console.log('Update FollowUp - params:', req.params);
+        // console.log('Update FollowUp - body:', req.body);
         const { followup_id } = req.params;
         const organizationId = req.organization_id;
         const updated = await followUpModel.updateFollowUp(followup_id, req.body, organizationId);
         if (!updated) {
-            console.log('Update FollowUp - not found or no changes');
+            // console.log('Update FollowUp - not found or no changes');
             return res.status(404).json({ error: 'Not found or no changes' });
         }
-        console.log('Update FollowUp - success');
+        // console.log('Update FollowUp - success');
         res.json({ success: true });
     } catch (err) {
         console.error('Update FollowUp - error:', err);

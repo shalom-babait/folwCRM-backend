@@ -78,7 +78,7 @@ export async function getAllGroupsWithDepartment(organizationId = null) {
   sql += ' ORDER BY g.group_id';
   
   const [rows] = await pool.query(sql, params);
-  console.log('getAllGroupsWithDepartment rows:', rows);  
+  // console.log('getAllGroupsWithDepartment rows:', rows);  
   return rows;
 }
 

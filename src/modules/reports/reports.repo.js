@@ -1,5 +1,5 @@
 // דוח הכנסות 12 חודשים אחורה עד חודש ושנה שנבחרו
-export async function getMonthlyIncomeLast12({ year, month }) {
+export async function getMonthlyIncomeLast12({ year, month, organization_id }) {
   // month: 1-12 (JS: 0-11, כאן 1-12)
   // נחשב את התאריכים
   const endDate = new Date(year, month - 1, 1); // JS month 0-based
@@ -36,11 +36,10 @@ export async function getMonthlyIncomeLast12({ year, month }) {
 }
 
 // דוח הכנסות לפי חודשים ושנה
-export async function getIncomeReportByMonthsAndYear({ year, months }) {
+// דוח הכנסות לפי חודשים ושנה ומטפל
+export async function getIncomeReportByMonthsAndYear({ year, months, organization_id, therapist_id }) {
   try {
-    // console.log('[income-report] input:', { year, months });
     if (!year || !Array.isArray(months) || months.length === 0) {
-      // console.error('[income-report] invalid input:', { year, months });
       return [];
     }
     const placeholders = months.map(() => '?').join(',');
@@ -56,10 +55,11 @@ export async function getIncomeReportByMonthsAndYear({ year, months }) {
         AND MONTH(payment_date) IN (${placeholders})
         AND pay.status = 'paid'
         AND pay.organization_id = ?
+        AND pay.therapist_id = ?
       GROUP BY MONTH(payment_date), p.person_id
       ORDER BY month, client_name
     `;
-    const params = [year, ...months.map(m => m + 1), organization_id];
+    const params = [year, ...months.map(m => m + 1), organization_id, therapist_id];
     const [rows] = await pool.query(sql, params);
     // שלב 2: ארגן את התוצאות למבנה נוח
     const result = [];
@@ -80,12 +80,12 @@ export async function getIncomeReportByMonthsAndYear({ year, months }) {
     }
     return result;
   } catch (err) {
-    console.error('[income-report] ERROR:', err && err.message, err && err.stack, { year, months });
+    console.error('[income-report] ERROR:', err && err.message, err && err.stack);
     throw err;
   }
 }
 // דוח חובות פתוחים למטפל
-export async function getOpenDebtsByTherapist(therapist_id) {
+export async function getOpenDebtsByTherapist(therapist_id, organization_id) {
   const sql = `
   SELECT
     p.person_id,
@@ -100,12 +100,12 @@ export async function getOpenDebtsByTherapist(therapist_id) {
   FROM payments pay
   JOIN person p ON p.person_id = pay.person_id
   WHERE pay.therapist_id = ?
+    AND pay.organization_id = ?
   GROUP BY p.person_id, p.first_name
   HAVING open_balance > 0
   ORDER BY p.first_name
   `;
-  const [rows] = await pool.query(sql, [therapist_id]);
-  // console.log('[getOpenDebtsByTherapist] rows:', rows);
+  const [rows] = await pool.query(sql, [therapist_id, organization_id]);
   return rows;
 }
 import pool from '../../services/database.js';
