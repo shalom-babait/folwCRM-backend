@@ -27,23 +27,25 @@ export async function getMonthlyTreatmentsReport({ therapist_id, organization_id
   }
 
   // שלב 4: בנה את התוצאה
-  const result = patients.map(p => ({
-    person: {
-      person_id: p.person_id,
-      first_name: p.first_name,
-      last_name: p.last_name,
-      teudat_zehut: p.teudat_zehut,
-      phone: p.phone,
-      city: p.city,
-      address: p.address,
-      birth_date: p.birth_date,
-      gender: p.gender,
-      email: p.email,
-      mother_name: p.mother_name,
-      organization_id: p.organization_id
-    },
-    appointments: appointmentsByPerson[p.patient_id] || []
-  }));
+  const result = patients
+    .filter(p => (appointmentsByPerson[p.patient_id] && appointmentsByPerson[p.patient_id].length > 0))
+    .map(p => ({
+      person: {
+        person_id: p.person_id,
+        first_name: p.first_name,
+        last_name: p.last_name,
+        teudat_zehut: p.teudat_zehut,
+        phone: p.phone,
+        city: p.city,
+        address: p.address,
+        birth_date: p.birth_date,
+        gender: p.gender,
+        email: p.email,
+        mother_name: p.mother_name,
+        organization_id: p.organization_id
+      },
+      appointments: appointmentsByPerson[p.patient_id]
+    }));
   return result;
 }
 // דוח הכנסות 12 חודשים אחורה עד חודש ושנה שנבחרו
