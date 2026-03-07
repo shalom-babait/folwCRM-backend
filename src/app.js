@@ -33,49 +33,23 @@ import { addOrganizationId } from './middlewares/organization.middleware.js';
 
 const app = express();
 
-// ✅ רשימת דומיינים מורשים
+
+// ✅ CORS middleware - Allow production and localhost for development
 const allowedOrigins = [
-  'https://shalombabait-backend-production.up.railway.app',
   'https://folwcrm.up.railway.app',
-  'http://localhost:4200' // לפיתוח מקומי
+  'http://localhost:4200',
+  'http://localhost:3000'
 ];
-
-// ✅ middleware של CORS גלובלי
-// app.use(cors({
-//   origin: function(origin, callback) {
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   },
-//   credentials: true,
-//   methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
-//   allowedHeaders: ['Content-Type','Authorization']
-// }));
-
-
-// CORS middleware לכל הבקשות
 app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin) return callback(null, true);
-    if (origin.startsWith('http://localhost')) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('Not allowed by CORS'));
-  },
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization']
 }));
 
-// טיפול גלובלי בבקשות OPTIONS (preflight)
+// Handle preflight requests globally (use regex, not '*')
 app.options(/.*/, cors({
-  origin: function(origin, callback) {
-    if (!origin) return callback(null, true);
-    if (origin.startsWith('http://localhost')) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('Not allowed by CORS'));
-  },
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization']
