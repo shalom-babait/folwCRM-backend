@@ -1,5 +1,5 @@
 // דוח טיפולים חודשיים לפי מטפל וארגון
-export async function getMonthlyTreatmentsReport({ therapist_id, organization_id, year, month }) {
+export async function getMonthlyTreatmentsReport({ therapist_id, organization_id, start_date, end_date }) {
   // שלב 1: שלוף את כל הפציינטים של המטפל והארגון
   const patientsSql = `
     SELECT pa.patient_id, pa.person_id, pe.*
@@ -9,15 +9,19 @@ export async function getMonthlyTreatmentsReport({ therapist_id, organization_id
   `;
   const [patients] = await pool.query(patientsSql, [therapist_id, organization_id]);
 
-  // שלב 2: שלוף את כל הפגישות של המטפל והארגון בחודש המבוקש
+  // שלב 2: שלוף את כל הפגישות של המטפל והארגון בטווח המבוקש
+  if (!start_date || !end_date) {
+    throw new Error('Must provide start_date and end_date');
+  }
   const appointmentsSql = `
     SELECT * FROM appointments
     WHERE therapist_id = ? AND organization_id = ?
-      AND YEAR(appointment_date) = ? AND MONTH(appointment_date) = ?
+      AND appointment_date >= ? AND appointment_date <= ?
       AND status != 'בוטלה'
     ORDER BY appointment_date, start_time
   `;
-  const [appointments] = await pool.query(appointmentsSql, [therapist_id, organization_id, year, month]);
+  const appointmentsParams = [therapist_id, organization_id, start_date, end_date];
+  const [appointments] = await pool.query(appointmentsSql, appointmentsParams);
 
   // שלב 3: ארגן את הפגישות לפי person_id
   const appointmentsByPerson = {};
