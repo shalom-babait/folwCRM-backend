@@ -1,3 +1,4 @@
+
 import organizationsRoutes from './modules/organizations/organizations.routes.js';
 import expensesRoutes from './modules/expenses/expenses.routes.js';
 import express from 'express';
@@ -115,6 +116,16 @@ app.use('/api/treatmentTypes', authenticate, addOrganizationId, treatmentTypesRo
 app.use('/api/organizations', organizationsRoutes);
 app.use('/api/expenses', expensesRoutes);
 app.use('/api/auth', authRoutes);
+// ✅ Global error handler to always set CORS headers (even on errors)
+app.use((err, req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://folwcrm.up.railway.app');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  if (res.headersSent) {
+    return next(err);
+  }
+  res.status(500).json({ error: 'Server error' });
+});
 
 // ✅ Start server
 const PORT = process.env.PORT || 3000;
