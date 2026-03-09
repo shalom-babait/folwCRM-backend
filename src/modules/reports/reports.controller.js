@@ -53,7 +53,11 @@ import { getOpenDebtsByTherapistService } from './reports.service.js';
 export async function getOpenDebtsByTherapistController(req, res) {
   try {
     const { therapist_id } = req.params;
-    const debts = await getOpenDebtsByTherapistService(therapist_id);
+    const organization_id = req.query.organization_id || req.body?.organization_id || req.params.organization_id;
+    if (!therapist_id || !organization_id) {
+      return res.status(400).json({ success: false, message: 'therapist_id and organization_id are required' });
+    }
+    const debts = await getOpenDebtsByTherapistService(therapist_id, organization_id);
     res.json({ success: true, data: debts });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
