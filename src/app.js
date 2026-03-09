@@ -1,3 +1,4 @@
+
 import organizationsRoutes from './modules/organizations/organizations.routes.js';
 import expensesRoutes from './modules/expenses/expenses.routes.js';
 import express from 'express';
@@ -33,49 +34,23 @@ import { addOrganizationId } from './middlewares/organization.middleware.js';
 
 const app = express();
 
-// ✅ רשימת דומיינים מורשים
+
+// ✅ CORS middleware - Allow production and localhost for development
 const allowedOrigins = [
-  'https://shalombabait-backend-production.up.railway.app',
   'https://folwcrm.up.railway.app',
-  'http://localhost:4200' // לפיתוח מקומי
+  'http://localhost:4200',
+  'http://localhost:3000'
 ];
-
-// ✅ middleware של CORS גלובלי
-// app.use(cors({
-//   origin: function(origin, callback) {
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   },
-//   credentials: true,
-//   methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
-//   allowedHeaders: ['Content-Type','Authorization']
-// }));
-
-
-// CORS middleware לכל הבקשות
 app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin) return callback(null, true);
-    if (origin.startsWith('http://localhost')) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('Not allowed by CORS'));
-  },
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization']
 }));
 
-// טיפול גלובלי בבקשות OPTIONS (preflight)
+// Handle preflight requests globally (use regex, not '*')
 app.options(/.*/, cors({
-  origin: function(origin, callback) {
-    if (!origin) return callback(null, true);
-    if (origin.startsWith('http://localhost')) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('Not allowed by CORS'));
-  },
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization']
@@ -141,6 +116,16 @@ app.use('/api/treatmentTypes', authenticate, addOrganizationId, treatmentTypesRo
 app.use('/api/organizations', organizationsRoutes);
 app.use('/api/expenses', expensesRoutes);
 app.use('/api/auth', authRoutes);
+// ✅ Global error handler to always set CORS headers (even on errors)
+app.use((err, req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://folwcrm.up.railway.app');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  if (res.headersSent) {
+    return next(err);
+  }
+  res.status(500).json({ error: 'Server error' });
+});
 
 // ✅ Start server
 const PORT = process.env.PORT || 3000;

@@ -15,8 +15,8 @@ export async function getIncomeReportByMonthsAndYearService(data) {
 }
 import { getOpenDebtsByTherapist } from './reports.repo.js';
 
-export async function getOpenDebtsByTherapistService(therapist_id) {
-  return await getOpenDebtsByTherapist(therapist_id);
+export async function getOpenDebtsByTherapistService(therapist_id, organization_id) {
+  return await getOpenDebtsByTherapist(therapist_id, organization_id);
 }
 import * as reportsRepo from './reports.repo.js';
 
