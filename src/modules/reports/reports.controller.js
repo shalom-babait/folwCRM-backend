@@ -52,8 +52,17 @@ import { getOpenDebtsByTherapistService } from './reports.service.js';
 // דוח חובות פתוחים למטפל
 export async function getOpenDebtsByTherapistController(req, res) {
   try {
+    // Log incoming request for tracking
+    console.log('[open-debts] req.params:', req.params);
+    console.log('[open-debts] req.query:', req.query);
+    console.log('[open-debts] req.body:', req.body);
     const { therapist_id } = req.params;
-    const debts = await getOpenDebtsByTherapistService(therapist_id);
+    // Try to get organization_id from query, body, or params
+    const organization_id = req.query.organization_id || req.body?.organization_id || req.params.organization_id;
+    if (!therapist_id || !organization_id) {
+      return res.status(400).json({ success: false, message: 'therapist_id and organization_id are required' });
+    }
+    const debts = await getOpenDebtsByTherapistService(therapist_id, organization_id);
     res.json({ success: true, data: debts });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
