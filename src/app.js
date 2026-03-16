@@ -114,7 +114,7 @@ app.use('/api/patient-problems', authenticate, addOrganizationId, patientProblem
 app.use('/api/tasks', authenticate, addOrganizationId, taskRoutes);
 app.use('/api/treatmentTypes', authenticate, addOrganizationId, treatmentTypesRoutes);
 app.use('/api/organizations', organizationsRoutes);
-app.use('/api/expenses', expensesRoutes);
+app.use('/api/expenses', authenticate, addOrganizationId, expensesRoutes);
 app.use('/api/auth', authRoutes);
 // ✅ Global error handler to always set CORS headers (even on errors)
 app.use((err, req, res, next) => {
