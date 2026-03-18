@@ -100,3 +100,28 @@ export async function getTherapistMonthlyPaymentsListController(req, res) {
     res.status(500).json({ error: err.message });
   }
 }
+
+// --- שליפת תנועות כספיות משולבות לפי חודש ---
+export async function getFinancialTransactionsByMonthController(req, res) {
+  try {
+    const therapistId = req.params.therapist_id;
+    const { month, year } = req.query;
+    const organizationId = req.organization_id;
+    
+    if (!month || !year) {
+      return res.status(400).json({ error: 'month and year are required' });
+    }
+    
+    const data = await paymentsService.getFinancialTransactionsByMonthService(
+      therapistId, 
+      parseInt(month), 
+      parseInt(year), 
+      organizationId
+    );
+    
+    res.json(data);
+  } catch (err) {
+    console.error('Error in getFinancialTransactionsByMonthController:', err);
+    res.status(500).json({ error: err.message });
+  }
+}

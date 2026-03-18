@@ -31,3 +31,7 @@ export async function deletePaymentByIdService(payment_id, organizationId = null
 export async function getTherapistMonthlyPaymentsListService(therapistId, organizationId = null) {
   return await paymentsRepo.getTherapistMonthlyPaymentsList(therapistId, organizationId);
 }
+
+export async function getFinancialTransactionsByMonthService(therapistId, month, year, organizationId) {
+  return await paymentsRepo.getFinancialTransactionsByMonth(therapistId, month, year, organizationId);
+}
