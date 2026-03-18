@@ -1,12 +1,19 @@
 import { createExpenseCategoryService, getAllExpenseCategoriesService, getExpenseCategoryByIdService, updateExpenseCategoryService, deleteExpenseCategoryService } from './expense_categories.service.js';
+import logger from '../../config/logger.js';
 
 // יצירת קטגוריה
 export async function createExpenseCategoryController(req, res) {
   try {
-    const category = await createExpenseCategoryService(req.body);
-    res.status(201).json({ success: true, data: category });
+    const organizationId = req.organization_id;
+    const categoryData = {
+      ...req.body,
+      organization_id: organizationId
+    };
+    const category = await createExpenseCategoryService(categoryData);
+    res.status(201).json(category);
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    logger.error('שגיאה ביצירת קטגוריית הוצאה:', err);
+    res.status(500).json({ error: err.message });
   }
 }
 
@@ -14,9 +21,10 @@ export async function createExpenseCategoryController(req, res) {
 export async function getAllExpenseCategoriesController(req, res) {
   try {
     const categories = await getAllExpenseCategoriesService();
-    res.json({ success: true, data: categories });
+    res.json(categories);
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    logger.error('שגיאה בשליפת קטגוריות הוצאה:', err);
+    res.status(500).json({ error: err.message });
   }
 }
 
@@ -24,10 +32,11 @@ export async function getAllExpenseCategoriesController(req, res) {
 export async function getExpenseCategoryByIdController(req, res) {
   try {
     const category = await getExpenseCategoryByIdService(req.params.id);
-    if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
-    res.json({ success: true, data: category });
+    if (!category) return res.status(404).json({ error: 'Category not found' });
+    res.json(category);
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    logger.error('שגיאה בשליפת קטגוריית הוצאה לפי מזהה:', err);
+    res.status(500).json({ error: err.message });
   }
 }
 
@@ -35,9 +44,10 @@ export async function getExpenseCategoryByIdController(req, res) {
 export async function updateExpenseCategoryController(req, res) {
   try {
     const updated = await updateExpenseCategoryService(req.params.id, req.body);
-    res.json({ success: true, data: updated });
+    res.json(updated);
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    logger.error('שגיאה בעדכון קטגוריית הוצאה:', err);
+    res.status(500).json({ error: err.message });
   }
 }
 
@@ -45,8 +55,9 @@ export async function updateExpenseCategoryController(req, res) {
 export async function deleteExpenseCategoryController(req, res) {
   try {
     await deleteExpenseCategoryService(req.params.id);
-    res.json({ success: true });
+    res.json({ message: 'Category deleted successfully' });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    logger.error('שגיאה במחיקת קטגוריית הוצאה:', err);
+    res.status(500).json({ error: err.message });
   }
 }

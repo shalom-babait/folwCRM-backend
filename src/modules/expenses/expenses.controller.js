@@ -4,7 +4,11 @@ import logger from '../../config/logger.js';
 // יצירת הוצאה
 export async function createExpenseController(req, res) {
   try {
-    const expenseData = req.body;
+    const organizationId = req.organization_id;
+    const expenseData = {
+      ...req.body,
+      organization_id: organizationId
+    };
     // אם נבחר "אחר" כקטגוריה, נכניס את השם לעמודה החדשה
     if (expenseData.expense_category_id === 'other' && expenseData.other_category_name) {
       expenseData.expense_category_id = null;
@@ -12,10 +16,10 @@ export async function createExpenseController(req, res) {
       expenseData.other_category_name = null;
     }
     const expense = await createExpenseService(expenseData);
-    res.status(201).json({ success: true, data: expense });
+    res.status(201).json(expense);
   } catch (err) {
     logger.error('שגיאה ביצירת הוצאה:', err);
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ error: err.message });
   }
 }
 
@@ -23,10 +27,10 @@ export async function createExpenseController(req, res) {
 export async function getAllExpensesController(req, res) {
   try {
     const expenses = await getAllExpensesService();
-    res.json({ success: true, data: expenses });
+    res.json(expenses);
   } catch (err) {
     logger.error('שגיאה בשליפת כל ההוצאות:', err);
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ error: err.message });
   }
 }
 
@@ -34,11 +38,11 @@ export async function getAllExpensesController(req, res) {
 export async function getExpenseByIdController(req, res) {
   try {
     const expense = await getExpenseByIdService(req.params.id);
-    if (!expense) return res.status(404).json({ success: false, message: 'Expense not found' });
-    res.json({ success: true, data: expense });
+    if (!expense) return res.status(404).json({ error: 'Expense not found' });
+    res.json(expense);
   } catch (err) {
     logger.error('שגיאה בשליפת הוצאה לפי מזהה:', err);
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ error: err.message });
   }
 }
 
@@ -46,10 +50,10 @@ export async function getExpenseByIdController(req, res) {
 export async function updateExpenseController(req, res) {
   try {
     const updated = await updateExpenseService(req.params.id, req.body);
-    res.json({ success: true, data: updated });
+    res.json(updated);
   } catch (err) {
     logger.error('שגיאה בעדכון הוצאה:', err);
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ error: err.message });
   }
 }
 
@@ -57,9 +61,9 @@ export async function updateExpenseController(req, res) {
 export async function deleteExpenseController(req, res) {
   try {
     await deleteExpenseService(req.params.id);
-    res.json({ success: true });
+    res.json({ message: 'Expense deleted successfully' });
   } catch (err) {
     logger.error('שגיאה במחיקת הוצאה:', err);
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ error: err.message });
   }
 }

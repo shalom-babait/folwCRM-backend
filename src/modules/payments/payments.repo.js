@@ -12,7 +12,6 @@ function toMysqlLocalDatetime(date) {
 }
 
 export async function createPayment(paymentData) {
-  console.log('createPayment - received from frontend:', paymentData);
   let { appointment_id, amount, payment_date, method, status, transaction_type, person_id, therapist_id, organization_id } = paymentData;
 
   if (!person_id) {
@@ -162,8 +161,7 @@ export async function getTherapistPaymentsSumByMonth(therapistId, month, year) {
  * @returns {Promise<Array<{patient_name: string, total_payments: number}>>}
  */
 export async function getTherapistMonthlyPaymentsList(therapistId, organizationId = null) {
-  // console.log('getTherapistMonthlyPaymentsList therapistId:', therapistId);
-  // 1. כל התשלומים של המטפל החודש
+  // כל התשלומים של המטפל החודש
   let sql1 = `
     SELECT * FROM payments
     WHERE therapist_id = ?
@@ -179,9 +177,8 @@ export async function getTherapistMonthlyPaymentsList(therapistId, organizationI
   }
   
   const [payments] = await pool.query(sql1, params1);
-  // console.log('שלב 1 - payments:', payments);
 
-  // 2. כל הפציינטים של המטפל שיש להם תשלום החודש
+  // כל הפציינטים של המטפל שיש להם תשלום החודש
   let sql2 = `
     SELECT DISTINCT person_id FROM payments
     WHERE therapist_id = ?
@@ -197,20 +194,16 @@ export async function getTherapistMonthlyPaymentsList(therapistId, organizationI
   }
   
   const [patients] = await pool.query(sql2, params2);
-  // console.log('שלב 2 - patients:', patients);
 
-  // 3. שמות הפציינטים
+  // שמות הפציינטים
   if (patients.length > 0) {
     const personIds = patients.map(p => p.person_id);
     const [names] = await pool.query(`
       SELECT person_id, first_name, last_name FROM person WHERE person_id IN (${personIds.map(() => '?').join(',')})
     `, personIds);
-    // console.log('שלב 3 - names:', names);
-  } else {
-    // console.log('שלב 3 - אין פציינטים');
   }
 
-  // 4. השאילתה הסופית
+  // השאילתה הסופית
   const sql = `
     SELECT 
       CONCAT(per.first_name, ' ', per.last_name) AS patient_name,
@@ -226,6 +219,91 @@ export async function getTherapistMonthlyPaymentsList(therapistId, organizationI
     ORDER BY patient_name
   `;
   const [rows] = await pool.query(sql, [therapistId]);
-  // console.log('שלב 4 - getTherapistMonthlyPaymentsList result:', rows);
   return rows;
+}
+
+/**
+ * מחזיר תנועות כספיות משולבות (הכנסות + הוצאות) לפי מטפל וחודש
+ * @param {number} therapistId - מזהה המטפל
+ * @param {number} month - מספר החודש (1-12)
+ * @param {number} year - מספר השנה (YYYY)
+ * @param {number} organizationId - מזהה הארגון
+ * @returns {Promise<{transactions: Array, summary: {totalIncome: number, totalExpense: number}}>}
+ */
+export async function getFinancialTransactionsByMonth(therapistId, month, year, organizationId) {
+  // קודם נמצא את person_id של המטפל
+  const therapistPersonSql = `
+    SELECT person_id 
+    FROM therapists 
+    WHERE therapist_id = ? AND organization_id = ?
+  `;
+  const [therapistRows] = await pool.query(therapistPersonSql, [therapistId, organizationId]);
+  
+  if (!therapistRows || therapistRows.length === 0) {
+    return {
+      transactions: [],
+      summary: { totalIncome: 0, totalExpense: 0, balance: 0 }
+    };
+  }
+  
+  const personId = therapistRows[0].person_id;
+  
+  // שליפת הכנסות (payments) - לפי person_id של המטפל
+  const incomesSql = `
+    SELECT 
+      payment_id AS id,
+      'income' AS type,
+      amount,
+      payment_date AS date,
+      method,
+      CONCAT(per.first_name, ' ', per.last_name) AS details,
+      'הכנסה מטיפול' AS category
+    FROM payments p
+    LEFT JOIN therapists t ON p.therapist_id = t.therapist_id
+    LEFT JOIN patients pa ON p.person_id = pa.person_id
+    LEFT JOIN person per ON pa.person_id = per.person_id
+    WHERE t.person_id = ?
+      AND MONTH(p.payment_date) = ?
+      AND YEAR(p.payment_date) = ?
+      AND p.organization_id = ?
+      AND p.status = 'paid'
+  `;
+  
+  // שליפת הוצאות (expenses) - רק של אותו person_id
+  const expensesSql = `
+    SELECT 
+      expense_id AS id,
+      'expense' AS type,
+      amount,
+      payment_date AS date,
+      payment_method AS method,
+      COALESCE(notes, '') AS details,
+      COALESCE(ec.category_name, other_category_name, 'לא צוין') AS category
+    FROM expenses e
+    LEFT JOIN expense_categories ec ON e.expense_category_id = ec.expense_category_id
+    WHERE e.person_id = ?
+      AND MONTH(e.payment_date) = ?
+      AND YEAR(e.payment_date) = ?
+      AND e.organization_id = ?
+  `;
+  
+  // ביצוע שתי השאילתות
+  const [incomes] = await pool.query(incomesSql, [personId, month, year, organizationId]);
+  const [expenses] = await pool.query(expensesSql, [personId, month, year, organizationId]);
+  
+  // חישוב סיכומים
+  const totalIncome = incomes.reduce((sum, item) => sum + parseFloat(item.amount), 0);
+  const totalExpense = expenses.reduce((sum, item) => sum + parseFloat(item.amount), 0);
+  
+  // איחוד התנועות ומיון לפי תאריך
+  const transactions = [...incomes, ...expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  return {
+    transactions,
+    summary: {
+      totalIncome,
+      totalExpense,
+      balance: totalIncome - totalExpense
+    }
+  };
 }
