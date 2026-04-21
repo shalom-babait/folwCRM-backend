@@ -9,13 +9,16 @@ export async function createExpenseController(req, res) {
       ...req.body,
       organization_id: organizationId
     };
+    
     // אם נבחר "אחר" כקטגוריה, נכניס את השם לעמודה החדשה
     if (expenseData.expense_category_id === 'other' && expenseData.other_category_name) {
       expenseData.expense_category_id = null;
     } else {
       expenseData.other_category_name = null;
     }
+    
     const expense = await createExpenseService(expenseData);
+    
     res.status(201).json(expense);
   } catch (err) {
     logger.error('שגיאה ביצירת הוצאה:', err);
@@ -26,7 +29,8 @@ export async function createExpenseController(req, res) {
 // שליפת כל ההוצאות
 export async function getAllExpensesController(req, res) {
   try {
-    const expenses = await getAllExpensesService();
+    const organizationId = req.organization_id;
+    const expenses = await getAllExpensesService(organizationId);
     res.json(expenses);
   } catch (err) {
     logger.error('שגיאה בשליפת כל ההוצאות:', err);
@@ -37,7 +41,8 @@ export async function getAllExpensesController(req, res) {
 // שליפת הוצאה לפי מזהה
 export async function getExpenseByIdController(req, res) {
   try {
-    const expense = await getExpenseByIdService(req.params.id);
+    const organizationId = req.organization_id;
+    const expense = await getExpenseByIdService(req.params.id, organizationId);
     if (!expense) return res.status(404).json({ error: 'Expense not found' });
     res.json(expense);
   } catch (err) {
@@ -49,7 +54,8 @@ export async function getExpenseByIdController(req, res) {
 // עדכון הוצאה
 export async function updateExpenseController(req, res) {
   try {
-    const updated = await updateExpenseService(req.params.id, req.body);
+    const organizationId = req.organization_id;
+    const updated = await updateExpenseService(req.params.id, req.body, organizationId);
     res.json(updated);
   } catch (err) {
     logger.error('שגיאה בעדכון הוצאה:', err);
@@ -60,7 +66,8 @@ export async function updateExpenseController(req, res) {
 // מחיקת הוצאה
 export async function deleteExpenseController(req, res) {
   try {
-    await deleteExpenseService(req.params.id);
+    const organizationId = req.organization_id;
+    await deleteExpenseService(req.params.id, organizationId);
     res.json({ message: 'Expense deleted successfully' });
   } catch (err) {
     logger.error('שגיאה במחיקת הוצאה:', err);

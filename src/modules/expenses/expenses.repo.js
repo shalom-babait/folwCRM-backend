@@ -10,31 +10,59 @@ export async function createExpense(expenseData) {
 }
 
 // שליפת כל ההוצאות
-export async function getAllExpenses() {
-  const sql = 'SELECT * FROM expenses';
-  const [rows] = await pool.query(sql);
+export async function getAllExpenses(organizationId = null) {
+  let sql = 'SELECT * FROM expenses';
+  const params = [];
+  
+  if (organizationId) {
+    sql += ' WHERE organization_id = ?';
+    params.push(organizationId);
+  }
+  
+  const [rows] = await pool.query(sql, params);
   return rows;
 }
 
 // שליפת הוצאה לפי מזהה
-export async function getExpenseById(expense_id) {
-  const sql = 'SELECT * FROM expenses WHERE expense_id = ?';
-  const [rows] = await pool.query(sql, [expense_id]);
+export async function getExpenseById(expense_id, organizationId = null) {
+  let sql = 'SELECT * FROM expenses WHERE expense_id = ?';
+  const params = [expense_id];
+  
+  if (organizationId) {
+    sql += ' AND organization_id = ?';
+    params.push(organizationId);
+  }
+  
+  const [rows] = await pool.query(sql, params);
   return rows[0];
 }
 
 // עדכון הוצאה
-export async function updateExpense(expense_id, updateData) {
+export async function updateExpense(expense_id, updateData, organizationId = null) {
   const fields = Object.keys(updateData).map(key => `${key} = ?`).join(', ');
   const values = Object.values(updateData);
-  const sql = `UPDATE expenses SET ${fields} WHERE expense_id = ?`;
-  await pool.query(sql, [...values, expense_id]);
+  let sql = `UPDATE expenses SET ${fields} WHERE expense_id = ?`;
+  const params = [...values, expense_id];
+  
+  if (organizationId) {
+    sql += ' AND organization_id = ?';
+    params.push(organizationId);
+  }
+  
+  await pool.query(sql, params);
   return { expense_id, ...updateData };
 }
 
 // מחיקת הוצאה
-export async function deleteExpense(expense_id) {
-  const sql = 'DELETE FROM expenses WHERE expense_id = ?';
-  await pool.query(sql, [expense_id]);
+export async function deleteExpense(expense_id, organizationId = null) {
+  let sql = 'DELETE FROM expenses WHERE expense_id = ?';
+  const params = [expense_id];
+  
+  if (organizationId) {
+    sql += ' AND organization_id = ?';
+    params.push(organizationId);
+  }
+  
+  await pool.query(sql, params);
   return { expense_id };
 }
