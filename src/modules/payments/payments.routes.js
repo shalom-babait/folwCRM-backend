@@ -24,6 +24,6 @@ router.delete('/deleteById/:payment_id', deletePaymentByIdController);
 // רשימת תשלומים לפי מטפל לחודש הנוכחי
 router.get('/monthly-list/:therapist_id', getTherapistMonthlyPaymentsListController);
 // שליפת תנועות כספיות משולבות לפי חודש
-router.get('/financial-transactions/:therapist_id', getFinancialTransactionsByMonthController);
+router.get('/financial-transactions/:person_id', getFinancialTransactionsByMonthController);
 
 export default router;

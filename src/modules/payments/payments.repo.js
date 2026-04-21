@@ -14,9 +14,24 @@ function toMysqlLocalDatetime(date) {
 export async function createPayment(paymentData) {
   let { appointment_id, amount, payment_date, method, status, transaction_type, person_id, therapist_id, organization_id } = paymentData;
 
-  if (!person_id) {
-    throw new Error('person_id is required');
+  // רק אם לא הגיע therapist_id, ננסה למצוא אותו לפי person_id
+  if (!therapist_id && person_id) {
+    const [therapists] = await pool.query(
+      'SELECT therapist_id FROM therapists WHERE person_id = ?',
+      [person_id]
+    );
+    
+    if (therapists.length > 0) {
+      therapist_id = therapists[0].therapist_id;
+    }
   }
+  
+  // אם זו הכנסה ישירה (יש therapist_id אבל person_id מצביע על מטפל) - נאפס את person_id
+  if (therapist_id && person_id) {
+    person_id = null;
+  }
+
+  // person_id אופציונלי - הכנסה ישירה לא חייבת להיות קשורה למטופל ספציפי
 
   const formattedDate = toMysqlLocalDatetime(payment_date);
 
@@ -223,43 +238,29 @@ export async function getTherapistMonthlyPaymentsList(therapistId, organizationI
 }
 
 /**
- * מחזיר תנועות כספיות משולבות (הכנסות + הוצאות) לפי מטפל וחודש
- * @param {number} therapistId - מזהה המטפל
+ * מחזיר תנועות כספיות משולבות (הכנסות + הוצאות) לפי person_id וחודש
+ * @param {number} personId - מזהה האדם
  * @param {number} month - מספר החודש (1-12)
  * @param {number} year - מספר השנה (YYYY)
  * @param {number} organizationId - מזהה הארגון
- * @returns {Promise<{transactions: Array, summary: {totalIncome: number, totalExpense: number}}>}
+ * @returns {Promise<{transactions: Array, summary: {totalIncome: number, totalExpense: number, balance: number}}>}
  */
-export async function getFinancialTransactionsByMonth(therapistId, month, year, organizationId) {
-  // קודם נמצא את person_id של המטפל
-  const therapistPersonSql = `
-    SELECT person_id 
-    FROM therapists 
-    WHERE therapist_id = ? AND organization_id = ?
-  `;
-  const [therapistRows] = await pool.query(therapistPersonSql, [therapistId, organizationId]);
-  
-  if (!therapistRows || therapistRows.length === 0) {
-    return {
-      transactions: [],
-      summary: { totalIncome: 0, totalExpense: 0, balance: 0 }
-    };
-  }
-  
-  const personId = therapistRows[0].person_id;
-  
-  // שליפת הכנסות (payments) - לפי person_id של המטפל
+export async function getFinancialTransactionsByMonth(personId, month, year, organizationId) {
+  // שליפת הכנסות (payments) - לפי therapist_id שמקושר ל-person_id של המטפל
   const incomesSql = `
     SELECT 
-      payment_id AS id,
+      p.payment_id AS id,
       'income' AS type,
-      amount,
-      payment_date AS date,
-      method,
-      CONCAT(per.first_name, ' ', per.last_name) AS details,
+      p.amount,
+      p.payment_date AS date,
+      p.method,
+      CASE 
+        WHEN pa.person_id IS NOT NULL THEN CONCAT(per.first_name, ' ', per.last_name)
+        ELSE 'הכנסה ישירה'
+      END AS details,
       'הכנסה מטיפול' AS category
     FROM payments p
-    LEFT JOIN therapists t ON p.therapist_id = t.therapist_id
+    JOIN therapists t ON p.therapist_id = t.therapist_id
     LEFT JOIN patients pa ON p.person_id = pa.person_id
     LEFT JOIN person per ON pa.person_id = per.person_id
     WHERE t.person_id = ?
@@ -269,7 +270,7 @@ export async function getFinancialTransactionsByMonth(therapistId, month, year, 
       AND p.status = 'paid'
   `;
   
-  // שליפת הוצאות (expenses) - רק של אותו person_id
+  // שליפת הוצאות (expenses) - לפי person_id של המטפל
   const expensesSql = `
     SELECT 
       expense_id AS id,

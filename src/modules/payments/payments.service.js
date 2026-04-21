@@ -32,6 +32,6 @@ export async function getTherapistMonthlyPaymentsListService(therapistId, organi
   return await paymentsRepo.getTherapistMonthlyPaymentsList(therapistId, organizationId);
 }
 
-export async function getFinancialTransactionsByMonthService(therapistId, month, year, organizationId) {
-  return await paymentsRepo.getFinancialTransactionsByMonth(therapistId, month, year, organizationId);
+export async function getFinancialTransactionsByMonthService(personId, month, year, organizationId) {
+  return await paymentsRepo.getFinancialTransactionsByMonth(personId, month, year, organizationId);
 }

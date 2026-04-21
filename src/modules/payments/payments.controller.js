@@ -8,7 +8,9 @@ export async function createPaymentController(req, res) {
       ...req.body,
       organization_id: organizationId
     };
+    
     const payment = await paymentsService.createPaymentService(paymentData);
+    
     res.status(201).json(payment);
   } catch (err) {
     console.error("SERVER ERROR:", err);
@@ -104,7 +106,7 @@ export async function getTherapistMonthlyPaymentsListController(req, res) {
 // --- שליפת תנועות כספיות משולבות לפי חודש ---
 export async function getFinancialTransactionsByMonthController(req, res) {
   try {
-    const therapistId = req.params.therapist_id;
+    const personId = req.params.person_id;
     const { month, year } = req.query;
     const organizationId = req.organization_id;
     
@@ -113,7 +115,7 @@ export async function getFinancialTransactionsByMonthController(req, res) {
     }
     
     const data = await paymentsService.getFinancialTransactionsByMonthService(
-      therapistId, 
+      personId, 
       parseInt(month), 
       parseInt(year), 
       organizationId
